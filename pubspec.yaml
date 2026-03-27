@@ -1,0 +1,47 @@
+name: trackie
+description: "Trackie - Seguimiento de aprendizaje personal"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  
+  # Estado
+  flutter_riverpod: ^2.6.1
+  
+  # Base de datos local
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  
+  # Gráficos
+  fl_chart: ^0.70.2
+  
+  # Media viewers
+  pdfx: ^2.8.0
+  video_player: ^2.9.3
+  chewie: ^1.10.0
+  just_audio: ^0.9.43
+  
+  # File picker
+  file_picker: ^8.1.7
+  
+  # UI utilities
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  path_provider: ^2.1.5
+  url_launcher: ^6.3.1
+  http: ^1.2.2
+  html: ^0.15.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
