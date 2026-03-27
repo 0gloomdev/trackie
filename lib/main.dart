@@ -98,19 +98,42 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isLarge = constraints.maxWidth > 900;
+        return isLarge ? _buildDesktop() : _buildMobile();
+      },
+    );
+  }
+
+  Widget _buildDesktop() {
+    return Scaffold(
+      body: Row(
+        children: [
+          _Sidebar(
+            currentIndex: _currentIndex,
+            onItemSelected: (i) => setState(() => _currentIndex = i),
+          ),
+          Expanded(
+            child: IndexedStack(index: _currentIndex, children: _screens),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobile() {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
       extendBody: true,
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+          color: const Color(0xFF0F1930).withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.15),
+              color: const Color(0xFFB79FFF).withValues(alpha: 0.15),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -124,31 +147,177 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             height: 70,
-            indicatorColor: Theme.of(context).colorScheme.primaryContainer,
+            indicatorColor: const Color(0xFFB79FFF).withValues(alpha: 0.2),
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             destinations: const [
               NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
-                label: 'Inicio',
+                icon: Icon(Icons.dashboard_outlined, color: Colors.white54),
+                selectedIcon: Icon(Icons.dashboard, color: Color(0xFFB79FFF)),
+                label: 'Panel',
               ),
               NavigationDestination(
-                icon: Icon(Icons.library_books_outlined),
-                selectedIcon: Icon(Icons.library_books),
+                icon: Icon(Icons.local_library_outlined, color: Colors.white54),
+                selectedIcon: Icon(
+                  Icons.local_library,
+                  color: Color(0xFFB79FFF),
+                ),
                 label: 'Biblioteca',
               ),
               NavigationDestination(
-                icon: Icon(Icons.bar_chart_outlined),
-                selectedIcon: Icon(Icons.bar_chart),
+                icon: Icon(Icons.bar_chart_outlined, color: Colors.white54),
+                selectedIcon: Icon(Icons.bar_chart, color: Color(0xFFB79FFF)),
                 label: 'Stats',
               ),
               NavigationDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings),
+                icon: Icon(Icons.settings_outlined, color: Colors.white54),
+                selectedIcon: Icon(Icons.settings, color: Color(0xFFB79FFF)),
                 label: 'Ajustes',
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Sidebar extends StatelessWidget {
+  final int currentIndex;
+  final Function(int) onItemSelected;
+  const _Sidebar({required this.currentIndex, required this.onItemSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 260,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F1930).withValues(alpha: 0.95),
+        border: Border(
+          right: BorderSide(
+            color: const Color(0xFFB79FFF).withValues(alpha: 0.1),
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShaderMask(
+                  shaderCallback: (b) => const LinearGradient(
+                    colors: [Color(0xFFB79FFF), Color(0xFF62FAE3)],
+                  ).createShader(b),
+                  child: const Text(
+                    'Trackie',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'GESTIÓN DE APRENDIZAJE',
+                  style: TextStyle(
+                    fontSize: 10,
+                    letterSpacing: 2,
+                    color: Colors.white54,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 40),
+          _SidebarItem(
+            icon: Icons.dashboard,
+            label: 'Panel',
+            isSelected: currentIndex == 0,
+            onTap: () => onItemSelected(0),
+          ),
+          _SidebarItem(
+            icon: Icons.local_library,
+            label: 'Biblioteca',
+            isSelected: currentIndex == 1,
+            onTap: () => onItemSelected(1),
+          ),
+          _SidebarItem(
+            icon: Icons.bar_chart,
+            label: 'Estadísticas',
+            isSelected: currentIndex == 2,
+            onTap: () => onItemSelected(2),
+          ),
+          _SidebarItem(
+            icon: Icons.settings,
+            label: 'Ajustes',
+            isSelected: currentIndex == 3,
+            onTap: () => onItemSelected(3),
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: _SidebarItem(
+              icon: Icons.help_outline,
+              label: 'Ayuda',
+              isSelected: false,
+              onTap: () {},
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SidebarItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  const _SidebarItem({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFFB79FFF).withValues(alpha: 0.1)
+              : Colors.transparent,
+          border: isSelected
+              ? const Border(
+                  right: BorderSide(color: Color(0xFFB79FFF), width: 3),
+                )
+              : null,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? const Color(0xFFB79FFF) : Colors.white54,
+              size: 22,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? const Color(0xFFB79FFF) : Colors.white54,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       ),
     );
