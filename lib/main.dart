@@ -3,14 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'core/theme/app_theme.dart';
-import 'core/constants/app_constants.dart';
-import 'data/models/models.dart';
+import 'core/theme/app_glass.dart';
 import 'data/repositories/repositories.dart';
 import 'domain/providers/providers.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/library/library_screen.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
-import 'presentation/screens/detail/item_detail_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -129,48 +127,73 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F1930).withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(28),
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(24.0),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFB79FFF).withValues(alpha: 0.15),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.15),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(24.0),
           child: NavigationBar(
             selectedIndex: _currentIndex,
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             backgroundColor: Colors.transparent,
             elevation: 0,
             height: 70,
-            indicatorColor: const Color(0xFFB79FFF).withValues(alpha: 0.2),
+            indicatorColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.2),
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            destinations: const [
+            destinations: [
               NavigationDestination(
-                icon: Icon(Icons.dashboard_outlined, color: Colors.white54),
-                selectedIcon: Icon(Icons.dashboard, color: Color(0xFFB79FFF)),
+                icon: Icon(
+                  Icons.dashboard_outlined,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                selectedIcon: Icon(
+                  Icons.dashboard,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 label: 'Panel',
               ),
               NavigationDestination(
-                icon: Icon(Icons.local_library_outlined, color: Colors.white54),
+                icon: Icon(
+                  Icons.local_library_outlined,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 selectedIcon: Icon(
                   Icons.local_library,
-                  color: Color(0xFFB79FFF),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 label: 'Biblioteca',
               ),
               NavigationDestination(
-                icon: Icon(Icons.bar_chart_outlined, color: Colors.white54),
-                selectedIcon: Icon(Icons.bar_chart, color: Color(0xFFB79FFF)),
+                icon: Icon(
+                  Icons.bar_chart_outlined,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                selectedIcon: Icon(
+                  Icons.bar_chart,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 label: 'Stats',
               ),
               NavigationDestination(
-                icon: Icon(Icons.settings_outlined, color: Colors.white54),
-                selectedIcon: Icon(Icons.settings, color: Color(0xFFB79FFF)),
+                icon: Icon(
+                  Icons.settings_outlined,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                selectedIcon: Icon(
+                  Icons.settings,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 label: 'Ajustes',
               ),
             ],
@@ -188,14 +211,14 @@ class _Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
       width: 260,
       decoration: BoxDecoration(
-        color: const Color(0xFF0F1930).withValues(alpha: 0.95),
+        color: cs.surface.withValues(alpha: 0.95),
         border: Border(
-          right: BorderSide(
-            color: const Color(0xFFB79FFF).withValues(alpha: 0.1),
-          ),
+          right: BorderSide(color: cs.primary.withValues(alpha: 0.1)),
         ),
       ),
       child: Column(
@@ -207,8 +230,8 @@ class _Sidebar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ShaderMask(
-                  shaderCallback: (b) => const LinearGradient(
-                    colors: [Color(0xFFB79FFF), Color(0xFF62FAE3)],
+                  shaderCallback: (b) => LinearGradient(
+                    colors: [cs.primary, cs.secondary],
                   ).createShader(b),
                   child: const Text(
                     'Trackie',
@@ -220,12 +243,12 @@ class _Sidebar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'GESTIÓN DE APRENDIZAJE',
                   style: TextStyle(
                     fontSize: 10,
                     letterSpacing: 2,
-                    color: Colors.white54,
+                    color: cs.onSurfaceVariant,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -293,1046 +316,30 @@ class _SidebarItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFFB79FFF).withValues(alpha: 0.1)
+              ? context.primary.withValues(alpha: 0.1)
               : Colors.transparent,
           border: isSelected
-              ? const Border(
-                  right: BorderSide(color: Color(0xFFB79FFF), width: 3),
-                )
+              ? Border(right: BorderSide(color: context.primary, width: 3))
               : null,
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFFB79FFF) : Colors.white54,
+              color: isSelected ? context.primary : context.onSurfaceVariant,
               size: 22,
             ),
             const SizedBox(width: 16),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? const Color(0xFFB79FFF) : Colors.white54,
+                color: isSelected ? context.primary : context.onSurfaceVariant,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 fontSize: 14,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class LibraryTab extends ConsumerStatefulWidget {
-  const LibraryTab({super.key});
-
-  @override
-  ConsumerState<LibraryTab> createState() => _LibraryTabState();
-}
-
-class _LibraryTabState extends ConsumerState<LibraryTab> {
-  bool _isSearchExpanded = false;
-  bool _isFilterExpanded = false;
-  bool _isSelectionMode = false;
-  final Set<String> _selectedItems = {};
-  final _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final items = ref.watch(advancedFilteredItemsProvider);
-    final filter = ref.watch(filterProvider);
-
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar.large(
-            title: _isSearchExpanded
-                ? TextField(
-                    controller: _searchController,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: 'Buscar en biblioteca...',
-                      border: InputBorder.none,
-                      filled: false,
-                    ),
-                    onChanged: (v) =>
-                        ref.read(searchProvider.notifier).state = v,
-                  )
-                : Text(
-                    _isSelectionMode
-                        ? '${_selectedItems.length} seleccionados'
-                        : 'Biblioteca',
-                  ),
-            actions: [
-              if (_isSelectionMode) ...[
-                IconButton(
-                  icon: Icon(
-                    _selectedItems.length == items.length
-                        ? Icons.deselect
-                        : Icons.select_all,
-                  ),
-                  onPressed: () {
-                    if (_selectedItems.length == items.length) {
-                      _selectedItems.clear();
-                    } else {
-                      _selectedItems.addAll(items.map((e) => e.id));
-                    }
-                    setState(() {});
-                  },
-                ),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (v) => _handleBulkAction(v),
-                  itemBuilder: (ctx) => [
-                    const PopupMenuItem(
-                      value: 'favorite',
-                      child: Row(
-                        children: [
-                          Icon(Icons.favorite_border),
-                          SizedBox(width: 8),
-                          Text('Agregar a favoritos'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'complete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.check_circle),
-                          SizedBox(width: 8),
-                          Text('Marcar completados'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'pending',
-                      child: Row(
-                        children: [
-                          Icon(Icons.pending),
-                          SizedBox(width: 8),
-                          Text('Marcar pendientes'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Eliminar', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    setState(() {
-                      _isSelectionMode = false;
-                      _selectedItems.clear();
-                    });
-                  },
-                ),
-              ] else ...[
-                IconButton(
-                  icon: Icon(_isSearchExpanded ? Icons.close : Icons.search),
-                  onPressed: () {
-                    setState(() {
-                      _isSearchExpanded = !_isSearchExpanded;
-                      if (!_isSearchExpanded) {
-                        _searchController.clear();
-                        ref.read(searchProvider.notifier).state = '';
-                      }
-                    });
-                  },
-                ),
-                IconButton(
-                  icon: Badge(
-                    isLabelVisible:
-                        filter.type != null ||
-                        filter.status != null ||
-                        filter.showFavoritesOnly,
-                    child: Icon(
-                      _isFilterExpanded
-                          ? Icons.filter_list_off
-                          : Icons.filter_list,
-                    ),
-                  ),
-                  onPressed: () =>
-                      setState(() => _isFilterExpanded = !_isFilterExpanded),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.view_module),
-                  onPressed: () => _showSortOptions(context, ref),
-                ),
-              ],
-            ],
-          ),
-          if (_isFilterExpanded)
-            SliverToBoxAdapter(child: _AdvancedFilters(filter: filter)),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 50,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _FilterChip(
-                    label: 'Todos',
-                    selected: filter.type == null,
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.copyWith(clearType: true),
-                  ),
-                  const SizedBox(width: 8),
-                  ...AppConstants.contentTypes
-                      .take(6)
-                      .map(
-                        (t) => Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: _FilterChip(
-                            label: t.name,
-                            selected: filter.type == t.id,
-                            color: Color(t.color),
-                            onTap: () =>
-                                ref.read(filterProvider.notifier).state = filter
-                                    .copyWith(type: t.id),
-                          ),
-                        ),
-                      ),
-                ],
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 40,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _StatusChip(
-                    label: 'Pendientes',
-                    selected: filter.status == 'pending',
-                    color: const Color(0xFF9E9E9E),
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.status == 'pending'
-                        ? filter.copyWith(clearStatus: true)
-                        : filter.copyWith(status: 'pending'),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'En progreso',
-                    selected: filter.status == 'in_progress',
-                    color: const Color(0xFFFF9800),
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.status == 'in_progress'
-                        ? filter.copyWith(clearStatus: true)
-                        : filter.copyWith(status: 'in_progress'),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'Completados',
-                    selected: filter.status == 'completed',
-                    color: const Color(0xFF4CAF50),
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.status == 'completed'
-                        ? filter.copyWith(clearStatus: true)
-                        : filter.copyWith(status: 'completed'),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'Favoritos',
-                    selected: filter.showFavoritesOnly,
-                    color: Colors.red,
-                    icon: Icons.favorite,
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.copyWith(
-                          showFavoritesOnly: !filter.showFavoritesOnly,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
-          items.isEmpty
-              ? SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.library_books_outlined,
-                          size: 80,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.5),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No hay elementos',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Agrega tu primer contenido',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : SliverPadding(
-                  padding: const EdgeInsets.all(16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final item = items[index];
-                      final isSelected = _selectedItems.contains(item.id);
-                      return _LibraryItemCard(
-                        item: item,
-                        isSelected: isSelected,
-                        isSelectionMode: _isSelectionMode,
-                        onTap: () {
-                          if (_isSelectionMode) {
-                            setState(() {
-                              if (isSelected)
-                                _selectedItems.remove(item.id);
-                              else
-                                _selectedItems.add(item.id);
-                            });
-                          } else {
-                            ref
-                                .read(learningItemsProvider.notifier)
-                                .updateLastAccessed(item.id);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ItemDetailScreen(itemId: item.id),
-                              ),
-                            );
-                          }
-                        },
-                        onLongPress: () {
-                          if (!_isSelectionMode) {
-                            setState(() {
-                              _isSelectionMode = true;
-                              _selectedItems.add(item.id);
-                            });
-                          }
-                        },
-                        onTogglePin: () => ref
-                            .read(learningItemsProvider.notifier)
-                            .togglePinned(item.id),
-                        onToggleFavorite: () => ref
-                            .read(learningItemsProvider.notifier)
-                            .toggleFavorite(item.id),
-                        onDuplicate: () => ref
-                            .read(learningItemsProvider.notifier)
-                            .duplicateItem(item.id),
-                        onDelete: () => ref
-                            .read(learningItemsProvider.notifier)
-                            .delete(item.id),
-                      );
-                    }, childCount: items.length),
-                  ),
-                ),
-        ],
-      ),
-    );
-  }
-
-  void _handleBulkAction(String action) {
-    final ids = _selectedItems.toList();
-    switch (action) {
-      case 'favorite':
-        ref.read(learningItemsProvider.notifier).bulkToggleFavorite(ids);
-        break;
-      case 'complete':
-        ref
-            .read(learningItemsProvider.notifier)
-            .bulkUpdateStatus(ids, 'completed');
-        break;
-      case 'pending':
-        ref
-            .read(learningItemsProvider.notifier)
-            .bulkUpdateStatus(ids, 'pending');
-        break;
-      case 'delete':
-        ref.read(learningItemsProvider.notifier).bulkDelete(ids);
-        break;
-    }
-    setState(() {
-      _isSelectionMode = false;
-      _selectedItems.clear();
-    });
-  }
-
-  void _showSortOptions(BuildContext context, WidgetRef ref) {
-    final filter = ref.read(filterProvider);
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Ordenar por', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            _SortOption(
-              title: 'Fecha de actualización',
-              icon: Icons.update,
-              isSelected: filter.sortBy == 'updatedAt',
-              ascending: filter.sortAscending,
-              onTap: () {
-                ref.read(filterProvider.notifier).state = filter.copyWith(
-                  sortBy: 'updatedAt',
-                  sortAscending: false,
-                );
-                Navigator.pop(ctx);
-              },
-            ),
-            _SortOption(
-              title: 'Fecha de creación',
-              icon: Icons.calendar_today,
-              isSelected: filter.sortBy == 'createdAt',
-              ascending: filter.sortAscending,
-              onTap: () {
-                ref.read(filterProvider.notifier).state = filter.copyWith(
-                  sortBy: 'createdAt',
-                  sortAscending: false,
-                );
-                Navigator.pop(ctx);
-              },
-            ),
-            _SortOption(
-              title: 'Título',
-              icon: Icons.sort_by_alpha,
-              isSelected: filter.sortBy == 'title',
-              ascending: filter.sortAscending,
-              onTap: () {
-                ref.read(filterProvider.notifier).state = filter.copyWith(
-                  sortBy: 'title',
-                  sortAscending: true,
-                );
-                Navigator.pop(ctx);
-              },
-            ),
-            _SortOption(
-              title: 'Progreso',
-              icon: Icons.trending_up,
-              isSelected: filter.sortBy == 'progress',
-              ascending: filter.sortAscending,
-              onTap: () {
-                ref.read(filterProvider.notifier).state = filter.copyWith(
-                  sortBy: 'progress',
-                  sortAscending: false,
-                );
-                Navigator.pop(ctx);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AdvancedFilters extends ConsumerWidget {
-  final FilterState filter;
-  const _AdvancedFilters({required this.filter});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Filtros avanzados',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _PriorityFilterChip(
-                label: 'Alta prioridad',
-                selected: filter.priority == 'high',
-                color: const Color(0xFFF44336),
-                onTap: () =>
-                    ref.read(filterProvider.notifier).state = filter.copyWith(
-                      priority: filter.priority == 'high' ? null : 'high',
-                    ),
-              ),
-              _PriorityFilterChip(
-                label: 'Media prioridad',
-                selected: filter.priority == 'medium',
-                color: const Color(0xFFFF9800),
-                onTap: () =>
-                    ref.read(filterProvider.notifier).state = filter.copyWith(
-                      priority: filter.priority == 'medium' ? null : 'medium',
-                    ),
-              ),
-              _PriorityFilterChip(
-                label: 'Baja prioridad',
-                selected: filter.priority == 'low',
-                color: const Color(0xFF4CAF50),
-                onTap: () =>
-                    ref.read(filterProvider.notifier).state = filter.copyWith(
-                      priority: filter.priority == 'low' ? null : 'low',
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.clear_all, size: 18),
-                  label: const Text('Limpiar'),
-                  onPressed: () => ref.read(filterProvider.notifier).state =
-                      const FilterState(),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PriorityFilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final Color color;
-  final VoidCallback onTap;
-  const _PriorityFilterChip({
-    required this.label,
-    required this.selected,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? color.withValues(alpha: 0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: selected ? color : Colors.grey),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: selected ? color : Colors.grey,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SortOption extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final bool isSelected;
-  final bool ascending;
-  final VoidCallback onTap;
-  const _SortOption({
-    required this.title,
-    required this.icon,
-    required this.isSelected,
-    required this.ascending,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isSelected ? Theme.of(context).colorScheme.primary : null,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isSelected ? Theme.of(context).colorScheme.primary : null,
-        ),
-      ),
-      trailing: isSelected
-          ? Icon(
-              ascending ? Icons.arrow_upward : Icons.arrow_downward,
-              size: 18,
-              color: Theme.of(context).colorScheme.primary,
-            )
-          : null,
-      onTap: onTap,
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final Color color;
-  final IconData? icon;
-  final VoidCallback onTap;
-  const _StatusChip({
-    required this.label,
-    required this.selected,
-    required this.color,
-    this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected
-              ? color.withValues(alpha: 0.2)
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-          border: selected ? Border.all(color: color) : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 14,
-                color: selected
-                    ? color
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: selected
-                    ? color
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final Color? color;
-  final VoidCallback onTap;
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final chipColor = color ?? Theme.of(context).colorScheme.primary;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected
-              ? chipColor
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected
-                ? Colors.white
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LibraryItemCard extends StatelessWidget {
-  final LearningItem item;
-  final bool isSelected;
-  final bool isSelectionMode;
-  final VoidCallback onTap;
-  final VoidCallback onLongPress;
-  final VoidCallback onTogglePin;
-  final VoidCallback onToggleFavorite;
-  final VoidCallback onDuplicate;
-  final VoidCallback onDelete;
-  const _LibraryItemCard({
-    required this.item,
-    required this.isSelected,
-    required this.isSelectionMode,
-    required this.onTap,
-    required this.onLongPress,
-    required this.onTogglePin,
-    required this.onToggleFavorite,
-    required this.onDuplicate,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final typeData = AppConstants.contentTypes.firstWhere(
-      (t) => t.id == item.type,
-      orElse: () => AppConstants.contentTypes.first,
-    );
-    final color = Color(typeData.color);
-    final statusData = AppConstants.statuses.firstWhere(
-      (s) => s.id == item.status,
-      orElse: () => AppConstants.statuses.first,
-    );
-
-    return GestureDetector(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withValues(alpha: 0.5)
-              : Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(20),
-          border: isSelected
-              ? Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
-                )
-              : null,
-        ),
-        child: Row(
-          children: [
-            if (isSelectionMode)
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.transparent,
-                    border: Border.all(
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey,
-                      width: 2,
-                    ),
-                  ),
-                  child: isSelected
-                      ? const Icon(Icons.check, size: 16, color: Colors.white)
-                      : null,
-                ),
-              ),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(_getIcon(item.type), color: color),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                      if (item.isPinned)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 4),
-                          child: Icon(
-                            Icons.push_pin,
-                            size: 14,
-                            color: Colors.amber,
-                          ),
-                        ),
-                      if (item.isFavorite)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 4),
-                          child: Icon(
-                            Icons.favorite,
-                            size: 14,
-                            color: Colors.red,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Color(statusData.color).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          statusData.name,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Color(statusData.color),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${item.progress}%',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            if (!isSelectionMode)
-              PopupMenuButton<String>(
-                icon: Icon(
-                  Icons.more_vert,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                onSelected: (v) {
-                  switch (v) {
-                    case 'pin':
-                      onTogglePin();
-                      break;
-                    case 'favorite':
-                      onToggleFavorite();
-                      break;
-                    case 'duplicate':
-                      onDuplicate();
-                      break;
-                    case 'delete':
-                      onDelete();
-                      break;
-                  }
-                },
-                itemBuilder: (ctx) => [
-                  PopupMenuItem(
-                    value: 'pin',
-                    child: Row(
-                      children: [
-                        Icon(
-                          item.isPinned
-                              ? Icons.push_pin_outlined
-                              : Icons.push_pin,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(item.isPinned ? 'Desfijar' : 'Fijar'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'favorite',
-                    child: Row(
-                      children: [
-                        Icon(
-                          item.isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          item.isFavorite
-                              ? 'Quitar favorito'
-                              : 'Agregar a favoritos',
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'duplicate',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.copy, size: 20),
-                        const SizedBox(width: 8),
-                        const Text('Duplicar'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete, size: 20, color: Colors.red),
-                        SizedBox(width: 8),
-                        Text('Eliminar', style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'course':
-        return Icons.play_circle;
-      case 'book':
-        return Icons.menu_book;
-      case 'pdf':
-        return Icons.picture_as_pdf;
-      case 'video':
-        return Icons.video_library;
-      case 'audio':
-        return Icons.headphones;
-      case 'article':
-        return Icons.article;
-      case 'link':
-        return Icons.link;
-      default:
-        return Icons.library_books;
-    }
-  }
-}
-
-class _ItemCard extends StatelessWidget {
-  final dynamic item;
-  const _ItemCard({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              Icons.play_circle,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: item.progress / 100,
-                    minHeight: 6,
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '${item.progress}%',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1346,88 +353,353 @@ class StatsTab extends ConsumerWidget {
     final stats = ref.watch(statisticsProvider);
     final items = ref.watch(learningItemsProvider);
     final byType = stats['byType'] as Map<String, int>;
+    final total = items.length;
+    final completed = stats['completed'] as int;
+    final inProgress = stats['inProgress'] as int;
+    final pending = stats['pending'] as int;
+    final completionRate = total > 0 ? (completed / total * 100).round() : 0;
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          const SliverAppBar.large(title: Text('Estadísticas')),
+          // App Bar
+          SliverAppBar(
+            floating: true,
+            pinned: true,
+            expandedHeight: 100,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surface.withValues(alpha: 0.9),
+            flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsets.only(left: 24, bottom: 16),
+              title: ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.secondary,
+                  ],
+                ).createShader(bounds),
+                child: const Text(
+                  'ESTADÍSTICAS',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           SliverPadding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                Row(
-                  children: [
-                    _StatCard(
-                      title: 'Total',
-                      value: '${stats['total']}',
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      title: 'Completados',
-                      value: '${stats['completed']}',
-                      color: Colors.green,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _StatCard(
-                      title: 'En progreso',
-                      value: '${stats['inProgress']}',
-                      color: Colors.orange,
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      title: 'Por hacer',
-                      value: '${stats['pending']}',
-                      color: Colors.grey,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Por tipo',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
                 if (items.isEmpty)
-                  Center(
-                    child: Text(
-                      'Sin datos aún',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  _EmptyStats()
+                else ...[
+                  // Hero Stats
+                  _StatsHeroSection(
+                    completionRate: completionRate,
+                    total: total,
+                    completed: completed,
+                    inProgress: inProgress,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Distribution by Type
+                  _SectionLabel(label: 'DISTRIBUCIÓN POR TIPO'),
+                  const SizedBox(height: 12),
+                  ...byType.entries.map((e) {
+                    final typeColor = _getTypeColor(context, e.key);
+                    final percentage = total > 0
+                        ? (e.value / total * 100).round()
+                        : 0;
+                    return _TypeDistributionBar(
+                      type: e.key,
+                      count: e.value,
+                      percentage: percentage,
+                      color: typeColor,
+                    );
+                  }),
+
+                  const SizedBox(height: 24),
+
+                  // Status Distribution
+                  _SectionLabel(label: 'DISTRIBUCIÓN POR ESTADO'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatusCard(
+                          label: 'Completados',
+                          value: '$completed',
+                          color: AppColors.secondary,
+                          icon: Icons.check_circle,
+                        ),
                       ),
-                    ),
-                  )
-                else
-                  ...byType.entries.map(
-                    (e) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(child: Text(e.key.toUpperCase())),
-                          Text(
-                            '${e.value}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _StatusCard(
+                          label: 'En Progreso',
+                          value: '$inProgress',
+                          color: AppColors.tertiary,
+                          icon: Icons.play_circle,
+                        ),
                       ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _StatusCard(
+                          label: 'Pendientes',
+                          value: '$pending',
+                          color: AppColors.onSurfaceVariant,
+                          icon: Icons.schedule,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+
+                const SizedBox(height: 100),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getTypeColor(BuildContext context, String type) {
+    final tc = context.themeColors;
+    switch (type) {
+      case 'course':
+        return tc.primary;
+      case 'book':
+        return const Color(0xFF8B4513);
+      case 'pdf':
+        return const Color(0xFFE53935);
+      case 'video':
+        return const Color(0xFFFF5722);
+      case 'audio':
+        return tc.secondary;
+      case 'article':
+        return const Color(0xFF9C27B0);
+      default:
+        return tc.primaryContainer;
+    }
+  }
+}
+
+class _StatsHeroSection extends StatelessWidget {
+  final int completionRate;
+  final int total;
+  final int completed;
+  final int inProgress;
+
+  const _StatsHeroSection({
+    required this.completionRate,
+    required this.total,
+    required this.completed,
+    required this.inProgress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.15),
+            AppColors.secondary.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'TASA DE COMPLETADO',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                '$completionRate%',
+                style: const TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: completionRate / 100,
+              minHeight: 10,
+              backgroundColor: AppColors.surfaceContainerHighest,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _HeroStat(
+                label: 'Total',
+                value: '$total',
+                color: AppColors.onSurface,
+              ),
+              Container(width: 1, height: 30, color: AppColors.outlineVariant),
+              _HeroStat(
+                label: 'Completados',
+                value: '$completed',
+                color: AppColors.secondary,
+              ),
+              Container(width: 1, height: 30, color: AppColors.outlineVariant),
+              _HeroStat(
+                label: 'En Progreso',
+                value: '$inProgress',
+                color: AppColors.tertiary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _HeroStat({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.5,
+        color: context.onSurfaceVariant,
+      ),
+    );
+  }
+}
+
+class _TypeDistributionBar extends StatelessWidget {
+  final String type;
+  final int count;
+  final int percentage;
+  final Color color;
+
+  const _TypeDistributionBar({
+    required this.type,
+    required this.count,
+    required this.percentage,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.outlineVariant.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ),
-              ]),
+                  const SizedBox(width: 10),
+                  Text(
+                    type.toUpperCase(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '$count ($percentage%)',
+                style: TextStyle(fontWeight: FontWeight.bold, color: color),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: percentage / 100,
+              minHeight: 6,
+              backgroundColor: context.surfaceContainerHighest,
+              color: color,
             ),
           ),
         ],
@@ -1436,54 +708,96 @@ class StatsTab extends ConsumerWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String title;
+class _StatusCard extends StatelessWidget {
+  final String label;
   final String value;
   final Color color;
+  final IconData icon;
 
-  const _StatCard({
-    required this.title,
+  const _StatusCard({
+    required this.label,
     required this.value,
     required this.color,
+    required this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              color.withValues(alpha: 0.2),
-              color.withValues(alpha: 0.05),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
           ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.analytics, color: color, size: 28),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 10, color: context.onSurfaceVariant),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyStats extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
             ),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            child: const Icon(
+              Icons.bar_chart,
+              size: 40,
+              color: AppColors.primary,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Sin datos aún',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Agrega elementos a tu biblioteca\npara ver estadísticas',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.onSurfaceVariant,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -1499,72 +813,254 @@ class SettingsTab extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          const SliverAppBar.large(title: Text('Ajustes')),
+          // App Bar
+          SliverAppBar(
+            floating: true,
+            pinned: true,
+            expandedHeight: 100,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surface.withValues(alpha: 0.9),
+            flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsets.only(left: 24, bottom: 16),
+              title: ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.secondary,
+                  ],
+                ).createShader(bounds),
+                child: const Text(
+                  'AJUSTES',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           SliverPadding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _SettingsSection(
-                  title: 'Apariencia',
+                // Profile Section
+                _ProfileHeader(),
+
+                const SizedBox(height: 24),
+
+                // Appearance
+                _SectionLabel(label: 'APARIENCIA'),
+                const SizedBox(height: 12),
+                _SettingsList(
                   children: [
-                    _SettingsTile(
-                      icon: Icons.palette,
-                      title: 'Tema',
-                      subtitle: settings.theme == 'system'
-                          ? 'Sistema'
-                          : settings.theme == 'light'
-                          ? 'Claro'
-                          : 'Oscuro',
-                      onTap: () {},
-                    ),
-                    _SettingsTile(
-                      icon: Icons.view_module,
-                      title: 'Vista',
-                      subtitle: settings.defaultView == 'grid'
-                          ? 'Cuadrícula'
-                          : 'Lista',
-                      onTap: () {},
-                    ),
+                    _ThemeSelector(currentTheme: settings.theme, ref: ref),
+                    _ViewSelector(currentView: settings.defaultView, ref: ref),
                   ],
                 ),
+
                 const SizedBox(height: 24),
-                _SettingsSection(
-                  title: 'Datos',
+
+                // Data
+                _SectionLabel(label: 'DATOS'),
+                const SizedBox(height: 12),
+                _SettingsList(
                   children: [
                     _SettingsTile(
                       icon: Icons.download,
                       title: 'Exportar datos',
                       subtitle: 'Descargar como JSON',
-                      onTap: () {},
+                      color: AppColors.secondary,
+                      onTap: () => _exportData(ref),
                     ),
                     _SettingsTile(
-                      icon: Icons.delete,
-                      title: 'Borrar datos',
-                      subtitle: 'Eliminar todo',
-                      onTap: () {},
-                      isDestructive: true,
+                      icon: Icons.upload,
+                      title: 'Importar datos',
+                      subtitle: 'Cargar desde JSON',
+                      color: AppColors.primary,
+                      onTap: () => _importData(ref),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.delete_outline,
+                      title: 'Borrar todos los datos',
+                      subtitle: 'Eliminar permanentemente',
+                      color: AppColors.error,
+                      onTap: () => _showDeleteConfirmation(context, ref),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 24),
-                _SettingsSection(
-                  title: 'Acerca de',
+
+                // About
+                _SectionLabel(label: 'ACERCA DE'),
+                const SizedBox(height: 12),
+                _SettingsList(
                   children: [
-                    _SettingsTile(
-                      icon: Icons.info,
-                      title: 'Versión',
-                      subtitle: '1.0.0',
-                      onTap: () {},
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final tapCount = ref.watch(versionTapProvider);
+                        return GestureDetector(
+                          onTap: () {
+                            ref
+                                .read(versionTapProvider.notifier)
+                                .update((state) => state + 1);
+                            if (ref.read(versionTapProvider) >= 5) {
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .completeOnboarding();
+                              ref
+                                  .read(versionTapProvider.notifier)
+                                  .update((state) => 0);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Modo desarrollador activado'),
+                                ),
+                              );
+                            }
+                          },
+                          child: _SettingsTile(
+                            icon: Icons.info_outline,
+                            title: 'Versión',
+                            subtitle: '1.0.0',
+                            color: AppColors.onSurfaceVariant,
+                            onTap: () {},
+                          ),
+                        );
+                      },
                     ),
                     _SettingsTile(
                       icon: Icons.code,
                       title: 'Código fuente',
                       subtitle: 'GitHub',
+                      color: AppColors.onSurfaceVariant,
+                      onTap: () {},
+                    ),
+                    _SettingsTile(
+                      icon: Icons.help_outline,
+                      title: 'Ayuda',
+                      subtitle: 'Guía de uso',
+                      color: AppColors.onSurfaceVariant,
                       onTap: () {},
                     ),
                   ],
                 ),
+
+                const SizedBox(height: 100),
               ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _exportData(WidgetRef ref) {
+    // Export implementation
+  }
+
+  void _importData(WidgetRef ref) {
+    // Import implementation
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Borrar todos los datos'),
+        content: const Text('¿Estás seguro? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              // Delete all items
+              final items = ref.read(learningItemsProvider);
+              for (final item in items) {
+                ref.read(learningItemsProvider.notifier).delete(item.id);
+              }
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Todos los datos eliminados')),
+              );
+            },
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Borrar'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.1),
+            AppColors.secondary.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+              ),
+            ),
+            child: const Icon(Icons.person, color: AppColors.primary, size: 30),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Usuario',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.onSurface,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Aprendiz de Trackie',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerHighest.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.edit,
+              color: AppColors.onSurfaceVariant,
+              size: 18,
             ),
           ),
         ],
@@ -1573,35 +1069,21 @@ class SettingsTab extends ConsumerWidget {
   }
 }
 
-class _SettingsSection extends StatelessWidget {
-  final String title;
+class _SettingsList extends StatelessWidget {
   final List<Widget> children;
-
-  const _SettingsSection({required this.title, required this.children});
+  const _SettingsList({required this.children});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.glassBorder.withValues(alpha: 0.08),
         ),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(children: children),
-        ),
-      ],
+      ),
+      child: Column(children: children),
     );
   }
 }
@@ -1610,38 +1092,191 @@ class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final Color color;
   final VoidCallback onTap;
-  final bool isDestructive;
 
   const _SettingsTile({
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.color,
     required this.onTap,
-    this.isDestructive = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive
-        ? Colors.red
-        : Theme.of(context).colorScheme.primary;
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, color: color),
+        child: Icon(icon, color: color, size: 20),
       ),
       title: Text(
         title,
-        style: TextStyle(color: isDestructive ? Colors.red : null),
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: AppColors.onSurface,
+        ),
       ),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+      ),
+      trailing: const Icon(
+        Icons.chevron_right,
+        color: AppColors.onSurfaceVariant,
+        size: 20,
+      ),
       onTap: onTap,
+    );
+  }
+}
+
+class _ThemeSelector extends StatelessWidget {
+  final String currentTheme;
+  final WidgetRef ref;
+
+  const _ThemeSelector({required this.currentTheme, required this.ref});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(Icons.palette, color: AppColors.primary, size: 20),
+      ),
+      title: const Text(
+        'Tema',
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: AppColors.onSurface,
+        ),
+      ),
+      subtitle: Row(
+        children: [
+          _ThemeOption(
+            label: 'Sistema',
+            isSelected: currentTheme == 'system',
+            onTap: () => ref.read(settingsProvider.notifier).setTheme('system'),
+          ),
+          const SizedBox(width: 8),
+          _ThemeOption(
+            label: 'Claro',
+            isSelected: currentTheme == 'light',
+            onTap: () => ref.read(settingsProvider.notifier).setTheme('light'),
+          ),
+          const SizedBox(width: 8),
+          _ThemeOption(
+            label: 'Oscuro',
+            isSelected: currentTheme == 'dark',
+            onTap: () => ref.read(settingsProvider.notifier).setTheme('dark'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeOption({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.outlineVariant,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ViewSelector extends StatelessWidget {
+  final String currentView;
+  final WidgetRef ref;
+
+  const _ViewSelector({required this.currentView, required this.ref});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.secondary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(
+          Icons.view_module,
+          color: AppColors.secondary,
+          size: 20,
+        ),
+      ),
+      title: const Text(
+        'Vista predeterminada',
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: AppColors.onSurface,
+        ),
+      ),
+      subtitle: Row(
+        children: [
+          _ThemeOption(
+            label: 'Cuadrícula',
+            isSelected: currentView == 'grid',
+            onTap: () =>
+                ref.read(settingsProvider.notifier).setDefaultView('grid'),
+          ),
+          const SizedBox(width: 8),
+          _ThemeOption(
+            label: 'Lista',
+            isSelected: currentView == 'list',
+            onTap: () =>
+                ref.read(settingsProvider.notifier).setDefaultView('list'),
+          ),
+        ],
+      ),
     );
   }
 }

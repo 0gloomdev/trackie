@@ -377,6 +377,7 @@ final recentItemsProvider = Provider<List<LearningItem>>((ref) {
 });
 
 final searchProvider = StateProvider<String>((ref) => '');
+final versionTapProvider = StateProvider<int>((ref) => 0);
 
 final advancedFilteredItemsProvider = Provider<List<LearningItem>>((ref) {
   final items = ref.watch(learningItemsProvider);

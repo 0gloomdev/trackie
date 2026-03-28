@@ -1,0 +1,23 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "flutter: run",
+            "type": "shell",
+            "command": "flutter run -d linux",
+            "problemMatcher": []
+        },
+        {
+            "label": "flutter: build linux",
+            "type": "shell",
+            "command": "flutter build linux",
+            "problemMatcher": []
+        },
+        {
+            "label": "flutter: test",
+            "type": "shell",
+            "command": "flutter test",
+            "problemMatcher": []
+        }
+    ]
+}

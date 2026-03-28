@@ -1,345 +1,304 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:convert';
-import 'dart:io';
-import '../../../core/constants/app_constants.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../core/theme/app_glass.dart';
+import '../../../core/widgets/glass_widgets.dart';
+import '../../../core/utils/helpers.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
-import '../viewer/content_viewer.dart';
-import 'package:path_provider/path_provider.dart';
+import '../editor/editor_screen.dart';
 
 class ItemDetailScreen extends ConsumerStatefulWidget {
   final String itemId;
-
   const ItemDetailScreen({super.key, required this.itemId});
 
   @override
   ConsumerState<ItemDetailScreen> createState() => _ItemDetailScreenState();
 }
 
-class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
   final _noteController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
+  double _progress = 0;
+  bool _hasChanges = false;
 
   @override
   void dispose() {
-    _tabController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  void _updateProgress(double value) {
+    setState(() {
+      _progress = value;
+      _hasChanges = true;
+    });
+  }
+
+  void _saveProgress(LearningItem item) {
+    if (!_hasChanges) return;
+    ref
+        .read(learningItemsProvider.notifier)
+        .updateProgress(item.id, _progress.round());
+    setState(() => _hasChanges = false);
+    HapticFeedback.lightImpact();
   }
 
   @override
   Widget build(BuildContext context) {
     final items = ref.watch(learningItemsProvider);
-    final item = items.firstWhere(
-      (i) => i.id == widget.itemId,
-      orElse: () => throw Exception('No encontrado'),
-    );
-    final typeData = AppConstants.contentTypes.firstWhere(
-      (t) => t.id == item.type,
-      orElse: () => AppConstants.contentTypes.first,
-    );
-    final color = Color(typeData.color);
-    final categories = ref.watch(categoriesProvider);
-    final category = item.categoryId != null
-        ? categories.where((c) => c.id == item.categoryId).firstOrNull
-        : null;
+    final item = items.where((i) => i.id == widget.itemId).firstOrNull;
+    final cs = Theme.of(context).colorScheme;
+
+    if (item == null) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Center(
+          child: Text(
+            'Elemento no encontrado',
+            style: TextStyle(color: cs.onSurface),
+          ),
+        ),
+      );
+    }
+
+    _progress = item.progress.toDouble();
+    _noteController.text = item.notes ?? '';
+
+    final color = AppHelpers.getTypeColor(item.type);
+    final icon = AppHelpers.getTypeIcon(item.type);
+    final typeName = AppHelpers.getTypeName(item.type);
 
     return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(item.title, style: const TextStyle(fontSize: 16)),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      color.withValues(alpha: 0.8),
-                      color.withValues(alpha: 0.4),
-                    ],
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    _getIcon(item.type),
-                    size: 80,
-                    color: Colors.white.withValues(alpha: 0.5),
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  item.isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: item.isFavorite ? Colors.red : null,
-                ),
-                onPressed: () => ref
-                    .read(learningItemsProvider.notifier)
-                    .toggleFavorite(item.id),
-              ),
-              PopupMenuButton(
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Editar')),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Text(
-                      'Eliminar',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
-                onSelected: (value) {
-                  if (value == 'delete') _deleteItem(context, item.id);
-                },
-              ),
-            ],
+      body: CustomScrollView(
+        slivers: [
+          _DetailHeroHeader(
+            item: item,
+            color: color,
+            icon: icon,
+            typeName: typeName,
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status & Category
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      _StatusChip(status: item.status),
-                      if (category != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Color(category.color).withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            category.name,
-                            style: TextStyle(
-                              color: Color(category.color),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Progress
                   Text(
-                    'Progreso',
-                    style: Theme.of(context).textTheme.titleSmall,
+                    item.title,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: cs.onSurface,
+                      height: 1.2,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: item.progress / 100,
-                            minHeight: 12,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            color: color,
-                          ),
-                        ),
+                  if (item.description != null &&
+                      item.description!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      item.description!,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: cs.onSurfaceVariant,
+                        height: 1.5,
                       ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 80,
-                        child: Slider(
-                          value: item.progress.toDouble(),
-                          min: 0,
-                          max: 100,
-                          divisions: 20,
-                          label: '${item.progress}%',
-                          onChanged: (v) => ref
-                              .read(learningItemsProvider.notifier)
-                              .updateProgress(item.id, v.round()),
-                        ),
-                      ),
-                    ],
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  _MetadataSection(item: item, color: color),
+                  const SizedBox(height: 24),
+                  _ProgressSection(
+                    item: item,
+                    color: color,
+                    progress: _progress,
+                    onChanged: _updateProgress,
+                    onSave: () => _saveProgress(item),
+                    hasChanges: _hasChanges,
                   ),
-                  const SizedBox(height: 16),
-
-                  // Action buttons
-                  Row(
-                    children: [
-                      if (item.localPath != null || item.url != null)
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ContentViewerScreen(itemId: item.id),
-                              ),
-                            ),
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('Abrir contenido'),
-                          ),
-                        ),
-                      if (item.localPath != null || item.url != null)
-                        const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () =>
-                              _showAssignCategory(context, item, categories),
-                          icon: const Icon(Icons.category),
-                          label: const Text('Categoría'),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 24),
+                  _NotesSection(
+                    controller: _noteController,
+                    item: item,
+                    ref: ref,
                   ),
-                ],
-              ),
-            ),
-          ),
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _SliverTabBarDelegate(
-              TabBar(
-                controller: _tabController,
-                tabs: const [
-                  Tab(text: 'Notas'),
-                  Tab(text: 'Info'),
-                  Tab(text: 'Actividad'),
+                  const SizedBox(height: 24),
+                  _ActionsSection(item: item, ref: ref),
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
           ),
         ],
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _NotesTab(itemId: widget.itemId, noteController: _noteController),
-            _InfoTab(item: item),
-            _ActivityTab(item: item),
-          ],
+      ),
+    );
+  }
+}
+
+class _DetailHeroHeader extends ConsumerWidget {
+  final LearningItem item;
+  final Color color;
+  final IconData icon;
+  final String typeName;
+
+  const _DetailHeroHeader({
+    required this.item,
+    required this.color,
+    required this.icon,
+    required this.typeName,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
+
+    return SliverAppBar(
+      expandedHeight: 280,
+      pinned: true,
+      backgroundColor: cs.surface,
+      leading: Container(
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: cs.surfaceContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: IconButton(
+          icon: Icon(Icons.arrow_back, color: cs.onSurface, size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-    );
-  }
-
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'course':
-        return Icons.play_circle;
-      case 'book':
-        return Icons.menu_book;
-      case 'pdf':
-        return Icons.picture_as_pdf;
-      case 'video':
-        return Icons.video_library;
-      case 'audio':
-        return Icons.headphones;
-      case 'article':
-        return Icons.article;
-      default:
-        return Icons.library_books;
-    }
-  }
-
-  void _deleteItem(BuildContext context, String id) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('¿Eliminar elemento?'),
-        content: const Text('Esta acción no se puede deshacer.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+      actions: [
+        Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: cs.surfaceContainer,
+            borderRadius: BorderRadius.circular(12),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              ref.read(learningItemsProvider.notifier).delete(id);
-              Navigator.pop(ctx);
-              Navigator.pop(context);
-            },
-            child: const Text('Eliminar'),
+          child: IconButton(
+            icon: Icon(
+              item.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+              color: item.isPinned ? cs.primary : cs.onSurfaceVariant,
+              size: 20,
+            ),
+            onPressed: () =>
+                ref.read(learningItemsProvider.notifier).togglePinned(item.id),
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showAssignCategory(
-    BuildContext context,
-    LearningItem item,
-    List<Category> categories,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: cs.surfaceContainer,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: Icon(
+              item.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: item.isFavorite ? cs.error : cs.onSurfaceVariant,
+              size: 20,
+            ),
+            onPressed: () => ref
+                .read(learningItemsProvider.notifier)
+                .toggleFavorite(item.id),
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: cs.primary.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: Icon(Icons.edit, color: cs.primary, size: 20),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => EditorScreen(item: item),
+                fullscreenDialog: true,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        background: Stack(
+          fit: StackFit.expand,
           children: [
-            Text(
-              'Asignar categoría',
-              style: Theme.of(context).textTheme.titleLarge,
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color.withValues(alpha: 0.4),
+                    color.withValues(alpha: 0.1),
+                    cs.surface,
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.clear),
-              title: const Text('Sin categoría'),
-              onTap: () {
-                ref
-                    .read(learningItemsProvider.notifier)
-                    .update(item.copyWith(categoryId: null));
-                Navigator.pop(ctx);
-              },
+            Center(
+              child: Icon(icon, size: 120, color: color.withValues(alpha: 0.2)),
             ),
-            ...categories.map(
-              (c) => ListTile(
-                leading: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Color(c.color),
-                    shape: BoxShape.circle,
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 100,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      cs.surface.withValues(alpha: 0.9),
+                    ],
                   ),
                 ),
-                title: Text(c.name),
-                trailing: item.categoryId == c.id
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () {
-                  ref
-                      .read(learningItemsProvider.notifier)
-                      .update(item.copyWith(categoryId: c.id));
-                  Navigator.pop(ctx);
-                },
               ),
             ),
-            const SizedBox(height: 8),
-            Center(
-              child: TextButton.icon(
-                onPressed: () => _showCreateCategory(context, ctx),
-                icon: const Icon(Icons.add),
-                label: const Text('Nueva categoría'),
+            Positioned(
+              bottom: 60,
+              left: 24,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(AppGlass.radiusPill),
+                  border: Border.all(color: color.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      typeName.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -347,39 +306,94 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen>
       ),
     );
   }
+}
 
-  void _showCreateCategory(BuildContext context, BuildContext modalContext) {
-    final nameController = TextEditingController();
-    int selectedColor = AppConstants.tagColors.first;
+class _MetadataSection extends StatelessWidget {
+  final LearningItem item;
+  final Color color;
+  const _MetadataSection({required this.item, required this.color});
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Nueva categoría'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return GlassCard(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              _MetadataChip(
+                icon: Icons.access_time,
+                label: 'Estado',
+                value: AppHelpers.getStatusName(item.status),
+                color: AppHelpers.getStatusColor(item.status),
+              ),
+              const SizedBox(width: 12),
+              _MetadataChip(
+                icon: Icons.calendar_today,
+                label: 'Creado',
+                value:
+                    '${item.createdAt.day}/${item.createdAt.month}/${item.createdAt.year}',
+                color: cs.onSurfaceVariant,
+              ),
+            ],
+          ),
+          if (item.url != null && item.url!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () async {
+                final uri = Uri.parse(item.url!);
+                if (await canLaunchUrl(uri)) await launchUrl(uri);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: cs.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: cs.secondary.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.link, color: cs.secondary, size: 18),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        item.url!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: cs.secondary, fontSize: 13),
+                      ),
+                    ),
+                    Icon(Icons.open_in_new, color: cs.secondary, size: 16),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
+          ],
+          if (item.tags.isNotEmpty) ...[
+            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: AppConstants.tagColors
+              children: item.tags
                   .map(
-                    (c) => GestureDetector(
-                      onTap: () => selectedColor = c,
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: Color(c),
-                          shape: BoxShape.circle,
-                          border: selectedColor == c
-                              ? Border.all(color: Colors.white, width: 3)
-                              : null,
+                    (tag) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: cs.primaryContainer.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '#$tag',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: cs.primary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -387,257 +401,396 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen>
                   .toList(),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (nameController.text.trim().isNotEmpty) {
-                ref
-                    .read(categoriesProvider.notifier)
-                    .add(
-                      Category(
-                        name: nameController.text.trim(),
-                        color: selectedColor,
-                      ),
-                    );
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Crear'),
-          ),
         ],
       ),
     );
   }
 }
 
-class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar tabBar;
-  _SliverTabBarDelegate(this.tabBar);
-
-  @override
-  double get minExtent => tabBar.preferredSize.height;
-  @override
-  double get maxExtent => tabBar.preferredSize.height;
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) => Container(
-    color: Theme.of(context).scaffoldBackgroundColor,
-    child: tabBar,
-  );
-  @override
-  bool shouldRebuild(_SliverTabBarDelegate oldDelegate) => false;
-}
-
-class _StatusChip extends StatelessWidget {
-  final String status;
-  const _StatusChip({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final s = AppConstants.statuses.firstWhere(
-      (st) => st.id == status,
-      orElse: () => AppConstants.statuses.first,
-    );
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Color(s.color).withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        s.name,
-        style: TextStyle(
-          color: Color(s.color),
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-}
-
-class _NotesTab extends ConsumerWidget {
-  final String itemId;
-  final TextEditingController noteController;
-
-  const _NotesTab({required this.itemId, required this.noteController});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(learningItemsProvider);
-    final item = items.firstWhere((i) => i.id == itemId);
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          TextField(
-            controller: noteController,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: 'Escribe una nota...',
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () {
-                  if (noteController.text.trim().isNotEmpty) {
-                    final notes = item.notes ?? '';
-                    final newNotes = notes.isEmpty
-                        ? noteController.text.trim()
-                        : '$notes\n\n${noteController.text.trim()}';
-                    ref
-                        .read(learningItemsProvider.notifier)
-                        .update(item.copyWith(notes: newNotes));
-                    noteController.clear();
-                  }
-                },
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (item.notes != null && item.notes!.isNotEmpty)
-            Expanded(
-              child: SingleChildScrollView(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    item.notes!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-              ),
-            )
-          else
-            Expanded(
-              child: Center(
-                child: Text(
-                  'Sin notas aún',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoTab extends StatelessWidget {
-  final LearningItem item;
-  const _InfoTab({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _InfoRow(label: 'Tipo', value: item.type.toUpperCase()),
-        _InfoRow(label: 'Estado', value: item.status),
-        _InfoRow(label: 'Progreso', value: '${item.progress}%'),
-        if (item.priority != null)
-          _InfoRow(label: 'Prioridad', value: item.priority!),
-        if (item.description != null)
-          _InfoRow(label: 'Descripción', value: item.description!),
-        if (item.localPath != null)
-          _InfoRow(
-            label: 'Archivo local',
-            value: item.localPath!.split('/').last,
-          ),
-        if (item.url != null) _InfoRow(label: 'URL', value: item.url!),
-        _InfoRow(label: 'Creado', value: _formatDate(item.createdAt)),
-        _InfoRow(label: 'Actualizado', value: _formatDate(item.updatedAt)),
-      ],
-    );
-  }
-
-  String _formatDate(DateTime d) => '${d.day}/${d.month}/${d.year}';
-}
-
-class _InfoRow extends StatelessWidget {
+class _MetadataChip extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
-  const _InfoRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActivityTab extends StatelessWidget {
-  final LearningItem item;
-  const _ActivityTab({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _ActivityItem(
-          icon: Icons.add_circle,
-          title: 'Elemento creado',
-          time: item.createdAt,
-        ),
-        _ActivityItem(
-          icon: Icons.edit,
-          title: 'Última actualización',
-          time: item.updatedAt,
-        ),
-      ],
-    );
-  }
-}
-
-class _ActivityItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final DateTime time;
-  const _ActivityItem({
+  final Color color;
+  const _MetadataChip({
     required this.icon,
-    required this.title,
-    required this.time,
+    required this.label,
+    required this.value,
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(
-        '${time.day}/${time.month}/${time.year} ${time.hour}:${time.minute.toString().padLeft(2, '0')}',
+    final cs = Theme.of(context).colorScheme;
+    return Expanded(
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: cs.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProgressSection extends StatelessWidget {
+  final LearningItem item;
+  final Color color;
+  final double progress;
+  final ValueChanged<double> onChanged;
+  final VoidCallback onSave;
+  final bool hasChanges;
+  const _ProgressSection({
+    required this.item,
+    required this.color,
+    required this.progress,
+    required this.onChanged,
+    required this.onSave,
+    required this.hasChanges,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'PROGRESO',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    '${progress.round()}%',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: color,
+                    ),
+                  ),
+                  if (hasChanges) ...[
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: onSave,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: cs.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Guardar',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: cs.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          GlassProgressBar(value: progress / 100, color: color, height: 8),
+          const SizedBox(height: 16),
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: color,
+              inactiveTrackColor: color.withValues(alpha: 0.2),
+              thumbColor: Colors.white,
+              overlayColor: color.withValues(alpha: 0.2),
+              trackHeight: 4,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+            ),
+            child: Slider(
+              value: progress,
+              min: 0,
+              max: 100,
+              onChanged: onChanged,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: ['0%', '25%', '50%', '75%', '100%']
+                .map(
+                  (label) => Text(
+                    label,
+                    style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotesSection extends StatelessWidget {
+  final TextEditingController controller;
+  final LearningItem item;
+  final WidgetRef ref;
+  const _NotesSection({
+    required this.controller,
+    required this.item,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'NOTAS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  if (controller.text != item.notes) {
+                    final updated = item.copyWith(notes: controller.text);
+                    ref.read(learningItemsProvider.notifier).update(updated);
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(AppGlass.snackBar('Notas guardadas'));
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: cs.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Guardar',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: cs.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: controller,
+            maxLines: 5,
+            style: TextStyle(color: cs.onSurface),
+            decoration: AppGlass.inputDecoration(
+              hintText: 'Escribe tus notas aquí...',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionsSection extends StatelessWidget {
+  final LearningItem item;
+  final WidgetRef ref;
+  const _ActionsSection({required this.item, required this.ref});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'ACCIONES',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _ActionTile(
+          icon: Icons.check_circle_outline,
+          title: 'Marcar como completado',
+          color: cs.secondary,
+          onTap: () {
+            ref
+                .read(learningItemsProvider.notifier)
+                .updateStatus(item.id, 'completed');
+            Navigator.pop(context);
+          },
+        ),
+        _ActionTile(
+          icon: Icons.copy,
+          title: 'Duplicar elemento',
+          color: cs.primary,
+          onTap: () {
+            ref.read(learningItemsProvider.notifier).duplicateItem(item.id);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(AppGlass.snackBar('Elemento duplicado'));
+          },
+        ),
+        _ActionTile(
+          icon: Icons.archive_outlined,
+          title: 'Archivar',
+          color: cs.onSurfaceVariant,
+          onTap: () {
+            ref
+                .read(learningItemsProvider.notifier)
+                .updateStatus(item.id, 'archived');
+            Navigator.pop(context);
+          },
+        ),
+        _ActionTile(
+          icon: Icons.delete_outline,
+          title: 'Eliminar',
+          color: cs.error,
+          onTap: () => showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Eliminar'),
+              content: Text('¿Eliminar "${item.title}"?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    ref.read(learningItemsProvider.notifier).delete(item.id);
+                    Navigator.pop(ctx);
+                    Navigator.pop(context);
+                  },
+                  style: FilledButton.styleFrom(backgroundColor: cs.error),
+                  child: const Text('Eliminar'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Color color;
+  final VoidCallback onTap;
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(AppGlass.radiusMedium),
+          border: Border.all(color: cs.outlineVariant),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: color.withValues(alpha: 0.5),
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }

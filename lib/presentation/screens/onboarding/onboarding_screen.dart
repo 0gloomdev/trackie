@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/app_glass.dart';
+import '../../../core/widgets/glass_widgets.dart';
 import '../../../domain/providers/providers.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -10,35 +11,18 @@ class OnboardingScreen extends ConsumerStatefulWidget {
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
-    with TickerProviderStateMixin {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  late AnimationController _bounceController;
-  late Animation<double> _bounceAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _bounceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-    _bounceAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
-    );
-    _bounceController.repeat(reverse: true);
-  }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _bounceController.dispose();
     super.dispose();
   }
 
   void _nextPage() {
-    if (_currentPage < AppConstants.onboardingSteps.length - 1) {
+    if (_currentPage < 2) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOutCubic,
@@ -50,159 +34,168 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colors = [
-      [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
-      [const Color(0xFFEC4899), const Color(0xFFF43F5E)],
-      [const Color(0xFF14B8A6), const Color(0xFF06B6D4)],
-      [const Color(0xFFF59E0B), const Color(0xFFEF4444)],
-      [const Color(0xFF22C55E), const Color(0xFF10B981)],
-    ];
-
-    final currentColors = colors[_currentPage % colors.length];
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: Stack(
         children: [
-          // Animated gradient background
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 800),
+          // Background gradient
+          Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  currentColors[0].withValues(alpha: 0.15),
-                  currentColors[1].withValues(alpha: 0.1),
-                  Theme.of(context).colorScheme.surface,
+              gradient: RadialGradient(
+                center: Alignment.bottomRight,
+                radius: 1.2,
+                colors: isDark
+                    ? [cs.secondary.withValues(alpha: 0.3), cs.surface]
+                    : [cs.secondary.withValues(alpha: 0.1), cs.surface],
+              ),
+            ),
+          ),
+          // Decorative circles
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.2,
+            left: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    cs.primary.withValues(alpha: 0.2),
+                    Colors.transparent,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: cs.primary.withValues(alpha: 0.3),
+                    blurRadius: 100,
+                  ),
                 ],
               ),
             ),
           ),
-
-          // Floating shapes
-          _FloatingShape(
-            color: currentColors[0].withValues(alpha: 0.3),
-            size: 180,
-            top: -60,
-            right: -40,
+          Positioned(
+            bottom: MediaQuery.of(context).size.height * 0.1,
+            right: -80,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    cs.secondary.withValues(alpha: 0.15),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
           ),
-          _FloatingShape(
-            color: currentColors[1].withValues(alpha: 0.2),
-            size: 120,
-            bottom: 150,
-            left: -30,
-          ),
-          _FloatingShape(
-            color: currentColors[0].withValues(alpha: 0.15),
-            size: 80,
-            top: 150,
-            left: 40,
-          ),
-
           SafeArea(
             child: Column(
               children: [
+                // Progress indicator
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 24,
+                  ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Logo
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: currentColors),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: currentColors[0].withValues(alpha: 0.4),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.school,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => ref
-                            .read(settingsProvider.notifier)
-                            .completeOnboarding(),
-                        child: Text(
-                          'Saltar',
-                          style: TextStyle(
-                            color: currentColors[0],
-                            fontWeight: FontWeight.w600,
+                    children: List.generate(
+                      3,
+                      (i) => Expanded(
+                        child: Container(
+                          height: 4,
+                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(2),
+                            color: i <= _currentPage
+                                ? cs.primary
+                                : cs.surfaceContainerHighest,
+                            boxShadow: i == _currentPage
+                                ? [
+                                    BoxShadow(
+                                      color: cs.primary.withValues(alpha: 0.5),
+                                      blurRadius: 12,
+                                    ),
+                                  ]
+                                : null,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (i) => setState(() => _currentPage = i),
-                    itemCount: AppConstants.onboardingSteps.length,
-                    itemBuilder: (context, index) => _OnboardingPage(
-                      step: AppConstants.onboardingSteps[index],
-                      colors: colors[index % colors.length],
                     ),
                   ),
                 ),
-
+                // Pages
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (i) => setState(() => _currentPage = i),
+                    children: [_WelcomePage(), _FeaturesPage(), _StartPage()],
+                  ),
+                ),
+                // Navigation buttons
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(32),
                   child: Column(
                     children: [
-                      // Dots
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          AppConstants.onboardingSteps.length,
-                          (i) => _Dot(
-                            isActive: i == _currentPage,
-                            color: currentColors[0],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Button
-                      GestureDetector(
-                        onTap: _nextPage,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(colors: currentColors),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: currentColors[0].withValues(alpha: 0.4),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              _currentPage ==
-                                      AppConstants.onboardingSteps.length - 1
-                                  ? 'Comenzar'
-                                  : 'Continuar',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                        children: [
+                          if (_currentPage > 0)
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  _pageController.previousPage(
+                                    duration: const Duration(milliseconds: 500),
+                                    curve: Curves.easeInOutCubic,
+                                  );
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  side: BorderSide(color: cs.outline),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.arrow_back,
+                                      size: 18,
+                                      color: cs.onSurface,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Atrás',
+                                      style: TextStyle(color: cs.onSurface),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
+                          if (_currentPage > 0) const SizedBox(width: 16),
+                          Expanded(
+                            child: GlassButton(
+                              label: _currentPage == 2
+                                  ? 'Comenzar'
+                                  : 'Siguiente',
+                              isPrimary: true,
+                              onPressed: _nextPage,
+                            ),
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'v1.0.0',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: cs.onSurfaceVariant.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -217,144 +210,214 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 }
 
-class _FloatingShape extends StatelessWidget {
-  final Color color;
-  final double size;
-  final double top;
-  final double right;
-  final double bottom;
-  final double left;
-
-  const _FloatingShape({
-    required this.color,
-    required this.size,
-    this.top = 0,
-    this.right = 0,
-    this.bottom = 0,
-    this.left = 0,
-  });
-
+class _WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: top,
-      right: right,
-      bottom: bottom,
-      left: left,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
-          boxShadow: [
-            BoxShadow(color: color, blurRadius: 40, spreadRadius: 10),
-          ],
-        ),
+    final cs = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Logo
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [cs.primary, cs.secondary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: cs.primary.withValues(alpha: 0.3),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.rocket_launch,
+              size: 60,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 40),
+          ShaderMask(
+            shaderCallback: (bounds) => LinearGradient(
+              colors: [cs.primary, cs.secondary],
+            ).createShader(bounds),
+            child: const Text(
+              'Trackie',
+              style: TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Tu centro de aprendizaje personal',
+            style: TextStyle(fontSize: 18, color: cs.onSurfaceVariant),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
 }
 
-class _OnboardingPage extends StatelessWidget {
-  final OnboardingStep step;
-  final List<Color> colors;
-
-  const _OnboardingPage({required this.step, required this.colors});
-
+class _FeaturesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Padding(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon container
-          Container(
-            width: 150,
-            height: 150,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colors[0].withValues(alpha: 0.2),
-                  colors[1].withValues(alpha: 0.1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(40),
-              border: Border.all(
-                color: colors[0].withValues(alpha: 0.3),
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: colors[0].withValues(alpha: 0.3),
-                  blurRadius: 30,
-                  offset: const Offset(0, 15),
-                ),
-              ],
-            ),
-            child: Icon(_getIcon(step.icon), size: 70, color: colors[0]),
-          ),
-          const SizedBox(height: 48),
           Text(
-            step.title,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+            'Organiza tu contenido',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: cs.onSurface,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
-            step.description,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            'Gestiona cursos, libros, PDFs,\npodcasts y más en un solo lugar',
+            style: TextStyle(
+              fontSize: 16,
+              color: cs.onSurfaceVariant,
+              height: 1.5,
             ),
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 40),
+          _FeatureItem(
+            icon: Icons.play_circle,
+            label: 'Cursos',
+            color: cs.primary,
+          ),
+          const SizedBox(height: 16),
+          _FeatureItem(
+            icon: Icons.menu_book,
+            label: 'Libros',
+            color: cs.secondary,
+          ),
+          const SizedBox(height: 16),
+          _FeatureItem(
+            icon: Icons.picture_as_pdf,
+            label: 'PDFs',
+            color: cs.tertiary,
+          ),
+          const SizedBox(height: 16),
+          _FeatureItem(
+            icon: Icons.podcasts,
+            label: 'Podcasts',
+            color: cs.primaryContainer,
           ),
         ],
       ),
     );
   }
-
-  IconData _getIcon(String name) {
-    switch (name) {
-      case 'school':
-        return Icons.school;
-      case 'add_circle':
-        return Icons.add_circle;
-      case 'label':
-        return Icons.label;
-      case 'trending_up':
-        return Icons.trending_up;
-      case 'celebration':
-        return Icons.celebration;
-      default:
-        return Icons.arrow_forward;
-    }
-  }
 }
 
-class _Dot extends StatelessWidget {
-  final bool isActive;
+class _FeatureItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
   final Color color;
 
-  const _Dot({required this.isActive, required this.color});
+  const _FeatureItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 28 : 10,
-      height: 10,
+    final cs = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isActive ? color : color.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(5),
-        boxShadow: isActive
-            ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 8)]
-            : null,
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppGlass.radiusMedium),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: cs.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StartPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: cs.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.check_circle, size: 60, color: cs.primary),
+          ),
+          const SizedBox(height: 40),
+          Text(
+            '¡Listo para aprender!',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: cs.onSurface,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Comienza a agregar contenido\ny organiza tu aprendizaje',
+            style: TextStyle(
+              fontSize: 16,
+              color: cs.onSurfaceVariant,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

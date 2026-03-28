@@ -1,171 +1,128 @@
 import 'package:flutter/material.dart';
 
+class AppColors {
+  // Light mode colors
+  static const Color lightPrimary = Color(0xFF6200EE);
+  static const Color lightSecondary = Color(0xFF03DAC6);
+  static const Color lightSurface = Color(0xFFE6E6E6); // 90% opacity white
+  static const Color lightBackground = Color(0xFFFFFFFF);
+  static const Color lightOnPrimary = Color(0xFFFFFFFF);
+  static const Color lightOnSecondary = Color(0xFF000000);
+  static const Color lightOnSurface = Color(0xFF000000);
+  static const Color lightError = Color(0xFFB00020);
+
+  // Dark mode colors
+  static const Color darkPrimary = Color(0xFFBB86FC);
+  static const Color darkSecondary = Color(0xFF03DAC6);
+  static const Color darkSurface = Color(0xFF333333); // 80% opacity black
+  static const Color darkBackground = Color(0xFF000000);
+  static const Color darkOnPrimary = Color(0xFF000000);
+  static const Color darkOnSecondary = Color(0xFFFFFFFF);
+  static const Color darkOnSurface = Color(0xFFFFFFFF);
+  static const Color darkError = Color(0xFFCF6679);
+
+  // Common colors (Material 3 defaults)
+  static const Color primary = lightPrimary;
+  static const Color secondary = lightSecondary;
+  static const Color tertiary = Color(0xFF7C4DFF);
+  static const Color primaryContainer = Color(0xFFE8DEF8);
+  static const Color onSurfaceVariant = Color(0xFF49454F);
+  static const Color surfaceContainerHighest = Color(0xFFE7E0EC);
+  static const Color outlineVariant = Color(0xFFCAC4D0);
+  static const Color onSurface = Color(0xFF1C1B1F);
+  static const Color error = lightError;
+
+  // Glass effect colors
+  static const Color glassSurfaceLight = Color(0x33FFFFFF); // 0.2 opacity white
+  static const Color glassSurfaceDark = Color(0x14FFFFFF); // 0.08 opacity white
+  static const Color glassTintLight = Color(0x66FFFFFF); // 0.4 opacity white
+  static const Color glassTintDark = Color(0x1AFFFFFF); // 0.1 opacity white
+  static const Color glassBorder = Color(0x33FFFFFF); // 0.2 opacity white
+}
+
 class AppTheme {
-  static const _primaryColor = Color(0xFFB79FFF);
-  static const _secondaryColor = Color(0xFF62FAE3);
-  static const _tertiaryColor = Color(0xFFFF86C3);
-
-  static const _backgroundDark = Color(0xFF060E20);
-  static const _surfaceDark = Color(0xFF0F1930);
-  static const _surfaceContainerDark = Color(0xFF192540);
-  static const _surfaceContainerHighDark = Color(0xFF141F38);
-
-  static const _primaryContainer = Color(0xFFAB8FFE);
-  static const _onPrimary = Color(0xFF361083);
-  static const _onSurface = Color(0xFFDEE5FF);
-  static const _onSurfaceVariant = Color(0xFFA3AAC4);
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: AppColors.lightBackground,
+      colorScheme: ColorScheme.light(
+        primary: AppColors.lightPrimary,
+        secondary: AppColors.lightSecondary,
+        surface: AppColors.lightSurface,
+        onPrimary: AppColors.lightOnPrimary,
+        onSecondary: AppColors.lightOnSecondary,
+        onSurface: AppColors.lightOnSurface,
+        error: AppColors.lightError,
+      ),
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(
+          fontSize: 57,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.25,
+        ),
+        headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+        titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+        labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
 
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: _backgroundDark,
-      colorScheme: const ColorScheme.dark(
-        primary: _primaryColor,
-        secondary: _secondaryColor,
-        tertiary: _tertiaryColor,
-        surface: _surfaceDark,
-        onPrimary: _onPrimary,
-        onSecondary: Color(0xFF005C52),
-        onTertiary: Color(0xFF5F003E),
-        onSurface: _onSurface,
-        onSurfaceVariant: _onSurfaceVariant,
-        primaryContainer: _primaryContainer,
-        secondaryContainer: Color(0xFF006B5F),
-        tertiaryContainer: Color(0xFFF673B7),
-        error: Color(0xFFFF6E84),
-        surfaceContainerHighest: _surfaceContainerDark,
-        surfaceContainerHigh: _surfaceContainerHighDark,
-        surfaceContainer: _surfaceDark,
-        surfaceContainerLow: Color(0xFF091328),
-        surfaceContainerLowest: Color(0xFF000000),
-        outline: Color(0xFF6D758C),
-        outlineVariant: Color(0xFF40485D),
-      ),
-      fontFamily: 'Inter',
-      appBarTheme: const AppBarTheme(
-        centerTitle: false,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: _surfaceContainerDark.withValues(alpha: 0.4),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: _surfaceContainerDark,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: _primaryColor, width: 2),
-        ),
-        hintStyle: const TextStyle(color: _onSurfaceVariant),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 16,
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          backgroundColor: _primaryColor,
-          foregroundColor: _onPrimary,
-        ),
-      ),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: _primaryColor,
-        foregroundColor: _onPrimary,
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        elevation: 0,
-        height: 70,
-        backgroundColor: _backgroundDark.withValues(alpha: 0.8),
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        indicatorShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        indicatorColor: _primaryColor.withValues(alpha: 0.2),
-      ),
-      chipTheme: ChipThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        showDragHandle: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        backgroundColor: _surfaceDark,
-      ),
-      dialogTheme: DialogThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: _surfaceDark,
-      ),
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: _surfaceContainerDark,
+      scaffoldBackgroundColor: AppColors.darkBackground,
+      colorScheme: ColorScheme.dark(
+        primary: AppColors.darkPrimary,
+        secondary: AppColors.darkSecondary,
+        surface: AppColors.darkSurface,
+        onPrimary: AppColors.darkOnPrimary,
+        onSecondary: AppColors.darkOnSecondary,
+        onSurface: AppColors.darkOnSurface,
+        error: AppColors.darkError,
       ),
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(
-          color: _onSurface,
-          fontWeight: FontWeight.w900,
+        displayLarge: TextStyle(
+          fontSize: 57,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.25,
         ),
-        headlineMedium: TextStyle(
-          color: _onSurface,
-          fontWeight: FontWeight.w900,
-        ),
-        headlineSmall: TextStyle(
-          color: _onSurface,
-          fontWeight: FontWeight.w800,
-        ),
-        titleLarge: TextStyle(color: _onSurface, fontWeight: FontWeight.w700),
-        titleMedium: TextStyle(color: _onSurface, fontWeight: FontWeight.w600),
-        titleSmall: TextStyle(color: _onSurface, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(color: _onSurface),
-        bodyMedium: TextStyle(color: _onSurface),
-        bodySmall: TextStyle(color: _onSurfaceVariant),
-        labelLarge: TextStyle(color: _onSurface, fontWeight: FontWeight.w500),
-        labelMedium: TextStyle(color: _onSurfaceVariant),
-        labelSmall: TextStyle(color: _onSurfaceVariant),
+        headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+        titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+        labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
       ),
     );
   }
 
-  static ThemeData get lightTheme => darkTheme;
+  static BoxDecoration glassCard({
+    required bool isDark,
+    double blurSigma = 20.0,
+    double borderRadius = 16.0,
+  }) {
+    return BoxDecoration(
+      color: isDark ? AppColors.glassSurfaceDark : AppColors.glassSurfaceLight,
+      borderRadius: BorderRadius.circular(borderRadius),
+      border: Border.all(color: AppColors.glassBorder, width: 1.0),
+    );
+  }
 
-  static BoxDecoration get glassCard => BoxDecoration(
-    color: _surfaceContainerDark.withValues(alpha: 0.4),
-    borderRadius: BorderRadius.circular(16),
-    border: Border.all(color: _primaryColor.withValues(alpha: 0.1)),
-  );
-
-  static BoxDecoration get glassCardHover => BoxDecoration(
-    color: _surfaceContainerDark.withValues(alpha: 0.6),
-    borderRadius: BorderRadius.circular(16),
-    border: Border.all(color: _primaryColor.withValues(alpha: 0.2)),
-  );
+  static BoxDecoration glassCardHover({
+    required bool isDark,
+    double blurSigma = 20.0,
+    double borderRadius = 16.0,
+  }) {
+    return BoxDecoration(
+      color: isDark
+          ? AppColors.glassSurfaceDark.withValues(alpha: 0.12)
+          : AppColors.glassSurfaceLight.withValues(alpha: 0.25),
+      borderRadius: BorderRadius.circular(borderRadius),
+      border: Border.all(
+        color: AppColors.glassBorder.withValues(alpha: 0.3),
+        width: 1.0,
+      ),
+    );
+  }
 }
