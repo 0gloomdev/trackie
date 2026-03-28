@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'app_theme.dart';
 
 class AppGlass {
   static const double radiusSmall = 8.0;
@@ -10,10 +9,12 @@ class AppGlass {
   static InputDecoration inputDecoration({
     required String hintText,
     IconData? prefixIcon,
+    Widget? suffixIcon,
   }) {
     return InputDecoration(
       hintText: hintText,
       prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+      suffixIcon: suffixIcon,
       filled: true,
       fillColor: Colors.white.withValues(alpha: 0.1),
       border: OutlineInputBorder(

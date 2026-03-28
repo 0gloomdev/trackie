@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_glass.dart';
 import '../../../core/widgets/glass_widgets.dart';
 import '../../../core/utils/helpers.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
 import '../detail/item_detail_screen.dart';
@@ -622,6 +621,7 @@ class _EmptyState extends StatelessWidget {
 
 // ==================== ADD BUTTON ====================
 class _AddButton extends StatelessWidget {
+  const _AddButton();
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -643,6 +643,8 @@ class _AddButton extends StatelessWidget {
         ],
       ),
       child: FloatingActionButton(
+        key: const ValueKey('library_fab'),
+        heroTag: 'library_fab_hero',
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -665,7 +667,7 @@ class _LibrarySearchDelegate extends SearchDelegate<LearningItem?> {
   _LibrarySearchDelegate({required this.ref});
 
   @override
-  String get searchFieldHint => 'Buscar en biblioteca...';
+  String get searchFieldLabel => 'Buscar en biblioteca...';
 
   @override
   List<Widget>? buildActions(BuildContext context) => [

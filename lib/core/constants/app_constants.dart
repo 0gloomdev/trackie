@@ -59,6 +59,48 @@ class AppConstants {
     ),
     ContentType(id: 'note', name: 'Nota', icon: 'note', color: 0xFF607D8B),
     ContentType(id: 'link', name: 'Enlace', icon: 'link', color: 0xFF2196F3),
+    ContentType(
+      id: 'tutorial',
+      name: 'Tutorial',
+      icon: 'build',
+      color: 0xFF00BCD4,
+    ),
+    ContentType(
+      id: 'doc',
+      name: 'Documentación',
+      icon: 'description',
+      color: 0xFF3F51B5,
+    ),
+    ContentType(
+      id: 'workshop',
+      name: 'Workshop',
+      icon: 'groups',
+      color: 0xFF009688,
+    ),
+    ContentType(
+      id: 'bootcamp',
+      name: 'Bootcamp',
+      icon: 'military_tech',
+      color: 0xFFE91E63,
+    ),
+    ContentType(
+      id: 'certification',
+      name: 'Certificación',
+      icon: 'verified',
+      color: 0xFFCDDC39,
+    ),
+    ContentType(
+      id: 'project',
+      name: 'Proyecto',
+      icon: 'folder_special',
+      color: 0xFF795548,
+    ),
+    ContentType(
+      id: 'newsletter',
+      name: 'Newsletter',
+      icon: 'newspaper',
+      color: 0xFF9C27B0,
+    ),
   ];
 
   static const List<ContentStatus> statuses = [

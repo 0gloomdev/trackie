@@ -5,6 +5,7 @@ import '../../../core/theme/app_glass.dart';
 import '../../../core/widgets/glass_widgets.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/url_metadata_service.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
 
@@ -30,6 +31,10 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   String? _selectedCategoryId;
   final _tagController = TextEditingController();
 
+  bool _isLoadingMetadata = false;
+  String? _urlError;
+  UrlMetadata? _fetchedMetadata;
+
   bool get _isEditing => widget.item != null;
 
   @override
@@ -47,6 +52,66 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     _progress = item?.progress ?? 0;
     _tags = List.from(item?.tags ?? []);
     _selectedCategoryId = item?.categoryId;
+
+    _urlController.addListener(_onUrlChanged);
+  }
+
+  void _onUrlChanged() {
+    final url = _urlController.text.trim();
+    if (url.isEmpty) {
+      setState(() {
+        _urlError = null;
+        _fetchedMetadata = null;
+      });
+      return;
+    }
+
+    if (!_isValidUrl(url)) {
+      setState(() {
+        _urlError = 'URL inválida';
+        _fetchedMetadata = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _urlError = null;
+    });
+
+    _fetchMetadata(url);
+  }
+
+  bool _isValidUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      return uri.hasScheme && (uri.scheme == 'http' || uri.scheme == 'https');
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _fetchMetadata(String url) async {
+    if (_isLoadingMetadata) return;
+
+    setState(() {
+      _isLoadingMetadata = true;
+    });
+
+    try {
+      final metadata = await UrlMetadataService.fetchMetadata(url);
+      if (mounted) {
+        setState(() {
+          _fetchedMetadata = metadata;
+          _isLoadingMetadata = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingMetadata = false;
+        });
+      }
+    }
   }
 
   @override
@@ -62,6 +127,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
+    final url = _urlController.text.trim();
     final now = DateTime.now();
     final item = LearningItem(
       id: widget.item?.id,
@@ -70,9 +136,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
-      url: _urlController.text.trim().isEmpty
-          ? null
-          : _urlController.text.trim(),
+      url: url.isEmpty ? null : url,
+      urlFavicon: _fetchedMetadata?.favicon,
+      urlThumbnail: _fetchedMetadata?.imageUrl,
       progress: _progress,
       status: _selectedStatus,
       categoryId: _selectedCategoryId,
@@ -112,7 +178,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = ref.watch(categoriesProvider);
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -245,8 +310,60 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               decoration: AppGlass.inputDecoration(
                 hintText: 'https://...',
                 prefixIcon: Icons.link,
+                suffixIcon: _isLoadingMetadata
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Padding(
+                          padding: EdgeInsets.all(12),
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : _fetchedMetadata != null
+                    ? const Icon(Icons.check_circle, color: Colors.green)
+                    : null,
               ),
             ),
+            if (_urlError != null) ...[
+              const SizedBox(height: 4),
+              Text(_urlError!, style: TextStyle(color: cs.error, fontSize: 12)),
+            ],
+            if (_fetchedMetadata != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    if (_fetchedMetadata!.favicon != null) ...[
+                      Image.network(
+                        _fetchedMetadata!.favicon!,
+                        width: 16,
+                        height: 16,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.language, size: 16),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(
+                      child: Text(
+                        _fetchedMetadata!.title ?? 'Título encontrado',
+                        style: TextStyle(
+                          color: cs.onSurface,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             const SizedBox(height: 24),
 

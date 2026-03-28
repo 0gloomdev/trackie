@@ -7,6 +7,9 @@ import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
 import '../detail/item_detail_screen.dart';
 import '../editor/editor_screen.dart';
+import '../timer/pomodoro_screen.dart';
+import '../search/search_screen.dart';
+import '../analytics/analytics_screen.dart';
 
 class HomeTab extends ConsumerWidget {
   const HomeTab({super.key});
@@ -17,7 +20,13 @@ class HomeTab extends ConsumerWidget {
     final stats = ref.watch(statisticsProvider);
     final pinnedItems = ref.watch(pinnedItemsProvider);
     final recentItems = ref.watch(recentInProgressItemsProvider);
-    final cs = Theme.of(context).colorScheme;
+    final achievements = ref.watch(achievementsProvider);
+    final userPosts = ref
+        .watch(communityFeedProvider)
+        .where((p) => p.isUserPost)
+        .take(5)
+        .toList();
+    final profile = ref.watch(userProfileProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -27,11 +36,18 @@ class HomeTab extends ConsumerWidget {
             padding: const EdgeInsets.all(24),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _GreetingCard(),
+                _GreetingCard(profile: profile),
                 const SizedBox(height: 24),
                 _StatsBentoGrid(stats: stats),
                 const SizedBox(height: 24),
+                _WeeklyProgressCard(items: items, profile: profile),
+                const SizedBox(height: 24),
                 _QuickActions(),
+                const SizedBox(height: 24),
+                _DailyGoalsCard(),
+                _RecentAchievementsCard(achievements: achievements),
+                const SizedBox(height: 24),
+                _ActivityTimelineCard(activities: userPosts),
                 const SizedBox(height: 24),
                 if (pinnedItems.isNotEmpty) ...[
                   _SectionHeader(
@@ -117,6 +133,9 @@ class _HomeAppBar extends StatelessWidget {
 }
 
 class _GreetingCard extends StatelessWidget {
+  final UserProfile? profile;
+  const _GreetingCard({this.profile});
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -139,13 +158,46 @@ class _GreetingCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '¿Qué aprenderás hoy?',
+          profile?.nombre ?? 'Usuario',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w800,
             color: cs.onSurface,
           ),
         ),
+        if (profile != null) ...[
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: cs.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Nivel ${profile!.nivel}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onPrimaryContainer,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.local_fire_department, size: 16, color: Colors.orange),
+              const SizedBox(width: 4),
+              Text(
+                '${profile!.streak} días',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.orange,
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -308,6 +360,347 @@ class _StatMiniCard extends StatelessWidget {
   }
 }
 
+class _WeeklyProgressCard extends StatelessWidget {
+  final List<LearningItem> items;
+  final UserProfile profile;
+  const _WeeklyProgressCard({required this.items, required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final weeklyItems = items
+        .where((i) => i.status == 'completed' && i.updatedAt.isAfter(weekStart))
+        .length;
+
+    final weekDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+    final today = now.weekday - 1;
+
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Esta semana',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface,
+                ),
+              ),
+              Text(
+                '$weeklyItems completados',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(7, (index) {
+              final isToday = index == today;
+              final hasActivity = _hasActivityOnDay(index, items);
+              return Column(
+                children: [
+                  Text(
+                    weekDays[index],
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                      color: isToday ? cs.primary : cs.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: hasActivity
+                          ? cs.primary
+                          : (isToday
+                                ? cs.primaryContainer
+                                : cs.surfaceContainerHighest),
+                      border: isToday
+                          ? Border.all(color: cs.primary, width: 2)
+                          : null,
+                    ),
+                    child: hasActivity
+                        ? const Icon(Icons.check, color: Colors.white, size: 16)
+                        : null,
+                  ),
+                ],
+              );
+            }),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(Icons.local_fire_department, size: 16, color: Colors.orange),
+              const SizedBox(width: 4),
+              Text(
+                'Racha: ${profile.streak} días',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.orange,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${profile.xp} XP',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: cs.primary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _hasActivityOnDay(int dayIndex, List<LearningItem> items) {
+    final now = DateTime.now();
+    final dayStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1 - dayIndex));
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    return items.any(
+      (i) => i.updatedAt.isAfter(dayStart) && i.updatedAt.isBefore(dayEnd),
+    );
+  }
+}
+
+class _RecentAchievementsCard extends StatelessWidget {
+  final List<Achievement> achievements;
+  const _RecentAchievementsCard({required this.achievements});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final unlockedAchievements = achievements
+        .where((a) => a.desbloqueado)
+        .take(3)
+        .toList();
+
+    if (unlockedAchievements.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'LOGROS RECIENTES',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.5,
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...unlockedAchievements.map(
+          (a) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: GlassCard(
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.amber.withValues(alpha: 0.2),
+                    ),
+                    child: const Icon(
+                      Icons.emoji_events,
+                      color: Colors.amber,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          a.titulo,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurface,
+                          ),
+                        ),
+                        Text(
+                          a.descripcion,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '+${a.xpRecompensa} XP',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: cs.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActivityTimelineCard extends StatelessWidget {
+  final List<CommunityPost> activities;
+  const _ActivityTimelineCard({required this.activities});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    if (activities.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'ACTIVIDAD RECIENTE',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.5,
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 12),
+        GlassCard(
+          child: Column(
+            children: activities.asMap().entries.map((entry) {
+              final index = entry.key;
+              final activity = entry.value;
+              final isLast = index == activities.length - 1;
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _getTypeColor(
+                            activity.tipo,
+                          ).withValues(alpha: 0.2),
+                        ),
+                        child: Icon(
+                          _getTypeIcon(activity.tipo),
+                          size: 16,
+                          color: _getTypeColor(activity.tipo),
+                        ),
+                      ),
+                      if (!isLast)
+                        Container(
+                          width: 2,
+                          height: 24,
+                          color: cs.surfaceContainerHighest,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            activity.contenido,
+                            style: TextStyle(fontSize: 13, color: cs.onSurface),
+                          ),
+                          Text(
+                            _formatTime(activity.timestamp),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _getTypeIcon(String tipo) {
+    switch (tipo) {
+      case 'item_completed':
+        return Icons.check_circle;
+      case 'achievement_unlocked':
+        return Icons.emoji_events;
+      case 'streak_milestone':
+        return Icons.local_fire_department;
+      case 'level_up':
+        return Icons.arrow_upward;
+      default:
+        return Icons.circle;
+    }
+  }
+
+  Color _getTypeColor(String tipo) {
+    switch (tipo) {
+      case 'item_completed':
+        return Colors.green;
+      case 'achievement_unlocked':
+        return Colors.amber;
+      case 'streak_milestone':
+        return Colors.orange;
+      case 'level_up':
+        return Colors.purple;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  String _formatTime(DateTime time) {
+    final now = DateTime.now();
+    final diff = now.difference(time);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    if (diff.inDays < 7) return '${diff.inDays}d';
+    return '${time.day}/${time.month}';
+  }
+}
+
 class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -348,16 +741,38 @@ class _QuickActions extends StatelessWidget {
                 icon: Icons.search,
                 label: 'Buscar',
                 color: cs.secondary,
-                onTap: () {},
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SearchScreen()),
+                ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _QuickActionCard(
+                icon: Icons.timer,
+                label: 'Pomodoro',
+                color: Colors.redAccent,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PomodoroScreen()),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _QuickActionCard(
                 icon: Icons.bar_chart,
                 label: 'Stats',
                 color: cs.tertiary,
-                onTap: () {},
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
+                ),
               ),
             ),
           ],
@@ -675,6 +1090,272 @@ class _EmptyDashboard extends StatelessWidget {
                 fullscreenDialog: true,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DailyGoalsCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
+    final goals = ref.watch(dailyGoalsProvider);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final todayGoal = goals.isNotEmpty
+        ? goals.firstWhere(
+            (g) => DateTime(
+              g.date.year,
+              g.date.month,
+              g.date.day,
+            ).isAtSameMomentAs(today),
+            orElse: () => DailyGoal(),
+          )
+        : DailyGoal();
+
+    final itemsProgress = todayGoal.itemsToComplete > 0
+        ? todayGoal.itemsCompleted / todayGoal.itemsToComplete
+        : 0.0;
+    final minutesProgress = todayGoal.minutesToStudy > 0
+        ? todayGoal.minutesStudied / todayGoal.minutesToStudy
+        : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'METAS DIARIAS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.5,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+            GestureDetector(
+              onTap: () => _showGoalsDialog(context, ref, todayGoal),
+              child: Row(
+                children: [
+                  Text(
+                    'Editar',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: cs.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Icon(Icons.edit, size: 14, color: cs.primary),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        GlassCard(
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: todayGoal.completed
+                          ? Colors.green.withValues(alpha: 0.2)
+                          : cs.primary.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      todayGoal.completed ? Icons.check_circle : Icons.flag,
+                      color: todayGoal.completed ? Colors.green : cs.primary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          todayGoal.completed
+                              ? '¡Meta completada!'
+                              : 'Meta de hoy',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurface,
+                          ),
+                        ),
+                        Text(
+                          '${todayGoal.itemsCompleted}/${todayGoal.itemsToComplete} items • ${todayGoal.minutesStudied}/${todayGoal.minutesToStudy} min',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (todayGoal.completed)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        '✓',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Items',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              '${todayGoal.itemsCompleted}/${todayGoal.itemsToComplete}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: cs.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        GlassProgressBar(
+                          value: itemsProgress.clamp(0.0, 1.0),
+                          color: cs.primary,
+                          height: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Tiempo',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              '${todayGoal.minutesStudied}/${todayGoal.minutesToStudy}m',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: cs.secondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        GlassProgressBar(
+                          value: minutesProgress.clamp(0.0, 1.0),
+                          color: cs.secondary,
+                          height: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showGoalsDialog(BuildContext context, WidgetRef ref, DailyGoal goal) {
+    final itemsController = TextEditingController(
+      text: goal.itemsToComplete.toString(),
+    );
+    final minutesController = TextEditingController(
+      text: goal.minutesToStudy.toString(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Editar metas diarias'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: itemsController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Items a completar',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: minutesController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Minutos de estudio',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final items = int.tryParse(itemsController.text) ?? 3;
+              final minutes = int.tryParse(minutesController.text) ?? 30;
+
+              ref
+                  .read(dailyGoalsProvider.notifier)
+                  .updateTodayGoal(
+                    goal.copyWith(
+                      itemsToComplete: items,
+                      minutesToStudy: minutes,
+                    ),
+                  );
+              Navigator.pop(context);
+            },
+            child: const Text('Guardar'),
           ),
         ],
       ),
