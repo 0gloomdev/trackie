@@ -4,7 +4,7 @@
 
 ## Código de Conducta
 
-Este proyecto se adherue al [Código de Conducta de Trackie](). Al participar, se espera que mantengas este código.
+Este proyecto se adhiere al [Código de Conducta de Trackie](). Al participar, se espera que mantengas este código.
 
 ## ¿Cómo contribuir?
 

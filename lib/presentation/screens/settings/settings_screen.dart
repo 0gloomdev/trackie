@@ -876,7 +876,7 @@ class _SettingsSwitch extends StatelessWidget {
                 ],
               ),
             ),
-            Switch(value: value, onChanged: onChanged, activeColor: color),
+            Switch(value: value, onChanged: onChanged, activeThumbColor: color),
           ],
         ),
       ),

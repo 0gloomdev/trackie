@@ -343,7 +343,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                         _fetchedMetadata!.favicon!,
                         width: 16,
                         height: 16,
-                        errorBuilder: (_, __, ___) =>
+                        errorBuilder: (_, _, _) =>
                             const Icon(Icons.language, size: 16),
                       ),
                       const SizedBox(width: 8),
