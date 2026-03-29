@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../data/models/models.dart';
@@ -82,6 +83,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> completeOnboarding() async {
     await update(state.copyWith(showOnboarding: false));
+  }
+
+  Future<void> updateLastBackupDate(DateTime date) async {
+    await update(state.copyWith(lastBackupDate: date));
   }
 }
 
@@ -1555,4 +1560,31 @@ final totalStudyMinutesProvider = Provider<int>((ref) {
   return sessions
       .where((s) => s.completed)
       .fold(0, (sum, s) => sum + s.durationMinutes);
+});
+
+// ============================================
+// AUTO BACKUP PROVIDER
+// ============================================
+
+final autoBackupProvider = Provider<void>((ref) async {
+  final settings = ref.watch(settingsProvider);
+  if (!settings.autoBackupEnabled) return;
+
+  final lastBackup = settings.lastBackupDate;
+  final now = DateTime.now();
+  final daysSinceBackup = lastBackup != null
+      ? now.difference(lastBackup).inDays
+      : settings.autoBackupFrequency + 1;
+
+  if (daysSinceBackup >= settings.autoBackupFrequency) {
+    try {
+      final exportService = ref.read(dataExportServiceProvider);
+      final filePath = await exportService.exportToFile();
+      debugPrint('Auto backup completed: $filePath');
+
+      await ref.read(settingsProvider.notifier).updateLastBackupDate(now);
+    } catch (e) {
+      debugPrint('Auto backup failed: $e');
+    }
+  }
 });

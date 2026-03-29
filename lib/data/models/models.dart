@@ -229,6 +229,7 @@ class AppSettings {
   final String? pinCode;
   final bool autoBackupEnabled;
   final int autoBackupFrequency;
+  final DateTime? lastBackupDate;
 
   AppSettings({
     this.theme = 'system',
@@ -240,6 +241,7 @@ class AppSettings {
     this.pinCode,
     this.autoBackupEnabled = false,
     this.autoBackupFrequency = 7,
+    this.lastBackupDate,
   });
 
   AppSettings copyWith({
@@ -252,6 +254,7 @@ class AppSettings {
     String? pinCode,
     bool? autoBackupEnabled,
     int? autoBackupFrequency,
+    DateTime? lastBackupDate,
   }) {
     return AppSettings(
       theme: theme ?? this.theme,
@@ -263,6 +266,7 @@ class AppSettings {
       pinCode: pinCode ?? this.pinCode,
       autoBackupEnabled: autoBackupEnabled ?? this.autoBackupEnabled,
       autoBackupFrequency: autoBackupFrequency ?? this.autoBackupFrequency,
+      lastBackupDate: lastBackupDate ?? this.lastBackupDate,
     );
   }
 
@@ -276,6 +280,7 @@ class AppSettings {
     'pinCode': pinCode,
     'autoBackupEnabled': autoBackupEnabled,
     'autoBackupFrequency': autoBackupFrequency,
+    'lastBackupDate': lastBackupDate?.toIso8601String(),
   };
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
     theme: json['theme'] ?? 'system',
@@ -287,6 +292,9 @@ class AppSettings {
     pinCode: json['pinCode'],
     autoBackupEnabled: json['autoBackupEnabled'] ?? false,
     autoBackupFrequency: json['autoBackupFrequency'] ?? 7,
+    lastBackupDate: json['lastBackupDate'] != null
+        ? DateTime.parse(json['lastBackupDate'])
+        : null,
   );
 
   bool get hasCompletedOnboarding => !showOnboarding;
