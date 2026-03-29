@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/glass_widgets.dart';
 import '../../../domain/providers/providers.dart';
@@ -132,7 +133,111 @@ class AnalyticsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  if (analytics.totalItems > 0) ...[
+                    Text(
+                      'DISTRIBUCIÓN DE ITEMS',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                        color: isDark
+                            ? AppColors.darkOnSurfaceVariant
+                            : AppColors.lightOnSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    GlassCard(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              height: 150,
+                              child: PieChart(
+                                PieChartData(
+                                  sectionsSpace: 2,
+                                  centerSpaceRadius: 30,
+                                  sections: [
+                                    if (analytics.completedItems > 0)
+                                      PieChartSectionData(
+                                        color: Colors.green,
+                                        value: analytics.completedItems
+                                            .toDouble(),
+                                        title: '${analytics.completedItems}',
+                                        radius: 35,
+                                        titleStyle: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    if (analytics.inProgressItems > 0)
+                                      PieChartSectionData(
+                                        color: Colors.blue,
+                                        value: analytics.inProgressItems
+                                            .toDouble(),
+                                        title: '${analytics.inProgressItems}',
+                                        radius: 35,
+                                        titleStyle: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    if (analytics.pendingItems > 0)
+                                      PieChartSectionData(
+                                        color: Colors.grey,
+                                        value: analytics.pendingItems
+                                            .toDouble(),
+                                        title: '${analytics.pendingItems}',
+                                        radius: 35,
+                                        titleStyle: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _LegendItem(
+                                    color: Colors.green,
+                                    label: 'Completados',
+                                    value: analytics.completedItems,
+                                    isDark: isDark,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _LegendItem(
+                                    color: Colors.blue,
+                                    label: 'En progreso',
+                                    value: analytics.inProgressItems,
+                                    isDark: isDark,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _LegendItem(
+                                    color: Colors.grey,
+                                    label: 'Pendientes',
+                                    value: analytics.pendingItems,
+                                    isDark: isDark,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
 
                   Text(
                     'ACTIVIDAD SEMANAL',
@@ -221,6 +326,124 @@ class AnalyticsScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   Text(
+                    'XP ESTA SEMANA',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.5,
+                      color: isDark
+                          ? AppColors.darkOnSurfaceVariant
+                          : AppColors.lightOnSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  GlassCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                                  final index = entry.key;
+                                  final day = entry.value;
+                                  final completed =
+                                      index < analytics.weeklyActivity.length
+                                      ? analytics
+                                            .weeklyActivity[index]
+                                            .itemsCompleted
+                                      : 0;
+                                  final xpEarned = completed * 50;
+                                  final maxXp = analytics.weeklyActivity.isEmpty
+                                      ? 1
+                                      : analytics.weeklyActivity
+                                            .map((e) => e.itemsCompleted * 50)
+                                            .reduce((a, b) => a > b ? a : b);
+                                  final height = maxXp > 0
+                                      ? (xpEarned / maxXp) * 60
+                                      : 0.0;
+
+                                  return Column(
+                                    children: [
+                                      Container(
+                                        width: 28,
+                                        height: 60,
+                                        alignment: Alignment.bottomCenter,
+                                        child: Container(
+                                          width: 24,
+                                          height: height.clamp(4.0, 60.0),
+                                          decoration: BoxDecoration(
+                                            gradient: xpEarned > 0
+                                                ? LinearGradient(
+                                                    begin:
+                                                        Alignment.bottomCenter,
+                                                    end: Alignment.topCenter,
+                                                    colors: [
+                                                      Colors.amber.shade600,
+                                                      Colors.amber.shade400,
+                                                    ],
+                                                  )
+                                                : null,
+                                            color: xpEarned == 0
+                                                ? (isDark
+                                                      ? AppColors
+                                                            .darkSurfaceContainerHighest
+                                                      : AppColors
+                                                            .lightSurfaceContainerHighest)
+                                                : null,
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        day,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: isDark
+                                              ? AppColors.darkOnSurfaceVariant
+                                              : AppColors.lightOnSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                })
+                                .toList(),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.star,
+                                size: 16,
+                                color: Colors.amber.shade600,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '50 XP por item completado',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? AppColors.darkOnSurfaceVariant
+                                      : AppColors.lightOnSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  Text(
                     'DISTRIBUCIÓN POR TIPO',
                     style: TextStyle(
                       fontSize: 12,
@@ -254,6 +477,55 @@ class AnalyticsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+  final int value;
+  final bool isDark;
+
+  const _LegendItem({
+    required this.color,
+    required this.label,
+    required this.value,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark
+                ? AppColors.darkOnSurfaceVariant
+                : AppColors.lightOnSurfaceVariant,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          '$value',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+          ),
+        ),
+      ],
     );
   }
 }

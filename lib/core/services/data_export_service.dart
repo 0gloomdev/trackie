@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import '../../data/models/models.dart';
 import '../../data/repositories/repositories.dart';
 
 class DataExportService {
@@ -165,5 +167,73 @@ class DataExportService {
     final file = File('${dir.path}/aura_learning_progress_$timestamp.md');
     await file.writeAsString(markdown);
     return file.path;
+  }
+
+  // Import from CSV
+  Future<void> importItemsFromCsv(String csvContent) async {
+    final lines = csvContent.split('\n');
+    if (lines.isEmpty) return;
+
+    // Skip header
+    for (int i = 1; i < lines.length; i++) {
+      final line = lines[i].trim();
+      if (line.isEmpty) continue;
+
+      final values = _parseCsvLine(line);
+      if (values.length < 2) continue;
+
+      // Create item from CSV row
+      final item = LearningItem(
+        title: values[0],
+        type: values.length > 1 ? values[1] : 'course',
+        status: values.length > 2 ? values[2] : 'pending',
+        progress: values.length > 3 ? int.tryParse(values[3]) ?? 0 : 0,
+        url: values.length > 4 ? values[4] : null,
+      );
+
+      await learningRepo.add(item);
+    }
+  }
+
+  List<String> _parseCsvLine(String line) {
+    final result = <String>[];
+    var current = StringBuffer();
+    var inQuotes = false;
+
+    for (int i = 0; i < line.length; i++) {
+      final char = line[i];
+      if (char == '"') {
+        inQuotes = !inQuotes;
+      } else if (char == ',' && !inQuotes) {
+        result.add(current.toString().trim());
+        current = StringBuffer();
+      } else {
+        current.write(char);
+      }
+    }
+    result.add(current.toString().trim());
+
+    return result;
+  }
+
+  Future<void> importFromCsvFile(String filePath) async {
+    final file = File(filePath);
+    final csvContent = await file.readAsString();
+    await importItemsFromCsv(csvContent);
+  }
+
+  // Import from URL (for sharing)
+  Future<bool> importFromUrl(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        await importFromJsonString(response.body);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 }

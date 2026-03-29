@@ -22,6 +22,23 @@ import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/notes/notes_screen.dart';
 import 'presentation/screens/reminders/reminders_screen.dart';
 
+class NavigateTabIntent extends Intent {
+  final int tabIndex;
+  const NavigateTabIntent(this.tabIndex);
+}
+
+class OpenSearchIntent extends Intent {
+  const OpenSearchIntent();
+}
+
+class CreateItemIntent extends Intent {
+  const CreateItemIntent();
+}
+
+class ToggleThemeIntent extends Intent {
+  const ToggleThemeIntent();
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -41,6 +58,7 @@ void main() async {
   final communityBox = await Hive.openBox('community');
   final notesBox = await Hive.openBox('notes');
   final remindersBox = await Hive.openBox('reminders');
+  final sessionsBox = await Hive.openBox('sessions');
 
   final settingsRepo = SettingsRepository();
   settingsRepo.init(settingsBox);
@@ -56,6 +74,8 @@ void main() async {
   notesRepo.init(notesBox);
   final remindersRepo = RemindersRepository();
   remindersRepo.init(remindersBox);
+  final sessionsRepo = LearningSessionsRepository();
+  sessionsRepo.init(sessionsBox);
 
   runApp(
     ProviderScope(
@@ -67,6 +87,7 @@ void main() async {
         communityRepositoryProvider.overrideWithValue(communityRepo),
         notesRepositoryProvider.overrideWithValue(notesRepo),
         remindersRepositoryProvider.overrideWithValue(remindersRepo),
+        learningSessionsRepositoryProvider.overrideWithValue(sessionsRepo),
       ],
       child: const AuraLearningApp(),
     ),
@@ -226,61 +247,135 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   }
 
   Widget _buildDesktopLayout(BuildContext context, bool isDark) {
-    return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar
-          Container(
-            width: 260,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.darkSurfaceContainer.withValues(alpha: 0.6)
-                  : AppColors.lightSurface,
-              border: Border(
-                right: BorderSide(
-                  color: isDark
-                      ? AppColors.darkOutlineVariant.withValues(alpha: 0.2)
-                      : AppColors.lightOutlineVariant,
-                ),
-              ),
-            ),
-            child: _Sidebar(
-              currentIndex: _currentIndex,
-              onItemSelected: (index) => setState(() => _currentIndex = index),
-              isDark: isDark,
-            ),
+    return Shortcuts(
+      shortcuts: <ShortcutActivator, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit1):
+            const NavigateTabIntent(0),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit2):
+            const NavigateTabIntent(1),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit3):
+            const NavigateTabIntent(2),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit4):
+            const NavigateTabIntent(3),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit5):
+            const NavigateTabIntent(4),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit6):
+            const NavigateTabIntent(5),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit7):
+            const NavigateTabIntent(6),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit8):
+            const NavigateTabIntent(7),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit9):
+            const NavigateTabIntent(8),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF):
+            const OpenSearchIntent(),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyN):
+            const CreateItemIntent(),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyT):
+            const ToggleThemeIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          NavigateTabIntent: CallbackAction<NavigateTabIntent>(
+            onInvoke: (intent) {
+              setState(() => _currentIndex = intent.tabIndex);
+              return null;
+            },
           ),
-          // Main Content
-          Expanded(
-            child: Column(
+          OpenSearchIntent: CallbackAction<OpenSearchIntent>(
+            onInvoke: (_) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchScreen()),
+              );
+              return null;
+            },
+          ),
+          CreateItemIntent: CallbackAction<CreateItemIntent>(
+            onInvoke: (_) {
+              _showCreateItemSheet(context);
+              return null;
+            },
+          ),
+          ToggleThemeIntent: CallbackAction<ToggleThemeIntent>(
+            onInvoke: (_) {
+              ref.read(settingsProvider.notifier).toggleTheme();
+              return null;
+            },
+          ),
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            body: Row(
               children: [
-                // Top Bar
-                _TopBar(title: _titles[_currentIndex], isDark: isDark),
-                // Content
+                Container(
+                  width: 260,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.darkSurfaceContainer.withValues(alpha: 0.6)
+                        : AppColors.lightSurface,
+                    border: Border(
+                      right: BorderSide(
+                        color: isDark
+                            ? AppColors.darkOutlineVariant.withValues(
+                                alpha: 0.2,
+                              )
+                            : AppColors.lightOutlineVariant,
+                      ),
+                    ),
+                  ),
+                  child: _Sidebar(
+                    currentIndex: _currentIndex,
+                    onItemSelected: (index) =>
+                        setState(() => _currentIndex = index),
+                    isDark: isDark,
+                  ),
+                ),
                 Expanded(
-                  child: IndexedStack(index: _currentIndex, children: _screens),
+                  child: Column(
+                    children: [
+                      _TopBar(
+                        title: _titles[_currentIndex],
+                        isDark: isDark,
+                        onSearchTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SearchScreen(),
+                          ),
+                        ),
+                        onCreateTap: () => _showCreateItemSheet(context),
+                      ),
+                      Expanded(
+                        child: IndexedStack(
+                          index: _currentIndex,
+                          children: _screens,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
+            floatingActionButton: _currentIndex < 5
+                ? FloatingActionButton(
+                    key: const ValueKey('main_fab'),
+                    heroTag: 'main_fab_hero',
+                    onPressed: () => _showCreateItemSheet(context),
+                    backgroundColor: isDark
+                        ? AppColors.darkPrimary
+                        : AppColors.lightPrimary,
+                    child: Icon(
+                      Icons.add,
+                      color: isDark
+                          ? AppColors.darkOnPrimary
+                          : AppColors.lightOnPrimary,
+                    ),
+                  )
+                : null,
           ),
-        ],
+        ),
       ),
-      floatingActionButton: _currentIndex < 5
-          ? FloatingActionButton(
-              key: const ValueKey('main_fab'),
-              heroTag: 'main_fab_hero',
-              onPressed: () => _showCreateItemSheet(context),
-              backgroundColor: isDark
-                  ? AppColors.darkPrimary
-                  : AppColors.lightPrimary,
-              child: Icon(
-                Icons.add,
-                color: isDark
-                    ? AppColors.darkOnPrimary
-                    : AppColors.lightOnPrimary,
-              ),
-            )
-          : null,
     );
   }
 
@@ -622,8 +717,15 @@ class _SidebarItemState extends State<_SidebarItem> {
 class _TopBar extends StatelessWidget {
   final String title;
   final bool isDark;
+  final VoidCallback? onSearchTap;
+  final VoidCallback? onCreateTap;
 
-  const _TopBar({required this.title, required this.isDark});
+  const _TopBar({
+    required this.title,
+    required this.isDark,
+    this.onSearchTap,
+    this.onCreateTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -663,10 +765,7 @@ class _TopBar extends StatelessWidget {
           const Spacer(),
           // Search
           GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SearchScreen()),
-            ),
+            onTap: onSearchTap,
             child: Container(
               width: 300,
               height: 40,

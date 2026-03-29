@@ -446,6 +446,81 @@ class Reminder {
 }
 
 // ============================================
+// LEARNING SESSION MODEL
+// ============================================
+
+class LearningSession {
+  final String id;
+  final String? itemId;
+  final String type; // 'pomodoro', 'reading', 'practice', 'review'
+  final int durationMinutes;
+  final DateTime startTime;
+  final DateTime? endTime;
+  final bool completed;
+  final String? notes;
+
+  LearningSession({
+    String? id,
+    this.itemId,
+    required this.type,
+    required this.durationMinutes,
+    required this.startTime,
+    this.endTime,
+    this.completed = false,
+    this.notes,
+  }) : id = id ?? const Uuid().v4();
+
+  LearningSession copyWith({
+    String? id,
+    String? itemId,
+    String? type,
+    int? durationMinutes,
+    DateTime? startTime,
+    DateTime? endTime,
+    bool? completed,
+    String? notes,
+  }) {
+    return LearningSession(
+      id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
+      type: type ?? this.type,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      completed: completed ?? this.completed,
+      notes: notes ?? this.notes,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'itemId': itemId,
+    'type': type,
+    'durationMinutes': durationMinutes,
+    'startTime': startTime.toIso8601String(),
+    'endTime': endTime?.toIso8601String(),
+    'completed': completed,
+    'notes': notes,
+  };
+
+  factory LearningSession.fromJson(Map<String, dynamic> json) =>
+      LearningSession(
+        id: json['id'],
+        itemId: json['itemId'],
+        type: json['type'],
+        durationMinutes: json['durationMinutes'],
+        startTime: DateTime.parse(json['startTime']),
+        endTime: json['endTime'] != null
+            ? DateTime.parse(json['endTime'])
+            : null,
+        completed: json['completed'] ?? false,
+        notes: json['notes'],
+      );
+
+  DateTime get date => DateTime(startTime.year, startTime.month, startTime.day);
+}
+
+// ============================================
 // STREAK ANALYTICS MODEL
 // ============================================
 

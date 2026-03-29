@@ -45,6 +45,8 @@ class HomeTab extends ConsumerWidget {
                 _QuickActions(),
                 const SizedBox(height: 24),
                 _DailyGoalsCard(),
+                const SizedBox(height: 24),
+                _PomodoroQuickWidget(),
                 _RecentAchievementsCard(achievements: achievements),
                 const SizedBox(height: 24),
                 _ActivityTimelineCard(activities: userPosts),
@@ -479,6 +481,124 @@ class _WeeklyProgressCard extends StatelessWidget {
     final dayEnd = dayStart.add(const Duration(days: 1));
     return items.any(
       (i) => i.updatedAt.isAfter(dayStart) && i.updatedAt.isBefore(dayEnd),
+    );
+  }
+}
+
+class _PomodoroQuickWidget extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_PomodoroQuickWidget> createState() =>
+      _PomodoroQuickWidgetState();
+}
+
+class _PomodoroQuickWidgetState extends ConsumerState<_PomodoroQuickWidget> {
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final pomodoroState = ref.watch(pomodoroStateProvider);
+    final pomodoroTime = ref.watch(pomodoroTimeProvider);
+    final minutes = pomodoroTime ~/ 60;
+    final seconds = pomodoroTime % 60;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'POMODORO',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.5,
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 12),
+        GlassCard(
+          child: InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PomodoroScreen()),
+            ),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      gradient: pomodoroState == PomodoroState.running
+                          ? LinearGradient(
+                              colors: [
+                                Colors.red.shade400,
+                                Colors.red.shade700,
+                              ],
+                            )
+                          : null,
+                      color: pomodoroState != PomodoroState.running
+                          ? cs.primary.withValues(alpha: 0.2)
+                          : null,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: pomodoroState == PomodoroState.running
+                              ? Colors.white
+                              : cs.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          pomodoroState == PomodoroState.running
+                              ? 'En progreso...'
+                              : pomodoroState == PomodoroState.paused
+                              ? 'Pausado'
+                              : 'Listo para estudiar',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          pomodoroState == PomodoroState.idle
+                              ? '25 minutos de enfoque'
+                              : 'Toca para continuar',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    pomodoroState == PomodoroState.running
+                        ? Icons.pause_circle_filled
+                        : Icons.play_circle_filled,
+                    size: 36,
+                    color: pomodoroState == PomodoroState.running
+                        ? Colors.red
+                        : cs.primary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

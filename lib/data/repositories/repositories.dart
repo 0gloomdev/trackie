@@ -472,3 +472,92 @@ class RemindersRepository {
     await _box.delete(_remindersKey);
   }
 }
+
+// ============================================
+// LEARNING SESSIONS REPOSITORY
+// ============================================
+
+class LearningSessionsRepository {
+  late Box<dynamic> _box;
+  static const String _sessionsKey = 'learning_sessions';
+
+  void init(Box<dynamic> box) {
+    _box = box;
+  }
+
+  List<LearningSession> getAll() {
+    final raw = _box.get(_sessionsKey, defaultValue: <dynamic>[]);
+    if (raw == null || raw is! List) return [];
+    return raw
+        .map(
+          (e) => LearningSession.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
+        .toList()
+      ..sort((a, b) => b.startTime.compareTo(a.startTime));
+  }
+
+  LearningSession? getById(String id) {
+    try {
+      return getAll().firstWhere((s) => s.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  List<LearningSession> getByItemId(String itemId) {
+    return getAll().where((s) => s.itemId == itemId).toList();
+  }
+
+  List<LearningSession> getByDate(DateTime date) {
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    return getAll().where((s) {
+      final sessionDate = DateTime(
+        s.startTime.year,
+        s.startTime.month,
+        s.startTime.day,
+      );
+      return sessionDate.isAtSameMomentAs(dateOnly);
+    }).toList();
+  }
+
+  List<LearningSession> getByDateRange(DateTime start, DateTime end) {
+    return getAll().where((s) {
+      return s.startTime.isAfter(start) && s.startTime.isBefore(end);
+    }).toList();
+  }
+
+  List<LearningSession> getTodaySessions() {
+    return getByDate(DateTime.now());
+  }
+
+  int getTodayMinutes() {
+    return getTodaySessions()
+        .where((s) => s.completed)
+        .fold(0, (sum, s) => sum + s.durationMinutes);
+  }
+
+  Future<void> add(LearningSession session) async {
+    final sessions = getAll();
+    sessions.add(session);
+    await _box.put(_sessionsKey, sessions.map((s) => s.toJson()).toList());
+  }
+
+  Future<void> update(LearningSession session) async {
+    final sessions = getAll();
+    final index = sessions.indexWhere((s) => s.id == session.id);
+    if (index != -1) {
+      sessions[index] = session;
+      await _box.put(_sessionsKey, sessions.map((s) => s.toJson()).toList());
+    }
+  }
+
+  Future<void> delete(String id) async {
+    final sessions = getAll();
+    sessions.removeWhere((s) => s.id == id);
+    await _box.put(_sessionsKey, sessions.map((s) => s.toJson()).toList());
+  }
+
+  Future<void> deleteAll() async {
+    await _box.delete(_sessionsKey);
+  }
+}

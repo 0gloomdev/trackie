@@ -71,6 +71,17 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
         .completeSession(ref.read(pomodoroSessionsProvider).last.id);
     ref.read(pomodoroTimeProvider.notifier).state = _selectedMinutes * 60;
 
+    // Track learning session
+    ref
+        .read(learningSessionsProvider.notifier)
+        .startSession(type: 'pomodoro', durationMinutes: _selectedMinutes);
+    final sessions = ref.read(learningSessionsProvider);
+    if (sessions.isNotEmpty) {
+      ref
+          .read(learningSessionsProvider.notifier)
+          .completeSession(sessions.first.id);
+    }
+
     ref.read(userProfileProvider.notifier).addXp(10);
     ref.read(dailyGoalsProvider.notifier).addMinutesStudied(_selectedMinutes);
 

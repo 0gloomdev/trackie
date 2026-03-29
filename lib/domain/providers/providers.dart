@@ -67,6 +67,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await update(state.copyWith(compactMode: !state.compactMode));
   }
 
+  Future<void> toggleTheme() async {
+    final newTheme = state.theme == 'dark' ? 'light' : 'dark';
+    await setTheme(newTheme);
+  }
+
   Future<void> toggleViewMode() async {
     await update(
       state.copyWith(
@@ -1341,4 +1346,156 @@ final achievedMilestonesProvider = Provider<List<int>>((ref) {
 final nextMilestonesProvider = Provider<List<int>>((ref) {
   final achieved = ref.watch(achievedMilestonesProvider);
   return streakMilestones.where((m) => !achieved.contains(m)).take(3).toList();
+});
+
+// ============================================
+// LEARNING SESSIONS PROVIDER
+// ============================================
+
+final learningSessionsRepositoryProvider = Provider<LearningSessionsRepository>(
+  (ref) {
+    throw UnimplementedError('Must be overridden in main.dart');
+  },
+);
+
+final learningSessionsProvider =
+    StateNotifierProvider<LearningSessionsNotifier, List<LearningSession>>(
+      (ref) => LearningSessionsNotifier(
+        ref.watch(learningSessionsRepositoryProvider),
+      ),
+    );
+
+class LearningSessionsNotifier extends StateNotifier<List<LearningSession>> {
+  final LearningSessionsRepository _repo;
+
+  LearningSessionsNotifier(this._repo) : super([]) {
+    _load();
+  }
+
+  void _load() {
+    state = _repo.getAll();
+  }
+
+  Future<void> startSession({
+    String? itemId,
+    required String type,
+    required int durationMinutes,
+    String? notes,
+  }) async {
+    final session = LearningSession(
+      itemId: itemId,
+      type: type,
+      durationMinutes: durationMinutes,
+      startTime: DateTime.now(),
+      notes: notes,
+    );
+    await _repo.add(session);
+    _load();
+  }
+
+  Future<void> completeSession(String sessionId) async {
+    final session = _repo.getById(sessionId);
+    if (session != null) {
+      await _repo.update(
+        session.copyWith(completed: true, endTime: DateTime.now()),
+      );
+      _load();
+    }
+  }
+
+  Future<void> cancelSession(String sessionId) async {
+    await _repo.delete(sessionId);
+    _load();
+  }
+
+  List<LearningSession> getTodaySessions() {
+    return _repo.getTodaySessions();
+  }
+
+  int getTodayMinutes() {
+    return _repo.getTodayMinutes();
+  }
+
+  List<LearningSession> getByDateRange(DateTime start, DateTime end) {
+    return _repo.getByDateRange(start, end);
+  }
+
+  Map<DateTime, int> getWeeklyMinutes() {
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: 6));
+    final sessions = _repo.getByDateRange(
+      weekStart,
+      now.add(const Duration(days: 1)),
+    );
+
+    final Map<DateTime, int> weekly = {};
+    for (int i = 0; i < 7; i++) {
+      final day = weekStart.add(Duration(days: i));
+      final dayOnly = DateTime(day.year, day.month, day.day);
+      weekly[dayOnly] = 0;
+    }
+
+    for (final session in sessions.where((s) => s.completed)) {
+      final dayOnly = DateTime(
+        session.startTime.year,
+        session.startTime.month,
+        session.startTime.day,
+      );
+      weekly[dayOnly] = (weekly[dayOnly] ?? 0) + session.durationMinutes;
+    }
+
+    return weekly;
+  }
+}
+
+// Quick providers for dashboard
+final todayStudyMinutesProvider = Provider<int>((ref) {
+  final sessions = ref.watch(learningSessionsProvider);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return sessions
+      .where((s) => s.completed && s.startTime.isAfter(today))
+      .fold(0, (sum, s) => sum + s.durationMinutes);
+});
+
+final todaySessionsCountProvider = Provider<int>((ref) {
+  final sessions = ref.watch(learningSessionsProvider);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return sessions
+      .where((s) => s.completed && s.startTime.isAfter(today))
+      .length;
+});
+
+final weeklyStudyMinutesProvider = Provider<Map<String, int>>((ref) {
+  final sessions = ref.watch(learningSessionsProvider);
+  final now = DateTime.now();
+  final weekStart = now.subtract(Duration(days: now.weekday - 1));
+
+  final Map<String, int> weekly = {};
+  final days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+  for (int i = 0; i < 7; i++) {
+    final day = weekStart.add(Duration(days: i));
+    final dayStart = DateTime(day.year, day.month, day.day);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    final minutes = sessions
+        .where(
+          (s) =>
+              s.completed &&
+              s.startTime.isAfter(dayStart) &&
+              s.startTime.isBefore(dayEnd),
+        )
+        .fold(0, (sum, s) => sum + s.durationMinutes);
+    weekly[days[i]] = minutes;
+  }
+
+  return weekly;
+});
+
+final totalStudyMinutesProvider = Provider<int>((ref) {
+  final sessions = ref.watch(learningSessionsProvider);
+  return sessions
+      .where((s) => s.completed)
+      .fold(0, (sum, s) => sum + s.durationMinutes);
 });
