@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_glass.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/helpers.dart';
+import '../../../core/widgets/shadcn_widgets.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
-import '../detail/item_detail_screen.dart';
+import '../editor/editor_screen.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -55,7 +55,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final items = ref.watch(learningItemsProvider);
     final filteredItems = _filterItems(items);
 
@@ -67,173 +66,35 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       child: Focus(
         autofocus: true,
         child: Scaffold(
-          backgroundColor: isDark
-              ? AppColors.darkBackground
-              : AppColors.lightBackground,
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              Icons.arrow_back,
-                              color: isDark
-                                  ? AppColors.darkOnSurface
-                                  : AppColors.lightOnSurface,
-                            ),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Buscar',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? AppColors.darkOnSurface
-                                  : AppColors.lightOnSurface,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.darkSurfaceContainerHighest
-                              : AppColors.lightSurfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: TextField(
-                          controller: _searchController,
-                          onChanged: (value) => setState(() => _query = value),
-                          style: TextStyle(
-                            color: isDark
-                                ? AppColors.darkOnSurface
-                                : AppColors.lightOnSurface,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Buscar en tu biblioteca...',
-                            hintStyle: TextStyle(
-                              color: isDark
-                                  ? AppColors.darkOnSurfaceVariant
-                                  : AppColors.lightOnSurfaceVariant,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.search,
-                              color: isDark
-                                  ? AppColors.darkOnSurfaceVariant
-                                  : AppColors.lightOnSurfaceVariant,
-                            ),
-                            suffixIcon: _query.isNotEmpty
-                                ? IconButton(
-                                    icon: Icon(
-                                      Icons.clear,
-                                      color: isDark
-                                          ? AppColors.darkOnSurfaceVariant
-                                          : AppColors.lightOnSurfaceVariant,
-                                    ),
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      setState(() => _query = '');
-                                    },
-                                  )
-                                : null,
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _FilterChip(
-                              label: 'Todos',
-                              isSelected: _filter == 'all',
-                              onTap: () => setState(() => _filter = 'all'),
-                              isDark: isDark,
-                            ),
-                            const SizedBox(width: 8),
-                            _FilterChip(
-                              label: 'En progreso',
-                              isSelected: _filter == 'in_progress',
-                              onTap: () =>
-                                  setState(() => _filter = 'in_progress'),
-                              isDark: isDark,
-                            ),
-                            const SizedBox(width: 8),
-                            _FilterChip(
-                              label: 'Completados',
-                              isSelected: _filter == 'completed',
-                              onTap: () =>
-                                  setState(() => _filter = 'completed'),
-                              isDark: isDark,
-                            ),
-                            const SizedBox(width: 8),
-                            _FilterChip(
-                              label: 'Pendientes',
-                              isSelected: _filter == 'pending',
-                              onTap: () => setState(() => _filter = 'pending'),
-                              isDark: isDark,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+          backgroundColor: AppColors.shadcnBackground,
+          body: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _Header(onClose: () => Navigator.pop(context)),
+                const SizedBox(height: 24),
+                _SearchInput(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() => _query = value),
+                  onClear: () {
+                    _searchController.clear();
+                    setState(() => _query = '');
+                  },
                 ),
-              ),
-              if (filteredItems.isEmpty)
-                SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: isDark
-                              ? AppColors.darkOnSurfaceVariant
-                              : AppColors.lightOnSurfaceVariant,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _query.isEmpty
-                              ? 'Sin resultados aún'
-                              : 'No se encontraron resultados',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: isDark
-                                ? AppColors.darkOnSurfaceVariant
-                                : AppColors.lightOnSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final item = filteredItems[index];
-                      return _SearchResultItem(item: item, isDark: isDark);
-                    }, childCount: filteredItems.length),
-                  ),
+                const SizedBox(height: 16),
+                _FilterChips(
+                  selectedFilter: _filter,
+                  onFilterChanged: (filter) => setState(() => _filter = filter),
                 ),
-            ],
+                const SizedBox(height: 24),
+                Expanded(
+                  child: filteredItems.isEmpty
+                      ? _EmptyState(hasQuery: _query.isNotEmpty)
+                      : _SearchResults(items: filteredItems, query: _query),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -241,83 +102,179 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final bool isDark;
+class _Header extends StatelessWidget {
+  final VoidCallback onClose;
 
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    required this.isDark,
+  const _Header({required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: onClose,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Buscar',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ).animate().fadeIn(duration: 400.ms),
+      ],
+    );
+  }
+}
+
+class _SearchInput extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  const _SearchInput({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.lightPrimary
-              : (isDark
-                    ? AppColors.darkSurfaceContainerHighest
-                    : AppColors.lightSurfaceContainerHighest),
-          borderRadius: BorderRadius.circular(20),
-          border: isSelected
-              ? null
-              : Border.all(
-                  color: isDark
-                      ? AppColors.darkOutlineVariant
-                      : AppColors.lightOutlineVariant,
-                ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: isSelected
-                ? Colors.white
-                : (isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface),
-          ),
-        ),
+    return ShadcnInput(
+      controller: controller,
+      hintText: 'Buscar en tu biblioteca...',
+      prefixIcon: const Icon(Icons.search, color: Colors.white54),
+      suffixIcon: controller.text.isNotEmpty
+          ? GestureDetector(
+              onTap: onClear,
+              child: const Icon(Icons.close, color: Colors.white54, size: 20),
+            )
+          : null,
+      onChanged: onChanged,
+    ).animate(delay: 100.ms).fadeIn().slideY(begin: -0.1);
+  }
+}
+
+class _FilterChips extends StatelessWidget {
+  final String selectedFilter;
+  final ValueChanged<String> onFilterChanged;
+
+  const _FilterChips({
+    required this.selectedFilter,
+    required this.onFilterChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final filters = [
+      {'value': 'all', 'label': 'Todos'},
+      {'value': 'in_progress', 'label': 'En progreso'},
+      {'value': 'completed', 'label': 'Completados'},
+      {'value': 'pending', 'label': 'Pendientes'},
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: filters.map((f) {
+          final isSelected = selectedFilter == f['value'];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ShadcnChip(
+              label: f['label'] as String,
+              isActive: isSelected,
+              onTap: () => onFilterChanged(f['value'] as String),
+            ),
+          );
+        }).toList(),
       ),
+    ).animate(delay: 150.ms).fadeIn();
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final bool hasQuery;
+
+  const _EmptyState({required this.hasQuery});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.shadcnPrimary.withAlpha(26),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              hasQuery ? Icons.search_off : Icons.search,
+              size: 40,
+              color: AppColors.shadcnPrimary.withAlpha(128),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            hasQuery ? 'Sin resultados' : 'Buscar en biblioteca',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            hasQuery ? 'No se encontraron elementos' : 'Escribe para buscar',
+            style: TextStyle(fontSize: 14, color: Colors.white.withAlpha(128)),
+          ),
+        ],
+      ),
+    ).animate().fadeIn();
+  }
+}
+
+class _SearchResults extends StatelessWidget {
+  final List<LearningItem> items;
+  final String query;
+
+  const _SearchResults({required this.items, required this.query});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index) =>
+          _SearchResultItem(item: items[index], index: index, query: query),
     );
   }
 }
 
 class _SearchResultItem extends StatelessWidget {
   final LearningItem item;
-  final bool isDark;
+  final int index;
+  final String query;
 
-  const _SearchResultItem({required this.item, required this.isDark});
+  const _SearchResultItem({
+    required this.item,
+    required this.index,
+    required this.query,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final color = AppHelpers.getTypeColor(item.type);
-
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ItemDetailScreen(itemId: item.id)),
-      ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ShadcnCard(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark
-              ? AppColors.darkSurfaceContainerHighest
-              : AppColors.lightSurfaceContainerHighest,
-          borderRadius: BorderRadius.circular(AppGlass.radiusMedium),
-          border: Border.all(
-            color: isDark
-                ? AppColors.darkOutlineVariant
-                : AppColors.lightOutlineVariant,
-          ),
+        hoverEffect: true,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => EditorScreen(item: item)),
         ),
         child: Row(
           children: [
@@ -325,72 +282,37 @@ class _SearchResultItem extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
+                color: _getTypeColor().withAlpha(26),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                AppHelpers.getTypeIcon(item.type),
-                color: color,
-                size: 24,
-              ),
+              child: Icon(_getTypeIcon(), color: _getTypeColor(), size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
+                  _HighlightedText(
+                    text: item.title,
+                    query: query,
+                    style: const TextStyle(
                       fontSize: 15,
-                      color: isDark
-                          ? AppColors.darkOnSurface
-                          : AppColors.lightOnSurface,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          AppHelpers.getTypeName(item.type),
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: color,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
+                      _StatusBadge(status: item.status),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(
-                            item.status,
-                          ).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          _getStatusName(item.status),
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: _getStatusColor(item.status),
-                            fontWeight: FontWeight.w500,
-                          ),
+                      Text(
+                        item.type.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white.withAlpha(102),
+                          letterSpacing: 1,
                         ),
                       ),
                     ],
@@ -398,46 +320,142 @@ class _SearchResultItem extends StatelessWidget {
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${item.progress}%',
-                  style: TextStyle(fontWeight: FontWeight.w700, color: color),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: isDark
-                      ? AppColors.darkOnSurfaceVariant
-                      : AppColors.lightOnSurfaceVariant,
-                ),
-              ],
-            ),
+            Icon(Icons.chevron_right, color: Colors.white.withAlpha(77)),
           ],
         ),
       ),
+    ).animate(delay: (30 * index).ms).fadeIn().slideX(begin: 0.05);
+  }
+
+  Color _getTypeColor() {
+    switch (item.type) {
+      case 'course':
+        return AppColors.shadcnPrimary;
+      case 'video':
+        return AppColors.shadcnSecondary;
+      case 'book':
+        return Colors.orange;
+      case 'pdf':
+        return Colors.red;
+      case 'article':
+        return Colors.green;
+      default:
+        return AppColors.shadcnPrimary;
+    }
+  }
+
+  IconData _getTypeIcon() {
+    switch (item.type) {
+      case 'course':
+        return Icons.play_circle;
+      case 'video':
+        return Icons.videocam;
+      case 'book':
+        return Icons.menu_book;
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'article':
+        return Icons.article;
+      default:
+        return Icons.link;
+    }
+  }
+}
+
+class _HighlightedText extends StatelessWidget {
+  final String text;
+  final String query;
+  final TextStyle style;
+
+  const _HighlightedText({
+    required this.text,
+    required this.query,
+    required this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (query.isEmpty) {
+      return Text(
+        text,
+        style: style,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final startIndex = lowerText.indexOf(lowerQuery);
+
+    if (startIndex == -1) {
+      return Text(
+        text,
+        style: style,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    final endIndex = startIndex + query.length;
+
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        children: [
+          TextSpan(text: text.substring(0, startIndex), style: style),
+          TextSpan(
+            text: text.substring(startIndex, endIndex),
+            style: style.copyWith(
+              backgroundColor: AppColors.shadcnPrimary.withAlpha(77),
+            ),
+          ),
+          TextSpan(text: text.substring(endIndex), style: style),
+        ],
+      ),
     );
   }
+}
 
-  Color _getStatusColor(String status) {
+class _StatusBadge extends StatelessWidget {
+  final String status;
+
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    String label;
+
     switch (status) {
       case 'completed':
-        return Colors.green;
+        color = Colors.green;
+        label = 'Completado';
+        break;
       case 'in_progress':
-        return Colors.blue;
+        color = Colors.orange;
+        label = 'En progreso';
+        break;
       default:
-        return Colors.grey;
+        color = Colors.grey;
+        label = 'Pendiente';
     }
-  }
 
-  String _getStatusName(String status) {
-    switch (status) {
-      case 'completed':
-        return 'Completado';
-      case 'in_progress':
-        return 'En progreso';
-      default:
-        return 'Pendiente';
-    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }

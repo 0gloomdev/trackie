@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_colors.dart';
 import 'core/utils/page_transitions.dart';
+import 'core/utils/translations.dart';
 import 'data/repositories/repositories.dart';
 import 'domain/providers/providers.dart';
 
@@ -21,10 +22,15 @@ import 'presentation/screens/editor/editor_screen.dart';
 import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/notes/notes_screen.dart';
 import 'presentation/screens/reminders/reminders_screen.dart';
+import 'presentation/screens/timer/pomodoro_screen.dart';
 
 class NavigateTabIntent extends Intent {
   final int tabIndex;
   const NavigateTabIntent(this.tabIndex);
+}
+
+class OpenPomodoroIntent extends Intent {
+  const OpenPomodoroIntent();
 }
 
 class OpenSearchIntent extends Intent {
@@ -223,32 +229,40 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     const SettingsScreen(),
   ];
 
-  final List<String> _titles = [
-    'Dashboard',
-    'Biblioteca',
-    'Mis Cursos',
-    'Logros',
-    'Comunidad',
-    'Notas',
-    'Recordatorios',
-    'Ayuda',
-    'Ajustes',
-  ];
+  List<String> _getTitles(WidgetRef ref) {
+    final t = ref.watch(translationsProvider);
+    return [
+      t.dashboard,
+      t.library,
+      t.courses,
+      t.achievements,
+      t.community,
+      t.notes,
+      t.reminders,
+      t.help,
+      t.settings,
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titles = _getTitles(ref);
 
     if (isDesktop) {
-      return _buildDesktopLayout(context, isDark);
+      return _buildDesktopLayout(context, isDark, titles);
     } else {
       return _buildMobileLayout(context, isDark);
     }
   }
 
-  Widget _buildDesktopLayout(BuildContext context, bool isDark) {
+  Widget _buildDesktopLayout(
+    BuildContext context,
+    bool isDark,
+    List<String> titles,
+  ) {
     return Shortcuts(
       shortcuts: <ShortcutActivator, Intent>{
         const SingleActivator(LogicalKeyboardKey.digit1, control: true):
@@ -271,6 +285,8 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
             const NavigateTabIntent(8),
         const SingleActivator(LogicalKeyboardKey.keyF, control: true):
             const OpenSearchIntent(),
+        const SingleActivator(LogicalKeyboardKey.keyP, control: true):
+            const OpenPomodoroIntent(),
         const SingleActivator(LogicalKeyboardKey.keyN, control: true):
             const CreateItemIntent(),
         const SingleActivator(LogicalKeyboardKey.keyT, control: true):
@@ -289,6 +305,15 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SearchScreen()),
+              );
+              return null;
+            },
+          ),
+          OpenPomodoroIntent: CallbackAction<OpenPomodoroIntent>(
+            onInvoke: (_) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PomodoroScreen()),
               );
               return null;
             },
@@ -332,13 +357,14 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                     onItemSelected: (index) =>
                         setState(() => _currentIndex = index),
                     isDark: isDark,
+                    titles: titles,
                   ),
                 ),
                 Expanded(
                   child: Column(
                     children: [
                       _TopBar(
-                        title: _titles[_currentIndex],
+                        title: titles[_currentIndex],
                         isDark: isDark,
                         onSearchTap: () => Navigator.push(
                           context,
@@ -347,6 +373,12 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                           ),
                         ),
                         onCreateTap: () => _showCreateItemSheet(context),
+                        onPomodoroTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PomodoroScreen(),
+                          ),
+                        ),
                       ),
                       Expanded(
                         child: IndexedStack(
@@ -382,6 +414,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   }
 
   Widget _buildMobileLayout(BuildContext context, bool isDark) {
+    final titles = _getTitles(ref);
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
@@ -408,22 +441,22 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
             NavigationDestination(
               icon: const Icon(Icons.dashboard_outlined),
               selectedIcon: const Icon(Icons.dashboard),
-              label: 'Panel',
+              label: titles[0],
             ),
             NavigationDestination(
               icon: const Icon(Icons.auto_stories_outlined),
               selectedIcon: const Icon(Icons.auto_stories),
-              label: 'Biblioteca',
+              label: titles[1],
             ),
             NavigationDestination(
               icon: const Icon(Icons.school_outlined),
               selectedIcon: const Icon(Icons.school),
-              label: 'Cursos',
+              label: titles[2],
             ),
             NavigationDestination(
               icon: const Icon(Icons.military_tech_outlined),
               selectedIcon: const Icon(Icons.military_tech),
-              label: 'Logros',
+              label: titles[3],
             ),
           ],
         ),
@@ -478,11 +511,13 @@ class _Sidebar extends ConsumerWidget {
   final int currentIndex;
   final Function(int) onItemSelected;
   final bool isDark;
+  final List<String> titles;
 
   const _Sidebar({
     required this.currentIndex,
     required this.onItemSelected,
     required this.isDark,
+    required this.titles,
   });
 
   @override
@@ -538,56 +573,56 @@ class _Sidebar extends ConsumerWidget {
             children: [
               _SidebarItem(
                 icon: Icons.dashboard,
-                label: 'Dashboard',
+                label: titles[0],
                 isSelected: currentIndex == 0,
                 onTap: () => onItemSelected(0),
                 isDark: isDark,
               ),
               _SidebarItem(
                 icon: Icons.auto_stories,
-                label: 'Biblioteca',
+                label: titles[1],
                 isSelected: currentIndex == 1,
                 onTap: () => onItemSelected(1),
                 isDark: isDark,
               ),
               _SidebarItem(
                 icon: Icons.school,
-                label: 'Mis Cursos',
+                label: titles[2],
                 isSelected: currentIndex == 2,
                 onTap: () => onItemSelected(2),
                 isDark: isDark,
               ),
               _SidebarItem(
                 icon: Icons.military_tech,
-                label: 'Logros',
+                label: titles[3],
                 isSelected: currentIndex == 3,
                 onTap: () => onItemSelected(3),
                 isDark: isDark,
               ),
               _SidebarItem(
                 icon: Icons.groups,
-                label: 'Comunidad',
+                label: titles[4],
                 isSelected: currentIndex == 4,
                 onTap: () => onItemSelected(4),
                 isDark: isDark,
               ),
               _SidebarItem(
                 icon: Icons.note_alt,
-                label: 'Notas',
+                label: titles[5],
                 isSelected: currentIndex == 5,
                 onTap: () => onItemSelected(5),
                 isDark: isDark,
               ),
               _SidebarItem(
                 icon: Icons.notifications,
-                label: 'Recordatorios',
+                label: titles[6],
                 isSelected: currentIndex == 6,
                 onTap: () => onItemSelected(6),
                 isDark: isDark,
               ),
               _SidebarItem(
                 icon: Icons.help_outline,
-                label: 'Ayuda',
+                label: titles[7],
                 isSelected: currentIndex == 7,
                 onTap: () => onItemSelected(7),
                 isDark: isDark,
@@ -601,7 +636,7 @@ class _Sidebar extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: _SidebarItem(
             icon: Icons.settings,
-            label: 'Ajustes',
+            label: titles[8],
             isSelected: currentIndex == 8,
             onTap: () => onItemSelected(8),
             isDark: isDark,
@@ -721,12 +756,14 @@ class _TopBar extends StatelessWidget {
   final bool isDark;
   final VoidCallback? onSearchTap;
   final VoidCallback? onCreateTap;
+  final VoidCallback? onPomodoroTap;
 
   const _TopBar({
     required this.title,
     required this.isDark,
     this.onSearchTap,
     this.onCreateTap,
+    this.onPomodoroTap,
   });
 
   @override
@@ -795,10 +832,32 @@ class _TopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
+          // Pomodoro
+          IconButton(
+            icon: Icon(Icons.timer_outlined, color: onSurfaceVariant),
+            onPressed: onPomodoroTap,
+            tooltip: 'Pomodoro (Ctrl+P)',
+          ),
           // Notifications
           IconButton(
             icon: Icon(Icons.notifications_outlined, color: onSurfaceVariant),
             onPressed: () {},
+          ),
+          // Language Toggle
+          Consumer(
+            builder: (context, ref, _) {
+              final settings = ref.watch(settingsProvider);
+              return IconButton(
+                icon: Icon(Icons.translate, color: onSurfaceVariant),
+                onPressed: () {
+                  final newLocale = settings.locale == 'en' ? 'es' : 'en';
+                  ref.read(settingsProvider.notifier).setLocale(newLocale);
+                },
+                tooltip: settings.locale == 'en'
+                    ? 'Switch to Spanish'
+                    : 'Cambiar a inglés',
+              );
+            },
           ),
           // Profile
           Container(

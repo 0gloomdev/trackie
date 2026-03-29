@@ -230,11 +230,12 @@ class AppSettings {
   final bool autoBackupEnabled;
   final int autoBackupFrequency;
   final DateTime? lastBackupDate;
+  final String locale;
 
   AppSettings({
     this.theme = 'system',
     this.showOnboarding = true,
-    this.notificationsEnabled = false,
+    this.notificationsEnabled = true,
     this.defaultView = 'grid',
     this.compactMode = false,
     this.pinLockEnabled = false,
@@ -242,6 +243,7 @@ class AppSettings {
     this.autoBackupEnabled = false,
     this.autoBackupFrequency = 7,
     this.lastBackupDate,
+    this.locale = 'en',
   });
 
   AppSettings copyWith({
@@ -255,6 +257,7 @@ class AppSettings {
     bool? autoBackupEnabled,
     int? autoBackupFrequency,
     DateTime? lastBackupDate,
+    String? locale,
   }) {
     return AppSettings(
       theme: theme ?? this.theme,
@@ -267,6 +270,7 @@ class AppSettings {
       autoBackupEnabled: autoBackupEnabled ?? this.autoBackupEnabled,
       autoBackupFrequency: autoBackupFrequency ?? this.autoBackupFrequency,
       lastBackupDate: lastBackupDate ?? this.lastBackupDate,
+      locale: locale ?? this.locale,
     );
   }
 
@@ -281,11 +285,12 @@ class AppSettings {
     'autoBackupEnabled': autoBackupEnabled,
     'autoBackupFrequency': autoBackupFrequency,
     'lastBackupDate': lastBackupDate?.toIso8601String(),
+    'locale': locale,
   };
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
     theme: json['theme'] ?? 'system',
     showOnboarding: json['showOnboarding'] ?? true,
-    notificationsEnabled: json['notificationsEnabled'] ?? false,
+    notificationsEnabled: json['notificationsEnabled'] ?? true,
     defaultView: json['defaultView'] ?? 'grid',
     compactMode: json['compactMode'] ?? false,
     pinLockEnabled: json['pinLockEnabled'] ?? false,
@@ -295,6 +300,7 @@ class AppSettings {
     lastBackupDate: json['lastBackupDate'] != null
         ? DateTime.parse(json['lastBackupDate'])
         : null,
+    locale: json['locale'] ?? 'es',
   );
 
   bool get hasCompletedOnboarding => !showOnboarding;

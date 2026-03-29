@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/glass_widgets.dart';
-import '../../../domain/providers/providers.dart';
+import '../../../core/widgets/shadcn_widgets.dart';
+import '../../../core/utils/translations.dart';
 import '../../../data/models/models.dart';
+import '../../../domain/providers/providers.dart';
 
 class CommunityScreen extends ConsumerWidget {
   const CommunityScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final settings = ref.watch(settingsProvider);
+    final t = Translations(settings.locale);
     final feed = ref.watch(communityFeedProvider);
     final userPosts = feed.where((p) => p.isUserPost).toList();
     final profile = ref.watch(userProfileProvider);
+    final analytics = ref.watch(analyticsProvider);
+    final achievements = ref.watch(achievementsProvider);
+    final unlockedCount = achievements.where((a) => a.desbloqueado).length;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.darkBackground
-          : AppColors.lightBackground,
+      backgroundColor: AppColors.shadcnBackground,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
@@ -27,256 +31,59 @@ class CommunityScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Mi Actividad',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: isDark
-                          ? AppColors.darkOnSurface
-                          : AppColors.lightOnSurface,
-                    ),
-                  ),
+                  _Header(title: t.community, subtitle: t.yourActivity),
                   const SizedBox(height: 24),
-
-                  // User Stats Card
-                  GlassCard(
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isDark
-                                    ? AppColors.darkPrimaryContainer
-                                    : AppColors.lightPrimaryContainer,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  profile.nombre.isNotEmpty
-                                      ? profile.nombre[0].toUpperCase()
-                                      : 'U',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? AppColors.darkOnPrimaryContainer
-                                        : AppColors.lightPrimaryContainer,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    profile.nombre,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? AppColors.darkOnSurface
-                                          : AppColors.lightOnSurface,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Nivel ${profile.nivel}',
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? AppColors.darkPrimary
-                                          : AppColors.lightPrimary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _StatItem(
-                              label: 'XP Total',
-                              value: '${profile.xp}',
-                              isDark: isDark,
-                            ),
-                            _StatItem(
-                              label: 'Racha',
-                              value: '${profile.streak} días',
-                              isDark: isDark,
-                            ),
-                            _StatItem(
-                              label: 'Posts',
-                              value: '${userPosts.length}',
-                              isDark: isDark,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  _UserStatsCard(
+                    profile: profile,
+                    postsCount: userPosts.length,
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // GitHub Connection (Future)
-                  GlassCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.code,
-                                color: Colors.black87,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'GitHub',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppColors.darkOnSurface
-                                          : AppColors.lightOnSurface,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Conectar en el futuro',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark
-                                          ? AppColors.darkOnSurfaceVariant
-                                          : AppColors.lightOnSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.link_off,
-                              color: isDark
-                                  ? AppColors.darkOnSurfaceVariant
-                                  : AppColors.lightOnSurfaceVariant,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Conecta tu cuenta de GitHub para compartir tu progreso automáticamente y ver la actividad de otros usuarios.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark
-                                ? AppColors.darkOnSurfaceVariant
-                                : AppColors.lightOnSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Historial de Actividad',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppColors.darkOnSurface
-                              : AppColors.lightOnSurface,
-                        ),
-                      ),
-                      if (userPosts.isNotEmpty)
-                        TextButton(
-                          onPressed: () {
-                            ref.read(communityFeedProvider.notifier).refresh();
-                          },
-                          child: const Text('Actualizar'),
-                        ),
-                    ],
-                  ),
+                  const SizedBox(height: 32),
+                  _SectionTitle(title: t.myProgress),
                   const SizedBox(height: 16),
+                  _ProgressCards(profile: profile),
+                  const SizedBox(height: 32),
+                  _SectionTitle(title: 'Estadísticas'),
                 ],
               ),
             ),
           ),
-
-          // User Activity Feed
-          userPosts.isEmpty
-              ? SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: GlassCard(
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.history,
-                            size: 48,
-                            color: isDark
-                                ? AppColors.darkOnSurfaceVariant
-                                : AppColors.lightOnSurfaceVariant,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Sin actividad todavía',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? AppColors.darkOnSurface
-                                  : AppColors.lightOnSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Completa items o desbloquea logros para ver tu actividad aquí',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? AppColors.darkOnSurfaceVariant
-                                  : AppColors.lightOnSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              : SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final post = userPosts[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _ActivityCard(post: post, isDark: isDark),
-                      );
-                    }, childCount: userPosts.length),
-                  ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 200,
+                childAspectRatio: 1.3,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              delegate: SliverChildListDelegate([
+                _StatCard(
+                  icon: Icons.folder,
+                  value: '${analytics.completedItems}',
+                  label: 'Items completados',
+                  color: AppColors.shadcnPrimary,
                 ),
-
+                _StatCard(
+                  icon: Icons.check_circle,
+                  value: '${profile.streak}',
+                  label: 'Días de racha',
+                  color: Colors.orange,
+                ),
+                _StatCard(
+                  icon: Icons.star,
+                  value: '${profile.xp}',
+                  label: 'XP Total',
+                  color: Colors.amber,
+                ),
+                _StatCard(
+                  icon: Icons.emoji_events,
+                  value: '$unlockedCount',
+                  label: t.achievements,
+                  color: Colors.purple,
+                ),
+              ]),
+            ),
+          ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
@@ -284,62 +91,73 @@ class CommunityScreen extends ConsumerWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isDark;
+class _Header extends StatelessWidget {
+  final String title;
+  final String subtitle;
 
-  const _StatItem({
-    required this.label,
-    required this.value,
-    required this.isDark,
-  });
+  const _Header({required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          value,
+          title,
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
+            fontSize: 40,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+            color: Colors.white,
           ),
-        ),
+        ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2),
+        const SizedBox(height: 4),
         Text(
-          label,
+          subtitle,
           style: TextStyle(
-            fontSize: 12,
-            color: isDark
-                ? AppColors.darkOnSurfaceVariant
-                : AppColors.lightOnSurfaceVariant,
+            fontSize: 16,
+            color: Colors.white.withAlpha(179),
+            fontWeight: FontWeight.w500,
           ),
-        ),
+        ).animate(delay: 100.ms).fadeIn(duration: 600.ms),
       ],
     );
   }
 }
 
-class _ActivityCard extends StatelessWidget {
-  final CommunityPost post;
-  final bool isDark;
+class _UserStatsCard extends StatelessWidget {
+  final UserProfile profile;
+  final int postsCount;
 
-  const _ActivityCard({required this.post, required this.isDark});
+  const _UserStatsCard({required this.profile, required this.postsCount});
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return ShadcnCard(
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _getTypeColor().withValues(alpha: 0.1),
+              gradient: LinearGradient(
+                colors: [AppColors.shadcnPrimary, AppColors.shadcnSecondary],
+              ),
             ),
-            child: Icon(_getTypeIcon(), color: _getTypeColor(), size: 22),
+            child: Center(
+              child: Text(
+                profile.nombre.isNotEmpty
+                    ? profile.nombre[0].toUpperCase()
+                    : 'U',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -347,36 +165,210 @@ class _ActivityCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _getTypeLabel(),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: _getTypeColor(),
+                  profile.nombre,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  post.contenido,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark
-                        ? AppColors.darkOnSurface
-                        : AppColors.lightOnSurface,
-                  ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    _LevelBadge(level: profile.nivel),
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.local_fire_department,
+                      size: 16,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${profile.streak} días',
+                      style: TextStyle(fontSize: 14, color: Colors.orange),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+        ],
+      ),
+    ).animate(delay: 150.ms).fadeIn().slideY(begin: 0.1);
+  }
+}
+
+class _LevelBadge extends StatelessWidget {
+  final int level;
+
+  const _LevelBadge({required this.level});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.shadcnPrimary, AppColors.shadcnSecondary],
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        'Nivel $level',
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title.toUpperCase(),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.5,
+        color: Colors.white.withAlpha(128),
+      ),
+    );
+  }
+}
+
+class _ProgressCards extends StatelessWidget {
+  final UserProfile profile;
+
+  const _ProgressCards({required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ProgressCard(
+            title: 'Nivel',
+            current: profile.nivel,
+            max: 10,
+            color: AppColors.shadcnPrimary,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _ProgressCard(
+            title: 'XP',
+            current: profile.xp,
+            max: 1000,
+            color: Colors.amber,
+          ),
+        ),
+      ],
+    ).animate(delay: 200.ms).fadeIn();
+  }
+}
+
+class _ProgressCard extends StatelessWidget {
+  final String title;
+  final int current;
+  final int max;
+  final Color color;
+
+  const _ProgressCard({
+    required this.title,
+    required this.current,
+    required this.max,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ShadcnCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _formatTime(post.timestamp),
+                title,
                 style: TextStyle(
-                  fontSize: 11,
-                  color: isDark
-                      ? AppColors.darkOnSurfaceVariant
-                      : AppColors.lightOnSurfaceVariant,
+                  fontSize: 14,
+                  color: Colors.white.withAlpha(179),
+                ),
+              ),
+              Text(
+                '$current / $max',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ShadcnProgress(value: current / max, color: color),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _StatCard({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ShadcnCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withAlpha(26),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withAlpha(128),
                 ),
               ),
             ],
@@ -384,73 +376,5 @@ class _ActivityCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _getTypeLabel() {
-    switch (post.tipo) {
-      case 'item_completed':
-        return 'Item completado';
-      case 'achievement_unlocked':
-        return 'Logro desbloqueado';
-      case 'item_added':
-        return 'Item añadido';
-      case 'streak_milestone':
-        return 'Racha milestone';
-      case 'level_up':
-        return 'Subió de nivel';
-      default:
-        return 'Actividad';
-    }
-  }
-
-  IconData _getTypeIcon() {
-    switch (post.tipo) {
-      case 'item_completed':
-        return Icons.check_circle;
-      case 'achievement_unlocked':
-        return Icons.emoji_events;
-      case 'item_added':
-        return Icons.add_circle;
-      case 'streak_milestone':
-        return Icons.local_fire_department;
-      case 'level_up':
-        return Icons.arrow_upward;
-      default:
-        return Icons.info;
-    }
-  }
-
-  Color _getTypeColor() {
-    switch (post.tipo) {
-      case 'item_completed':
-        return Colors.green;
-      case 'achievement_unlocked':
-        return Colors.amber;
-      case 'item_added':
-        return Colors.blue;
-      case 'streak_milestone':
-        return Colors.orange;
-      case 'level_up':
-        return Colors.purple;
-      default:
-        return isDark
-            ? AppColors.darkOnSurfaceVariant
-            : AppColors.lightOnSurfaceVariant;
-    }
-  }
-
-  String _formatTime(DateTime time) {
-    final now = DateTime.now();
-    final diff = now.difference(time);
-
-    if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}h';
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays}d';
-    } else {
-      return '${time.day}/${time.month}';
-    }
   }
 }

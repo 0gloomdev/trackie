@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_glass.dart';
-import '../../../core/widgets/glass_widgets.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../domain/providers/providers.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -34,173 +34,52 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
+      backgroundColor: AppColors.shadcnBackground,
       body: Stack(
         children: [
-          // Background gradient
-          Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.bottomRight,
-                radius: 1.2,
-                colors: isDark
-                    ? [cs.secondary.withValues(alpha: 0.3), cs.surface]
-                    : [cs.secondary.withValues(alpha: 0.1), cs.surface],
-              ),
-            ),
-          ),
-          // Decorative circles
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.2,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    cs.primary.withValues(alpha: 0.2),
-                    Colors.transparent,
-                  ],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: cs.primary.withValues(alpha: 0.3),
-                    blurRadius: 100,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.1,
-            right: -80,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    cs.secondary.withValues(alpha: 0.15),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
+          _BackgroundGlow(),
           SafeArea(
             child: Column(
               children: [
-                // Progress indicator
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 24,
-                  ),
-                  child: Row(
-                    children: List.generate(
-                      3,
-                      (i) => Expanded(
-                        child: Container(
-                          height: 4,
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(2),
-                            color: i <= _currentPage
-                                ? cs.primary
-                                : cs.surfaceContainerHighest,
-                            boxShadow: i == _currentPage
-                                ? [
-                                    BoxShadow(
-                                      color: cs.primary.withValues(alpha: 0.5),
-                                      blurRadius: 12,
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                _SkipButton(
+                  onSkip: () =>
+                      ref.read(settingsProvider.notifier).completeOnboarding(),
                 ),
-                // Pages
                 Expanded(
                   child: PageView(
                     controller: _pageController,
-                    onPageChanged: (i) => setState(() => _currentPage = i),
-                    children: [_WelcomePage(), _FeaturesPage(), _StartPage()],
-                  ),
-                ),
-                // Navigation buttons
-                Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          if (_currentPage > 0)
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  _pageController.previousPage(
-                                    duration: const Duration(milliseconds: 500),
-                                    curve: Curves.easeInOutCubic,
-                                  );
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  side: BorderSide(color: cs.outline),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.arrow_back,
-                                      size: 18,
-                                      color: cs.onSurface,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Atrás',
-                                      style: TextStyle(color: cs.onSurface),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          if (_currentPage > 0) const SizedBox(width: 16),
-                          Expanded(
-                            child: GlassButton(
-                              label: _currentPage == 2
-                                  ? 'Comenzar'
-                                  : 'Siguiente',
-                              isPrimary: true,
-                              onPressed: _nextPage,
-                            ),
-                          ),
-                        ],
+                    onPageChanged: (page) =>
+                        setState(() => _currentPage = page),
+                    children: const [
+                      _OnboardingPage(
+                        icon: Icons.folder_copy,
+                        title: 'Guarda tu contenido',
+                        description:
+                            'Agrega enlaces, videos, cursos y más. Organiza todo en un solo lugar.',
+                        color: AppColors.shadcnPrimary,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'v1.0.0',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: cs.onSurfaceVariant.withValues(alpha: 0.5),
-                        ),
+                      _OnboardingPage(
+                        icon: Icons.timer,
+                        title: 'Usa el Pomodoro',
+                        description:
+                            'Mantén el enfoque con sesiones de estudio de 25 minutos.',
+                        color: AppColors.shadcnSecondary,
+                      ),
+                      _OnboardingPage(
+                        icon: Icons.emoji_events,
+                        title: 'Gana logros',
+                        description:
+                            'Completa tareas y desbloquea logros mientras aprendes.',
+                        color: Colors.amber,
                       ),
                     ],
                   ),
                 ),
+                _PageIndicator(currentPage: _currentPage),
+                const SizedBox(height: 32),
+                _NextButton(currentPage: _currentPage, onNext: _nextPage),
+                const SizedBox(height: 48),
               ],
             ),
           ),
@@ -210,215 +89,224 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
-class _WelcomePage extends StatelessWidget {
+class _BackgroundGlow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Logo
-          Container(
-            width: 120,
-            height: 120,
+    return Stack(
+      children: [
+        Positioned(
+          top: -100,
+          left: -100,
+          child: Container(
+            width: 400,
+            height: 400,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [cs.primary, cs.secondary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.shadcnPrimary.withAlpha(51),
+                  Colors.transparent,
+                ],
               ),
-              borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: cs.primary.withValues(alpha: 0.3),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
+                  color: AppColors.shadcnPrimary.withAlpha(77),
+                  blurRadius: 150,
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.rocket_launch,
-              size: 60,
-              color: Colors.white,
-            ),
           ),
-          const SizedBox(height: 40),
-          ShaderMask(
-            shaderCallback: (bounds) => LinearGradient(
-              colors: [cs.primary, cs.secondary],
-            ).createShader(bounds),
-            child: const Text(
-              'Trackie',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
+        ),
+        Positioned(
+          bottom: -50,
+          right: -50,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.shadcnSecondary.withAlpha(51),
+                  Colors.transparent,
+                ],
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadcnSecondary.withAlpha(77),
+                  blurRadius: 100,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Tu centro de aprendizaje personal',
-            style: TextStyle(fontSize: 18, color: cs.onSurfaceVariant),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-class _FeaturesPage extends StatelessWidget {
+class _SkipButton extends StatelessWidget {
+  final VoidCallback onSkip;
+
+  const _SkipButton({required this.onSkip});
+
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Organiza tu contenido',
+    return Align(
+      alignment: Alignment.topRight,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: TextButton(
+          onPressed: onSkip,
+          child: Text(
+            'Saltar',
             style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: cs.onSurface,
+              color: Colors.white.withAlpha(179),
+              fontWeight: FontWeight.w600,
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Gestiona cursos, libros, PDFs,\npodcasts y más en un solo lugar',
-            style: TextStyle(
-              fontSize: 16,
-              color: cs.onSurfaceVariant,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 40),
-          _FeatureItem(
-            icon: Icons.play_circle,
-            label: 'Cursos',
-            color: cs.primary,
-          ),
-          const SizedBox(height: 16),
-          _FeatureItem(
-            icon: Icons.menu_book,
-            label: 'Libros',
-            color: cs.secondary,
-          ),
-          const SizedBox(height: 16),
-          _FeatureItem(
-            icon: Icons.picture_as_pdf,
-            label: 'PDFs',
-            color: cs.tertiary,
-          ),
-          const SizedBox(height: 16),
-          _FeatureItem(
-            icon: Icons.podcasts,
-            label: 'Podcasts',
-            color: cs.primaryContainer,
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _FeatureItem extends StatelessWidget {
+class _OnboardingPage extends StatelessWidget {
   final IconData icon;
-  final String label;
+  final String title;
+  final String description;
   final Color color;
 
-  const _FeatureItem({
+  const _OnboardingPage({
     required this.icon,
-    required this.label,
+    required this.title,
+    required this.description,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(AppGlass.radiusMedium),
-        border: Border.all(color: cs.outlineVariant),
-      ),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.all(48),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 16),
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: color.withAlpha(26),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withAlpha(77),
+                      blurRadius: 40,
+                      spreadRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Icon(icon, size: 56, color: color),
+              )
+              .animate()
+              .fadeIn(duration: 600.ms)
+              .scale(begin: const Offset(0.8, 0.8)),
+          const SizedBox(height: 48),
           Text(
-            label,
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -1,
+            ),
+          ).animate(delay: 200.ms).fadeIn(duration: 600.ms).slideY(begin: 0.2),
+          const SizedBox(height: 16),
+          Text(
+            description,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: cs.onSurface,
+              color: Colors.white.withAlpha(179),
+              height: 1.5,
             ),
-          ),
+          ).animate(delay: 400.ms).fadeIn(duration: 600.ms),
         ],
       ),
     );
   }
 }
 
-class _StartPage extends StatelessWidget {
+class _PageIndicator extends StatelessWidget {
+  final int currentPage;
+
+  const _PageIndicator({required this.currentPage});
+
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(3, (index) {
+        final isActive = index == currentPage;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: isActive ? 32 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: isActive
+                ? AppColors.shadcnPrimary
+                : Colors.white.withAlpha(51),
+            borderRadius: BorderRadius.circular(4),
+          ),
+        );
+      }),
+    ).animate(delay: 300.ms).fadeIn();
+  }
+}
+
+class _NextButton extends StatelessWidget {
+  final int currentPage;
+  final VoidCallback onNext;
+
+  const _NextButton({required this.currentPage, required this.onNext});
+
+  @override
+  Widget build(BuildContext context) {
+    final isLastPage = currentPage == 2;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: cs.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      padding: const EdgeInsets.symmetric(horizontal: 48),
+      child: GestureDetector(
+        onTap: onNext,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.shadcnPrimary, AppColors.shadcnSecondary],
             ),
-            child: Icon(Icons.check_circle, size: 60, color: cs.primary),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadcnPrimary.withAlpha(102),
+                blurRadius: 30,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          const SizedBox(height: 40),
-          Text(
-            '¡Listo para aprender!',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: cs.onSurface,
+          child: Center(
+            child: Text(
+              isLastPage ? 'Comenzar' : 'Siguiente',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Comienza a agregar contenido\ny organiza tu aprendizaje',
-            style: TextStyle(
-              fontSize: 16,
-              color: cs.onSurfaceVariant,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+        ),
       ),
-    );
+    ).animate(delay: 500.ms).fadeIn().slideY(begin: 0.2);
   }
 }

@@ -12,7 +12,6 @@ class HomeTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(learningItemsProvider);
     final analytics = ref.watch(analyticsProvider);
     final recentItems = ref.watch(recentInProgressItemsProvider);
     final profile = ref.watch(userProfileProvider);

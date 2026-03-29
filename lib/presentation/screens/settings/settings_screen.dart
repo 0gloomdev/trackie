@@ -1,294 +1,614 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/glass_widgets.dart';
+import '../../../core/widgets/shadcn_widgets.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final profile = ref.watch(userProfileProvider);
+    final isEnglish = settings.locale == 'en';
+
+    final menuItems = isEnglish
+        ? ['Profile', 'Notifications', 'Privacy', 'Data & Sync', 'Appearance']
+        : [
+            'Perfil',
+            'Notificaciones',
+            'Privacidad',
+            'Datos y Sincronización',
+            'Apariencia',
+          ];
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.darkBackground
-          : AppColors.lightBackground,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
+      backgroundColor: AppColors.shadcnBackground,
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _Header(),
+            const SizedBox(height: 32),
+            Expanded(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Ajustes',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: isDark
-                          ? AppColors.darkOnSurface
-                          : AppColors.lightOnSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  GestureDetector(
-                    onTap: () => _showEditProfileDialog(context, ref, profile),
-                    child: GlassCard(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isDark
-                                  ? AppColors.darkPrimaryContainer
-                                  : AppColors.lightPrimaryContainer,
-                            ),
-                            child: Center(
-                              child: Text(
-                                profile.nombre.isNotEmpty
-                                    ? profile.nombre[0].toUpperCase()
-                                    : 'U',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? AppColors.darkOnPrimaryContainer
-                                      : AppColors.lightOnPrimaryContainer,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  profile.nombre,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? AppColors.darkOnSurface
-                                        : AppColors.lightOnSurface,
-                                  ),
-                                ),
-                                Text(
-                                  'Nivel ${profile.nivel} • ${profile.xp} XP',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: isDark
-                                        ? AppColors.darkOnSurfaceVariant
-                                        : AppColors.lightOnSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(
-                            Icons.edit,
-                            color: isDark
-                                ? AppColors.darkOnSurfaceVariant
-                                : AppColors.lightOnSurfaceVariant,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _SectionTitle(title: 'Apariencia', isDark: isDark),
-                  const SizedBox(height: 12),
-                  _SettingsTile(
-                    icon: Icons.palette,
-                    title: 'Tema',
-                    subtitle: _getThemeName(settings.theme),
-                    isDark: isDark,
-                    onTap: () => _showThemeDialog(context, ref, settings.theme),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.view_module,
-                    title: 'Vista predeterminada',
-                    subtitle: settings.defaultView == 'grid'
-                        ? 'Cuadrícula'
-                        : 'Lista',
-                    isDark: isDark,
-                    onTap: () =>
-                        _showViewModeDialog(context, ref, settings.defaultView),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _SectionTitle(title: 'Datos', isDark: isDark),
-                  const SizedBox(height: 12),
-                  _SettingsTile(
-                    icon: Icons.download,
-                    title: 'Exportar datos',
-                    subtitle: 'Descargar como JSON',
-                    isDark: isDark,
-                    onTap: () => _exportData(context, ref),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.upload,
-                    title: 'Importar datos',
-                    subtitle: 'Cargar desde JSON',
-                    isDark: isDark,
-                    onTap: () => _importData(context, ref),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.delete_forever,
-                    title: 'Borrar todos los datos',
-                    subtitle: 'Eliminar permanentemente',
-                    isDark: isDark,
-                    isDestructive: true,
-                    onTap: () => _showDeleteDialog(context, ref),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _SectionTitle(title: 'Seguridad', isDark: isDark),
-                  const SizedBox(height: 12),
-                  _SettingsTile(
-                    icon: Icons.lock,
-                    title: 'PIN de bloqueo',
-                    subtitle: settings.pinLockEnabled
-                        ? 'Activado'
-                        : 'Desactivado',
-                    isDark: isDark,
-                    onTap: () => _showPinLockDialog(context, ref, settings),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _SectionTitle(title: 'Notificaciones', isDark: isDark),
-                  const SizedBox(height: 12),
-                  _SettingsSwitch(
-                    icon: Icons.notifications,
-                    title: 'Notificaciones',
-                    subtitle: 'Recibir alertas y recordatorios',
-                    value: settings.notificationsEnabled,
-                    isDark: isDark,
-                    onChanged: (value) {
-                      ref
-                          .read(settingsProvider.notifier)
-                          .update(
-                            settings.copyWith(notificationsEnabled: value),
-                          );
-                    },
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _SectionTitle(title: 'Respaldo', isDark: isDark),
-                  const SizedBox(height: 12),
-                  _SettingsSwitch(
-                    icon: Icons.backup,
-                    title: 'Auto respaldo',
-                    subtitle: settings.autoBackupEnabled
-                        ? 'Cada ${settings.autoBackupFrequency} días'
-                        : 'Desactivado',
-                    value: settings.autoBackupEnabled,
-                    isDark: isDark,
-                    onChanged: (value) {
-                      ref
-                          .read(settingsProvider.notifier)
-                          .update(settings.copyWith(autoBackupEnabled: value));
-                    },
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _SectionTitle(title: 'Acerca de', isDark: isDark),
-                  const SizedBox(height: 12),
-                  _SettingsTile(
-                    icon: Icons.info,
-                    title: 'Versión',
-                    subtitle: '1.0.0',
-                    isDark: isDark,
-                    onTap: () => _showVersionDialog(context, isDark),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.help,
-                    title: 'Ayuda',
-                    subtitle: 'Guía de uso',
-                    isDark: isDark,
-                    onTap: () {},
-                  ),
-
-                  const SizedBox(height: 100),
+                  Expanded(flex: 1, child: _Sidebar()),
+                  const SizedBox(width: 24),
+                  Expanded(flex: 2, child: _buildContent(settings, profile)),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  String _getThemeName(String theme) {
+  Widget _buildContent(AppSettings settings, UserProfile profile) {
+    switch (_selectedIndex) {
+      case 0:
+        return _ProfileSection(settings: settings, profile: profile);
+      case 1:
+        return _NotificationsSection(settings: settings);
+      case 2:
+        return _PrivacySection(settings: settings);
+      case 3:
+        return _DataSection(settings: settings);
+      case 4:
+        return _AppearanceSection(settings: settings);
+      default:
+        return _ProfileSection(settings: settings, profile: profile);
+    }
+  }
+
+  Widget _Header() {
+    final settings = ref.watch(settingsProvider);
+    final isEnglish = settings.locale == 'en';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isEnglish ? 'Settings' : 'Ajustes',
+          style: TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+            color: Colors.white,
+          ),
+        ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2, end: 0),
+        const SizedBox(height: 8),
+        Text(
+          isEnglish
+              ? 'Customize your Aura Learning experience'
+              : 'Personaliza tu experiencia Aura Learning',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white.withAlpha(179),
+            fontWeight: FontWeight.w500,
+          ),
+        ).animate(delay: 100.ms).fadeIn(duration: 600.ms),
+      ],
+    );
+  }
+
+  Widget _Sidebar() {
+    final settings = ref.watch(settingsProvider);
+    final isEnglish = settings.locale == 'en';
+    final menuItems = isEnglish
+        ? ['Profile', 'Notifications', 'Privacy', 'Data & Sync', 'Appearance']
+        : [
+            'Perfil',
+            'Notificaciones',
+            'Privacidad',
+            'Datos y Sincronización',
+            'Apariencia',
+          ];
+
+    return Column(
+      children: List.generate(menuItems.length, (index) {
+        final isSelected = _selectedIndex == index;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: GestureDetector(
+            onTap: () => setState(() => _selectedIndex = index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.shadcnPrimary.withAlpha(51)
+                    : Colors.white.withAlpha(13),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.shadcnPrimary.withAlpha(128)
+                      : Colors.transparent,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _getMenuIcon(index),
+                    color: isSelected
+                        ? AppColors.shadcnSecondary
+                        : Colors.white.withAlpha(179),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    menuItems[index],
+                    style: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : Colors.white.withAlpha(179),
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ).animate(delay: (50 * index).ms).fadeIn().slideX(begin: -0.1),
+        );
+      }),
+    );
+  }
+
+  IconData _getMenuIcon(int index) {
+    switch (index) {
+      case 0:
+        return Icons.person;
+      case 1:
+        return Icons.notifications;
+      case 2:
+        return Icons.shield;
+      case 3:
+        return Icons.storage;
+      case 4:
+        return Icons.palette;
+      default:
+        return Icons.settings;
+    }
+  }
+}
+
+class _ProfileSection extends StatelessWidget {
+  final AppSettings settings;
+  final UserProfile profile;
+
+  const _ProfileSection({required this.settings, required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: ShadcnCard(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.shadcnPrimary,
+                        AppColors.shadcnSecondary,
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.shadcnBackground,
+                    ),
+                    child: Center(
+                      child: Text(
+                        profile.nombre.isNotEmpty
+                            ? profile.nombre[0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        profile.nombre.isNotEmpty ? profile.nombre : 'Usuario',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Nivel ${profile.nivel} • ${profile.xp} XP',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withAlpha(128),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _SettingsToggle(
+              icon: Icons.cloud_off,
+              title: 'Sincronización Offline (Hive)',
+              subtitle: 'Almacenamiento local prioritario activado',
+              value: true,
+              color: AppColors.shadcnPrimary,
+            ),
+            const SizedBox(height: 12),
+            _SettingsToggle(
+              icon: Icons.battery_saver,
+              title: 'Modo Ahorro de Energía',
+              subtitle: 'Reduce animaciones',
+              value: settings.compactMode,
+              color: AppColors.shadcnSecondary,
+              onChanged: (value) {
+                // Would update settings here
+              },
+            ),
+          ],
+        ),
+      ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
+    );
+  }
+}
+
+class _NotificationsSection extends ConsumerWidget {
+  final AppSettings settings;
+
+  const _NotificationsSection({required this.settings});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isEnglish = settings.locale == 'en';
+
+    return SingleChildScrollView(
+      child: ShadcnCard(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionTitle(
+              title: isEnglish
+                  ? 'NOTIFICATIONS'
+                  : 'CONFIGURACIÓN DE NOTIFICACIONES',
+            ),
+            const SizedBox(height: 20),
+            _SettingsToggle(
+              icon: Icons.notifications,
+              title: isEnglish ? 'Push Notifications' : 'Notificaciones Push',
+              subtitle: isEnglish
+                  ? 'Receive alerts and reminders'
+                  : 'Recibe alertas y recordatorios',
+              value: settings.notificationsEnabled,
+              color: AppColors.shadcnPrimary,
+              onChanged: (value) {
+                ref
+                    .read(settingsProvider.notifier)
+                    .update(settings.copyWith(notificationsEnabled: value));
+              },
+            ),
+            const SizedBox(height: 12),
+            _SettingsToggle(
+              icon: Icons.schedule,
+              title: isEnglish
+                  ? 'Pomodoro Reminders'
+                  : 'Recordatorios de Pomodoro',
+              subtitle: isEnglish
+                  ? 'Notifications during study sessions'
+                  : 'Notificaciones durante sesiones de estudio',
+              value: settings.notificationsEnabled,
+              color: AppColors.shadcnSecondary,
+              onChanged: (value) {
+                ref
+                    .read(settingsProvider.notifier)
+                    .update(settings.copyWith(notificationsEnabled: value));
+              },
+            ),
+            const SizedBox(height: 12),
+            _SettingsToggle(
+              icon: Icons.emoji_events,
+              title: isEnglish
+                  ? 'Achievements Unlocked'
+                  : 'Logros Desbloqueados',
+              subtitle: isEnglish
+                  ? 'Celebrate when you earn achievements'
+                  : 'Celebrar cuando ganas logros',
+              value: true,
+              color: Colors.amber,
+            ),
+          ],
+        ),
+      ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
+    );
+  }
+}
+
+class _PrivacySection extends ConsumerWidget {
+  final AppSettings settings;
+
+  const _PrivacySection({required this.settings});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      child: ShadcnCard(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionTitle(title: 'Privacidad y Seguridad'),
+            const SizedBox(height: 20),
+            _SettingsTile(
+              icon: Icons.lock,
+              title: 'PIN de Bloqueo',
+              subtitle: settings.pinLockEnabled ? 'Activado' : 'Desactivado',
+              onTap: () {},
+            ),
+            const SizedBox(height: 12),
+            _SettingsToggle(
+              icon: Icons.fingerprint,
+              title: 'Biometría',
+              subtitle: 'Usar huella o rostro para desbloquear',
+              value: settings.pinLockEnabled,
+              color: AppColors.shadcnPrimary,
+              onChanged: (value) {
+                ref
+                    .read(settingsProvider.notifier)
+                    .update(settings.copyWith(pinLockEnabled: value));
+              },
+            ),
+          ],
+        ),
+      ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
+    );
+  }
+}
+
+class _DataSection extends ConsumerWidget {
+  final AppSettings settings;
+
+  const _DataSection({required this.settings});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          ShadcnCard(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _SectionTitle(title: 'Datos y Respaldo'),
+                const SizedBox(height: 20),
+                _SettingsTile(
+                  icon: Icons.download,
+                  title: 'Exportar Datos',
+                  subtitle: 'Descargar como JSON',
+                  onTap: () {},
+                ),
+                const SizedBox(height: 12),
+                _SettingsTile(
+                  icon: Icons.upload,
+                  title: 'Importar Datos',
+                  subtitle: 'Cargar desde JSON',
+                  onTap: () {},
+                ),
+                const SizedBox(height: 12),
+                _SettingsToggle(
+                  icon: Icons.backup,
+                  title: 'Auto Respaldo',
+                  subtitle: settings.autoBackupEnabled
+                      ? 'Cada ${settings.autoBackupFrequency} días'
+                      : 'Desactivado',
+                  value: settings.autoBackupEnabled,
+                  color: AppColors.shadcnPrimary,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .update(settings.copyWith(autoBackupEnabled: value));
+                  },
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
+          const SizedBox(height: 16),
+          ShadcnCard(
+            padding: const EdgeInsets.all(24),
+            borderColor: Colors.red.withAlpha(77),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red.shade400, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Zona de Peligro',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red.shade400,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Una vez que elimines tus datos, no hay vuelta atrás. Por favor, asegúrate.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withAlpha(128),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _SettingsTile(
+                        icon: Icons.delete_forever,
+                        title: 'Borrar Todos los Datos',
+                        subtitle: 'Eliminar permanentemente',
+                        isDestructive: true,
+                        onTap: () {},
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ).animate(delay: 300.ms).fadeIn().slideX(begin: 0.1),
+        ],
+      ),
+    );
+  }
+}
+
+class _AppearanceSection extends ConsumerWidget {
+  final AppSettings settings;
+
+  const _AppearanceSection({required this.settings});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isEnglish = settings.locale == 'en';
+
+    return SingleChildScrollView(
+      child: ShadcnCard(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionTitle(title: isEnglish ? 'APPEARANCE' : 'APARIENCIA'),
+            const SizedBox(height: 20),
+            _SettingsTile(
+              icon: Icons.palette,
+              title: isEnglish ? 'Theme' : 'Tema',
+              subtitle: _getThemeName(settings.theme, isEnglish),
+              onTap: () => _showThemeDialog(context, ref, settings),
+            ),
+            const SizedBox(height: 12),
+            _SettingsTile(
+              icon: Icons.language,
+              title: isEnglish ? 'Language' : 'Idioma',
+              subtitle: settings.locale == 'es' ? 'Español' : 'English',
+              onTap: () => _showLanguageDialog(context, ref, settings),
+            ),
+            const SizedBox(height: 12),
+            _SettingsTile(
+              icon: Icons.view_module,
+              title: isEnglish ? 'Default View' : 'Vista Predeterminada',
+              subtitle: settings.defaultView == 'grid'
+                  ? (isEnglish ? 'Grid' : 'Cuadrícula')
+                  : (isEnglish ? 'List' : 'Lista'),
+              onTap: () {},
+            ),
+            const SizedBox(height: 12),
+            _SettingsToggle(
+              icon: Icons.animation,
+              title: isEnglish ? 'Animations' : 'Animaciones',
+              subtitle: isEnglish
+                  ? 'Enable transitions and effects'
+                  : 'Habilitar transiciones y efectos',
+              value: !settings.compactMode,
+              color: AppColors.shadcnSecondary,
+              onChanged: (value) {
+                ref
+                    .read(settingsProvider.notifier)
+                    .update(settings.copyWith(compactMode: !value));
+              },
+            ),
+          ],
+        ),
+      ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
+    );
+  }
+
+  String _getThemeName(String theme, bool isEnglish) {
     switch (theme) {
       case 'light':
-        return 'Claro';
+        return isEnglish ? 'Light' : 'Claro';
       case 'dark':
-        return 'Oscuro';
+        return isEnglish ? 'Dark' : 'Oscuro';
       default:
-        return 'Sistema';
+        return isEnglish ? 'System' : 'Sistema';
     }
   }
 
   void _showThemeDialog(
     BuildContext context,
     WidgetRef ref,
-    String currentTheme,
+    AppSettings settings,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: isDark
-            ? AppColors.darkSurfaceContainer
-            : AppColors.lightSurface,
-        title: const Text('Seleccionar tema'),
+        backgroundColor: AppColors.shadcnBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Seleccionar Tema',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             _ThemeOption(
-              label: 'Sistema',
-              isSelected: currentTheme == 'system',
-              onTap: () {
-                ref.read(settingsProvider.notifier).setTheme('system');
-                Navigator.pop(context);
-              },
-              isDark: isDark,
-            ),
-            _ThemeOption(
-              label: 'Claro',
-              isSelected: currentTheme == 'light',
+              title: 'Claro',
+              isSelected: settings.theme == 'light',
               onTap: () {
                 ref.read(settingsProvider.notifier).setTheme('light');
                 Navigator.pop(context);
               },
-              isDark: isDark,
             ),
             _ThemeOption(
-              label: 'Oscuro',
-              isSelected: currentTheme == 'dark',
+              title: 'Oscuro',
+              isSelected: settings.theme == 'dark',
               onTap: () {
                 ref.read(settingsProvider.notifier).setTheme('dark');
                 Navigator.pop(context);
               },
-              isDark: isDark,
+            ),
+            _ThemeOption(
+              title: 'Sistema',
+              isSelected: settings.theme == 'system',
+              onTap: () {
+                ref.read(settingsProvider.notifier).setTheme('system');
+                Navigator.pop(context);
+              },
             ),
           ],
         ),
@@ -296,490 +616,38 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showViewModeDialog(
-    BuildContext context,
-    WidgetRef ref,
-    String currentView,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark
-            ? AppColors.darkSurfaceContainer
-            : AppColors.lightSurface,
-        title: const Text('Vista predeterminada'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _ThemeOption(
-              label: 'Cuadrícula',
-              isSelected: currentView == 'grid',
-              onTap: () {
-                ref.read(settingsProvider.notifier).toggleViewMode();
-                Navigator.pop(context);
-              },
-              isDark: isDark,
-            ),
-            _ThemeOption(
-              label: 'Lista',
-              isSelected: currentView == 'list',
-              onTap: () {
-                ref.read(settingsProvider.notifier).toggleViewMode();
-                Navigator.pop(context);
-              },
-              isDark: isDark,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteDialog(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark
-            ? AppColors.darkSurfaceContainer
-            : AppColors.lightSurface,
-        title: const Text('Borrar todos los datos'),
-        content: const Text('¿Estás seguro? Esta acción no se puede deshacer.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                await ref.read(learningItemsProvider.notifier).deleteAll();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Datos eliminados')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                }
-              }
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: isDark
-                  ? AppColors.darkError
-                  : AppColors.lightError,
-            ),
-            child: const Text('Borrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showVersionDialog(BuildContext context, bool isDark) {
-    showDialog(
-      context: context,
-      builder: (context) => _VersionDialog(isDark: isDark),
-    );
-  }
-
-  Future<void> _exportData(BuildContext context, WidgetRef ref) async {
-    try {
-      final exportService = ref.read(dataExportServiceProvider);
-      final filePath = await exportService.exportToFile();
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Datos exportados a: $filePath')),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error al exportar: $e')));
-      }
-    }
-  }
-
-  void _importData(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark
-            ? AppColors.darkSurfaceContainer
-            : AppColors.lightSurface,
-        title: const Text('Importar datos'),
-        content: const Text(
-          'Para importar datos, coloca un archivo JSON de backup en tu carpeta de documentos con el nombre "aura_learning_backup.json" y luego toca "Importar".\n\nEsto reemplazará todos tus datos actuales.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                final exportService = ref.read(dataExportServiceProvider);
-                await exportService.importFromFile(
-                  '/home/gloom/Documentos/aura_learning_backup.json',
-                );
-
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Datos importados correctamente'),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al importar: $e')),
-                  );
-                }
-              }
-            },
-            child: const Text('Importar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditProfileDialog(
-    BuildContext context,
-    WidgetRef ref,
-    UserProfile profile,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final nameController = TextEditingController(text: profile.nombre);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark
-            ? AppColors.darkSurfaceContainer
-            : AppColors.lightSurface,
-        title: const Text('Editar perfil'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Nombre',
-            hintText: 'Tu nombre',
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final newName = nameController.text.trim();
-              if (newName.isNotEmpty) {
-                ref
-                    .read(userProfileProvider.notifier)
-                    .updateProfile(profile.copyWith(nombre: newName));
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showPinLockDialog(
+  void _showLanguageDialog(
     BuildContext context,
     WidgetRef ref,
     AppSettings settings,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: isDark
-            ? AppColors.darkSurfaceContainer
-            : AppColors.lightSurface,
-        title: const Text('PIN de bloqueo'),
+        backgroundColor: AppColors.shadcnBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Seleccionar Idioma',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              settings.pinLockEnabled
-                  ? 'El PIN está activado'
-                  : 'El PIN está desactivado',
-            ),
-            const SizedBox(height: 16),
-            if (!settings.pinLockEnabled)
-              FilledButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _showSetPinDialog(context, ref, settings);
-                },
-                child: const Text('Activar PIN'),
-              )
-            else
-              FilledButton(
-                onPressed: () {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .update(
-                        settings.copyWith(pinLockEnabled: false, pinCode: null),
-                      );
-                  Navigator.pop(context);
-                },
-                style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Desactivar PIN'),
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSetPinDialog(
-    BuildContext context,
-    WidgetRef ref,
-    AppSettings settings,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final pinController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark
-            ? AppColors.darkSurfaceContainer
-            : AppColors.lightSurface,
-        title: const Text('Establecer PIN'),
-        content: TextField(
-          controller: pinController,
-          keyboardType: TextInputType.number,
-          maxLength: 4,
-          obscureText: true,
-          decoration: const InputDecoration(
-            labelText: 'PIN de 4 dígitos',
-            hintText: '****',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final pin = pinController.text;
-              if (pin.length == 4) {
-                ref
-                    .read(settingsProvider.notifier)
-                    .update(
-                      settings.copyWith(pinLockEnabled: true, pinCode: pin),
-                    );
+            _ThemeOption(
+              title: 'Español',
+              isSelected: settings.locale == 'es',
+              onTap: () {
+                ref.read(settingsProvider.notifier).setLocale('es');
                 Navigator.pop(context);
-              }
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _VersionDialog extends StatefulWidget {
-  final bool isDark;
-
-  const _VersionDialog({required this.isDark});
-
-  @override
-  State<_VersionDialog> createState() => _VersionDialogState();
-}
-
-class _VersionDialogState extends State<_VersionDialog> {
-  int _tapCount = 0;
-
-  void _handleTap() {
-    setState(() {
-      _tapCount++;
-    });
-
-    if (_tapCount >= 5) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Onboarding will show on next app restart'),
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: widget.isDark
-          ? AppColors.darkSurfaceContainer
-          : AppColors.lightSurface,
-      title: const Text('Acerca de Aura Learning'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: _handleTap,
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Versión: 1.0.0'),
-                SizedBox(height: 8),
-                Text('Una app de gestión de aprendizaje personal.'),
-                SizedBox(height: 8),
-                Text('Desarrollado con Flutter.'),
-              ],
+              },
             ),
-          ),
-          if (_tapCount > 0) ...[
-            const SizedBox(height: 8),
-            Text(
-              '${5 - _tapCount} taps remaining for developer mode',
-              style: TextStyle(
-                fontSize: 12,
-                color: widget.isDark
-                    ? AppColors.darkOnSurfaceVariant
-                    : AppColors.lightOnSurfaceVariant,
-              ),
-            ),
-          ],
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cerrar'),
-        ),
-      ],
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final bool isDark;
-
-  const _SectionTitle({required this.title, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title.toUpperCase(),
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.5,
-        color: isDark
-            ? AppColors.darkOnSurfaceVariant
-            : AppColors.lightOnSurfaceVariant,
-      ),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool isDark;
-  final VoidCallback onTap;
-  final bool isDestructive;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.isDark,
-    required this.onTap,
-    this.isDestructive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isDestructive
-        ? (isDark ? AppColors.darkError : AppColors.lightError)
-        : (isDark ? AppColors.darkPrimary : AppColors.lightPrimary);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: GlassCard(
-        onTap: onTap,
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: isDestructive
-                          ? (isDark
-                                ? AppColors.darkError
-                                : AppColors.lightError)
-                          : (isDark
-                                ? AppColors.darkOnSurface
-                                : AppColors.lightOnSurface),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark
-                          ? AppColors.darkOnSurfaceVariant
-                          : AppColors.lightOnSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: isDark
-                  ? AppColors.darkOnSurfaceVariant
-                  : AppColors.lightOnSurfaceVariant,
+            _ThemeOption(
+              title: 'English',
+              isSelected: settings.locale == 'en',
+              onTap: () {
+                ref.read(settingsProvider.notifier).setLocale('en');
+                Navigator.pop(context);
+              },
             ),
           ],
         ),
@@ -789,66 +657,116 @@ class _SettingsTile extends StatelessWidget {
 }
 
 class _ThemeOption extends StatelessWidget {
-  final String label;
+  final String title;
   final bool isSelected;
   final VoidCallback onTap;
-  final bool isDark;
 
   const _ThemeOption({
-    required this.label,
+    required this.title,
     required this.isSelected,
     required this.onTap,
-    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
-
-    return ListTile(
-      title: Text(label),
-      trailing: isSelected ? Icon(Icons.check, color: color) : null,
+    return GestureDetector(
       onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.shadcnPrimary.withAlpha(26)
+              : Colors.white.withAlpha(13),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.shadcnPrimary : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.white70,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            const Spacer(),
+            if (isSelected)
+              Icon(Icons.check, color: AppColors.shadcnPrimary, size: 20),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _SettingsSwitch extends StatelessWidget {
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title.toUpperCase(),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.5,
+        color: Colors.white.withAlpha(128),
+      ),
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final bool value;
-  final bool isDark;
-  final Function(bool) onChanged;
+  final VoidCallback onTap;
+  final bool isDestructive;
 
-  const _SettingsSwitch({
+  const _SettingsTile({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.value,
-    required this.isDark,
-    required this.onChanged,
+    required this.onTap,
+    this.isDestructive = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
+    final color = isDestructive ? Colors.red : Colors.white;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: GlassCard(
-        onTap: () => onChanged(!value),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(13),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withAlpha(13)),
+        ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
+                color: (isDestructive ? Colors.red : AppColors.shadcnPrimary)
+                    .withAlpha(26),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: color, size: 22),
+              child: Icon(
+                icon,
+                color: isDestructive ? Colors.red : AppColors.shadcnPrimary,
+                size: 20,
+              ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -856,29 +774,93 @@ class _SettingsSwitch extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppColors.darkOnSurface
-                          : AppColors.lightOnSurface,
+                      fontSize: 14,
+                      color: color,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 13,
-                      color: isDark
-                          ? AppColors.darkOnSurfaceVariant
-                          : AppColors.lightOnSurfaceVariant,
+                      fontSize: 12,
+                      color: Colors.white.withAlpha(128),
                     ),
                   ),
                 ],
               ),
             ),
-            Switch(value: value, onChanged: onChanged, activeThumbColor: color),
+            Icon(Icons.chevron_right, color: Colors.white.withAlpha(77)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SettingsToggle extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+  final Color color;
+
+  const _SettingsToggle({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    this.onChanged,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(13),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withAlpha(13)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withAlpha(26),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withAlpha(128),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ShadcnToggle(value: value, onChanged: onChanged),
+        ],
       ),
     );
   }

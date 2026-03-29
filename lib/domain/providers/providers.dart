@@ -81,6 +81,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     );
   }
 
+  Future<void> setLocale(String locale) async {
+    await update(state.copyWith(locale: locale));
+  }
+
+  Future<void> toggleNotifications() async {
+    await update(
+      state.copyWith(notificationsEnabled: !state.notificationsEnabled),
+    );
+  }
+
   Future<void> completeOnboarding() async {
     await update(state.copyWith(showOnboarding: false));
   }

@@ -1,169 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/glass_widgets.dart';
-import '../../../domain/providers/providers.dart';
+import '../../../core/widgets/shadcn_widgets.dart';
+import '../../../core/utils/translations.dart';
 import '../../../data/models/models.dart';
+import '../../../domain/providers/providers.dart';
+import '../editor/editor_screen.dart';
 
 class CoursesScreen extends ConsumerWidget {
   const CoursesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final settings = ref.watch(settingsProvider);
+    final t = Translations(settings.locale);
     final items = ref.watch(learningItemsProvider);
-
-    // Filter items to only show courses
     final courses = items.where((i) => i.type == 'course').toList();
     final inProgress = courses.where((i) => i.status == 'in_progress').toList();
     final completed = courses.where((i) => i.status == 'completed').toList();
-    final pending = courses.where((i) => i.status == 'pending').toList();
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.darkBackground
-          : AppColors.lightBackground,
+      backgroundColor: AppColors.shadcnBackground,
       body: CustomScrollView(
         slivers: [
-          // Header
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Mis Cursos',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: isDark
-                          ? AppColors.darkOnSurface
-                          : AppColors.lightOnSurface,
-                    ),
+                  _Header(
+                    totalCourses: courses.length,
+                    title: t.courses,
+                    subtitle:
+                        '${courses.length} ${courses.length != 1 ? (settings.locale == 'en' ? 'courses' : 'cursos') : (settings.locale == 'en' ? 'course' : 'curso')} ${settings.locale == 'en' ? 'total' : 'en total'}',
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${courses.length} cursos en total',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark
-                          ? AppColors.darkOnSurfaceVariant
-                          : AppColors.lightOnSurfaceVariant,
-                    ),
+                  const SizedBox(height: 24),
+                  _StatsRow(
+                    inProgress: inProgress.length,
+                    completed: completed.length,
+                    pending:
+                        courses.length - inProgress.length - completed.length,
                   ),
-                ],
-              ),
-            ),
-          ),
-
-          // Stats Cards
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      label: 'En Progreso',
-                      value: inProgress.length.toString(),
-                      icon: Icons.play_circle,
-                      color: isDark
-                          ? AppColors.darkSecondary
-                          : AppColors.lightSecondary,
-                      isDark: isDark,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      label: 'Completados',
-                      value: completed.length.toString(),
-                      icon: Icons.check_circle,
-                      color: isDark
-                          ? AppColors.darkPrimary
-                          : AppColors.lightPrimary,
-                      isDark: isDark,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      label: 'Pendientes',
-                      value: pending.length.toString(),
-                      icon: Icons.schedule,
-                      color: isDark
-                          ? AppColors.darkOnSurfaceVariant
-                          : AppColors.lightOnSurfaceVariant,
-                      isDark: isDark,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-          // Course List
-          if (courses.isEmpty)
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.school_outlined,
-                      size: 64,
-                      color: isDark
-                          ? AppColors.darkOnSurfaceVariant
-                          : AppColors.lightOnSurfaceVariant,
-                    ),
+                  const SizedBox(height: 32),
+                  if (inProgress.isNotEmpty) ...[
+                    _SectionTitle(title: 'En Progreso'),
                     const SizedBox(height: 16),
-                    Text(
-                      'No hay cursos aún',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppColors.darkOnSurface
-                            : AppColors.lightOnSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Añade tu primer curso desde la biblioteca',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark
-                            ? AppColors.darkOnSurfaceVariant
-                            : AppColors.lightOnSurfaceVariant,
-                      ),
-                    ),
                   ],
-                ),
+                ],
               ),
-            )
-          else
+            ),
+          ),
+          if (inProgress.isNotEmpty)
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final course = courses[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _CourseCard(
-                      item: course,
-                      isDark: isDark,
-                      onTap: () {
-                        // Navigate to detail
-                      },
-                    ),
-                  );
-                }, childCount: courses.length),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) =>
+                      _CourseCard(item: inProgress[index], index: index),
+                  childCount: inProgress.length,
+                ),
               ),
             ),
-
+          if (completed.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                child: _SectionTitle(title: 'Completados'),
+              ),
+            ),
+          if (completed.isNotEmpty)
+            SliverPadding(
+              padding: const EdgeInsets.all(24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _CourseCard(
+                    item: inProgress.isNotEmpty
+                        ? completed[index]
+                        : completed[index],
+                    index: inProgress.length + index,
+                  ),
+                  childCount: completed.length,
+                ),
+              ),
+            ),
+          if (courses.isEmpty) SliverFillRemaining(child: _EmptyState()),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
@@ -171,47 +93,121 @@ class CoursesScreen extends ConsumerWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-  final bool isDark;
+class _Header extends StatelessWidget {
+  final int totalCourses;
+  final String title;
+  final String subtitle;
 
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-    required this.isDark,
+  const _Header({
+    required this.totalCourses,
+    required this.title,
+    required this.subtitle,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      backgroundColor: color.withValues(alpha: 0.1),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+            color: Colors.white,
+          ),
+        ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white.withAlpha(179),
+            fontWeight: FontWeight.w500,
+          ),
+        ).animate(delay: 100.ms).fadeIn(duration: 600.ms),
+      ],
+    );
+  }
+}
+
+class _StatsRow extends StatelessWidget {
+  final int inProgress;
+  final int completed;
+  final int pending;
+
+  const _StatsRow({
+    required this.inProgress,
+    required this.completed,
+    required this.pending,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _StatItem(
+            label: 'En progreso',
+            value: inProgress,
+            color: Colors.orange,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _StatItem(
+            label: 'Completados',
+            value: completed,
+            color: Colors.green,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _StatItem(
+            label: 'Pendientes',
+            value: pending,
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    ).animate(delay: 150.ms).fadeIn().slideY(begin: 0.1);
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String label;
+  final int value;
+  final Color color;
+
+  const _StatItem({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 12),
           Text(
-            value,
+            '$value',
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark
-                  ? AppColors.darkOnSurfaceVariant
-                  : AppColors.lightOnSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.white.withAlpha(179)),
           ),
         ],
       ),
@@ -219,121 +215,167 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _CourseCard extends StatelessWidget {
-  final LearningItem item;
-  final bool isDark;
-  final VoidCallback onTap;
+class _SectionTitle extends StatelessWidget {
+  final String title;
 
-  const _CourseCard({
-    required this.item,
-    required this.isDark,
-    required this.onTap,
-  });
+  const _SectionTitle({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color:
-                      (isDark ? AppColors.darkPrimary : AppColors.lightPrimary)
-                          .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.school,
-                  color: isDark
-                      ? AppColors.darkPrimary
-                      : AppColors.lightPrimary,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppColors.darkOnSurface
-                            : AppColors.lightOnSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getStatusText(item.status),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _getStatusColor(item.status, isDark),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (item.isFavorite)
-                Icon(
-                  Icons.star,
-                  color: isDark
-                      ? AppColors.darkSecondary
-                      : AppColors.lightSecondary,
-                  size: 20,
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          GlassProgressBar(
-            value: item.progress / 100,
-            color: _getStatusColor(item.status, isDark),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${item.progress}% completado',
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark
-                  ? AppColors.darkOnSurfaceVariant
-                  : AppColors.lightOnSurfaceVariant,
-            ),
-          ),
-        ],
+    return Text(
+      title.toUpperCase(),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.5,
+        color: Colors.white.withAlpha(128),
       ),
     );
   }
+}
 
-  String _getStatusText(String status) {
-    switch (status) {
-      case 'completed':
-        return 'Completado';
-      case 'in_progress':
-        return 'En progreso';
-      case 'pending':
-        return 'Pendiente';
-      default:
-        return status;
-    }
+class _CourseCard extends StatelessWidget {
+  final LearningItem item;
+  final int index;
+
+  const _CourseCard({required this.item, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
+    final isCompleted = item.status == 'completed';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ShadcnCard(
+        padding: const EdgeInsets.all(16),
+        hoverEffect: true,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => EditorScreen(item: item)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: isCompleted
+                    ? Colors.green.withAlpha(26)
+                    : AppColors.shadcnPrimary.withAlpha(26),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isCompleted ? Icons.check_circle : Icons.play_circle,
+                color: isCompleted ? Colors.green : AppColors.shadcnPrimary,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(children: [_StatusBadge(status: item.status)]),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.white.withAlpha(77)),
+          ],
+        ),
+      ),
+    ).animate(delay: (30 * index).ms).fadeIn().slideX(begin: 0.05);
   }
+}
 
-  Color _getStatusColor(String status, bool isDark) {
+class _StatusBadge extends StatelessWidget {
+  final String status;
+
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    String label;
+
     switch (status) {
       case 'completed':
-        return isDark ? AppColors.darkPrimary : AppColors.lightPrimary;
+        color = Colors.green;
+        label = 'Completado';
+        break;
       case 'in_progress':
-        return isDark ? AppColors.darkSecondary : AppColors.lightSecondary;
+        color = Colors.orange;
+        label = 'En progreso';
+        break;
       default:
-        return isDark
-            ? AppColors.darkOnSurfaceVariant
-            : AppColors.lightOnSurfaceVariant;
+        color = Colors.grey;
+        label = 'Pendiente';
     }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.shadcnPrimary.withAlpha(26),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.school,
+              size: 40,
+              color: AppColors.shadcnPrimary.withAlpha(128),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'No hay cursos aún',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Agrega tu primer curso para comenzar',
+            style: TextStyle(fontSize: 14, color: Colors.white.withAlpha(128)),
+          ),
+        ],
+      ),
+    ).animate().fadeIn();
   }
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_colors.dart';
+import '../utils/translations.dart';
+import '../../domain/providers/providers.dart';
 
-class ShadcnLayout extends StatelessWidget {
+class ShadcnLayout extends ConsumerWidget {
   final int currentIndex;
   final List<Widget> screens;
   final Function(int) onNavigate;
@@ -25,14 +28,14 @@ class ShadcnLayout extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (isDesktop) {
-      return _buildDesktopLayout(context);
+      return _buildDesktopLayout(context, ref);
     }
-    return _buildMobileLayout(context);
+    return _buildMobileLayout(context, ref);
   }
 
-  Widget _buildDesktopLayout(BuildContext context) {
+  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.shadcnBackground,
       body: Row(
@@ -64,7 +67,7 @@ class ShadcnLayout extends StatelessWidget {
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context) {
+  Widget _buildMobileLayout(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.shadcnBackground,
       body: Stack(
@@ -151,7 +154,7 @@ class _AmbientGlows extends StatelessWidget {
   }
 }
 
-class _ShadcnSidebar extends StatelessWidget {
+class _ShadcnSidebar extends ConsumerWidget {
   final int currentIndex;
   final Function(int) onNavigate;
   final bool isExpanded;
@@ -163,13 +166,15 @@ class _ShadcnSidebar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final t = Translations(settings.locale);
     final items = [
-      {'icon': Icons.dashboard_rounded, 'label': 'Panel', 'path': 0},
-      {'icon': Icons.auto_stories_rounded, 'label': 'Biblioteca', 'path': 1},
-      {'icon': Icons.school_rounded, 'label': 'Cursos', 'path': 2},
-      {'icon': Icons.emoji_events_rounded, 'label': 'Logros', 'path': 3},
-      {'icon': Icons.people_rounded, 'label': 'Comunidad', 'path': 4},
+      {'icon': Icons.dashboard_rounded, 'label': t.dashboard, 'path': 0},
+      {'icon': Icons.auto_stories_rounded, 'label': t.library, 'path': 1},
+      {'icon': Icons.school_rounded, 'label': t.courses, 'path': 2},
+      {'icon': Icons.emoji_events_rounded, 'label': t.achievements, 'path': 3},
+      {'icon': Icons.people_rounded, 'label': t.community, 'path': 4},
     ];
 
     return Container(
@@ -509,7 +514,7 @@ class _ShadcnTopBar extends StatelessWidget {
   }
 }
 
-class _ShadcnBottomNav extends StatelessWidget {
+class _ShadcnBottomNav extends ConsumerWidget {
   final int currentIndex;
   final Function(int) onNavigate;
   final VoidCallback? onCreateTap;
@@ -521,12 +526,14 @@ class _ShadcnBottomNav extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final t = Translations(settings.locale);
     final items = [
-      {'icon': Icons.dashboard_rounded, 'label': 'Panel'},
-      {'icon': Icons.auto_stories_rounded, 'label': 'Biblioteca'},
-      {'icon': Icons.school_rounded, 'label': 'Cursos'},
-      {'icon': Icons.settings_rounded, 'label': 'Ajustes'},
+      {'icon': Icons.dashboard_rounded, 'label': t.dashboard},
+      {'icon': Icons.auto_stories_rounded, 'label': t.library},
+      {'icon': Icons.school_rounded, 'label': t.courses},
+      {'icon': Icons.settings_rounded, 'label': t.settings},
     ];
 
     return Container(
