@@ -249,29 +249,29 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   Widget _buildDesktopLayout(BuildContext context, bool isDark) {
     return Shortcuts(
       shortcuts: <ShortcutActivator, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit1):
+        const SingleActivator(LogicalKeyboardKey.digit1, control: true):
             const NavigateTabIntent(0),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit2):
+        const SingleActivator(LogicalKeyboardKey.digit2, control: true):
             const NavigateTabIntent(1),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit3):
+        const SingleActivator(LogicalKeyboardKey.digit3, control: true):
             const NavigateTabIntent(2),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit4):
+        const SingleActivator(LogicalKeyboardKey.digit4, control: true):
             const NavigateTabIntent(3),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit5):
+        const SingleActivator(LogicalKeyboardKey.digit5, control: true):
             const NavigateTabIntent(4),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit6):
+        const SingleActivator(LogicalKeyboardKey.digit6, control: true):
             const NavigateTabIntent(5),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit7):
+        const SingleActivator(LogicalKeyboardKey.digit7, control: true):
             const NavigateTabIntent(6),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit8):
+        const SingleActivator(LogicalKeyboardKey.digit8, control: true):
             const NavigateTabIntent(7),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.digit9):
+        const SingleActivator(LogicalKeyboardKey.digit9, control: true):
             const NavigateTabIntent(8),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF):
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true):
             const OpenSearchIntent(),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyN):
+        const SingleActivator(LogicalKeyboardKey.keyN, control: true):
             const CreateItemIntent(),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyT):
+        const SingleActivator(LogicalKeyboardKey.keyT, control: true):
             const ToggleThemeIntent(),
       },
       child: Actions(
