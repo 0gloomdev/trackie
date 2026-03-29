@@ -68,6 +68,59 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
 
                   const SizedBox(height: 24),
 
+                  // Keyboard Shortcuts (Desktop only)
+                  Text(
+                    'Atajos de Teclado',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppColors.darkOnSurface
+                          : AppColors.lightOnSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  GlassCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _ShortcutRow(
+                            keys: 'Ctrl + 1-9',
+                            description: 'Navegar entre pestañas',
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: 8),
+                          _ShortcutRow(
+                            keys: 'Ctrl + F',
+                            description: 'Abrir búsqueda',
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: 8),
+                          _ShortcutRow(
+                            keys: 'Ctrl + N',
+                            description: 'Crear nuevo item',
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: 8),
+                          _ShortcutRow(
+                            keys: 'Ctrl + T',
+                            description: 'Cambiar tema (oscuro/claro)',
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: 8),
+                          _ShortcutRow(
+                            keys: 'Esc',
+                            description: 'Cerrar búsqueda o modal',
+                            isDark: isDark,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
                   // Categories
                   Text(
                     'Categorías',
@@ -171,6 +224,56 @@ class _CategoryChip extends StatelessWidget {
       isSelected: false,
       onTap: onTap,
       activeColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
+    );
+  }
+}
+
+class _ShortcutRow extends StatelessWidget {
+  final String keys;
+  final String description;
+  final bool isDark;
+
+  const _ShortcutRow({
+    required this.keys,
+    required this.description,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.darkSurfaceContainerHighest
+                : AppColors.lightSurfaceContainerHighest,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            keys,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'monospace',
+              color: isDark
+                  ? AppColors.darkOnSurface
+                  : AppColors.lightOnSurface,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          description,
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark
+                ? AppColors.darkOnSurfaceVariant
+                : AppColors.lightOnSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_glass.dart';
 import '../../../core/theme/app_colors.dart';
@@ -58,158 +59,183 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final items = ref.watch(learningItemsProvider);
     final filteredItems = _filterItems(items);
 
-    return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.darkBackground
-          : AppColors.lightBackground,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Buscar',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: isDark
-                          ? AppColors.darkOnSurface
-                          : AppColors.lightOnSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkSurfaceContainerHighest
-                          : AppColors.lightSurfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) => setState(() => _query = value),
-                      style: TextStyle(
-                        color: isDark
-                            ? AppColors.darkOnSurface
-                            : AppColors.lightOnSurface,
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.escape): () =>
+            Navigator.pop(context),
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          backgroundColor: isDark
+              ? AppColors.darkBackground
+              : AppColors.lightBackground,
+          body: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_back,
+                              color: isDark
+                                  ? AppColors.darkOnSurface
+                                  : AppColors.lightOnSurface,
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Buscar',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? AppColors.darkOnSurface
+                                  : AppColors.lightOnSurface,
+                            ),
+                          ),
+                        ],
                       ),
-                      decoration: InputDecoration(
-                        hintText: 'Buscar en tu biblioteca...',
-                        hintStyle: TextStyle(
+                      const SizedBox(height: 24),
+                      Container(
+                        decoration: BoxDecoration(
                           color: isDark
-                              ? AppColors.darkOnSurfaceVariant
-                              : AppColors.lightOnSurfaceVariant,
+                              ? AppColors.darkSurfaceContainerHighest
+                              : AppColors.lightSurfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: isDark
-                              ? AppColors.darkOnSurfaceVariant
-                              : AppColors.lightOnSurfaceVariant,
-                        ),
-                        suffixIcon: _query.isNotEmpty
-                            ? IconButton(
-                                icon: Icon(
-                                  Icons.clear,
-                                  color: isDark
-                                      ? AppColors.darkOnSurfaceVariant
-                                      : AppColors.lightOnSurfaceVariant,
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() => _query = '');
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) => setState(() => _query = value),
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.darkOnSurface
+                                : AppColors.lightOnSurface,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Buscar en tu biblioteca...',
+                            hintStyle: TextStyle(
+                              color: isDark
+                                  ? AppColors.darkOnSurfaceVariant
+                                  : AppColors.lightOnSurfaceVariant,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: isDark
+                                  ? AppColors.darkOnSurfaceVariant
+                                  : AppColors.lightOnSurfaceVariant,
+                            ),
+                            suffixIcon: _query.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(
+                                      Icons.clear,
+                                      color: isDark
+                                          ? AppColors.darkOnSurfaceVariant
+                                          : AppColors.lightOnSurfaceVariant,
+                                    ),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() => _query = '');
+                                    },
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _FilterChip(
+                              label: 'Todos',
+                              isSelected: _filter == 'all',
+                              onTap: () => setState(() => _filter = 'all'),
+                              isDark: isDark,
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: 'En progreso',
+                              isSelected: _filter == 'in_progress',
+                              onTap: () =>
+                                  setState(() => _filter = 'in_progress'),
+                              isDark: isDark,
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: 'Completados',
+                              isSelected: _filter == 'completed',
+                              onTap: () =>
+                                  setState(() => _filter = 'completed'),
+                              isDark: isDark,
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterChip(
+                              label: 'Pendientes',
+                              isSelected: _filter == 'pending',
+                              onTap: () => setState(() => _filter = 'pending'),
+                              isDark: isDark,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
+                ),
+              ),
+              if (filteredItems.isEmpty)
+                SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _FilterChip(
-                          label: 'Todos',
-                          isSelected: _filter == 'all',
-                          onTap: () => setState(() => _filter = 'all'),
-                          isDark: isDark,
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: isDark
+                              ? AppColors.darkOnSurfaceVariant
+                              : AppColors.lightOnSurfaceVariant,
                         ),
-                        const SizedBox(width: 8),
-                        _FilterChip(
-                          label: 'En progreso',
-                          isSelected: _filter == 'in_progress',
-                          onTap: () => setState(() => _filter = 'in_progress'),
-                          isDark: isDark,
-                        ),
-                        const SizedBox(width: 8),
-                        _FilterChip(
-                          label: 'Completados',
-                          isSelected: _filter == 'completed',
-                          onTap: () => setState(() => _filter = 'completed'),
-                          isDark: isDark,
-                        ),
-                        const SizedBox(width: 8),
-                        _FilterChip(
-                          label: 'Pendientes',
-                          isSelected: _filter == 'pending',
-                          onTap: () => setState(() => _filter = 'pending'),
-                          isDark: isDark,
+                        const SizedBox(height: 16),
+                        Text(
+                          _query.isEmpty
+                              ? 'Sin resultados aún'
+                              : 'No se encontraron resultados',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isDark
+                                ? AppColors.darkOnSurfaceVariant
+                                : AppColors.lightOnSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          if (filteredItems.isEmpty)
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search_off,
-                      size: 64,
-                      color: isDark
-                          ? AppColors.darkOnSurfaceVariant
-                          : AppColors.lightOnSurfaceVariant,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _query.isEmpty
-                          ? 'Sin resultados aún'
-                          : 'No se encontraron resultados',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: isDark
-                            ? AppColors.darkOnSurfaceVariant
-                            : AppColors.lightOnSurfaceVariant,
-                      ),
-                    ),
-                  ],
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final item = filteredItems[index];
+                      return _SearchResultItem(item: item, isDark: isDark);
+                    }, childCount: filteredItems.length),
+                  ),
                 ),
-              ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final item = filteredItems[index];
-                  return _SearchResultItem(item: item, isDark: isDark);
-                }, childCount: filteredItems.length),
-              ),
-            ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
