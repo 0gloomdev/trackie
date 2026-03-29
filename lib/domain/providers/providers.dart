@@ -1087,6 +1087,31 @@ final analyticsProvider = Provider<Analytics>((ref) {
   final pomodoro = ref.watch(pomodoroSessionsProvider);
   final profile = ref.watch(userProfileProvider);
 
+  final completedPomodoro = pomodoro
+      .where((s) => s.completed && s.endTime != null)
+      .toList();
+  final todayMinutes = completedPomodoro
+      .where((s) {
+        final now = DateTime.now();
+        return s.endTime!.year == now.year &&
+            s.endTime!.month == now.month &&
+            s.endTime!.day == now.day;
+      })
+      .fold(0, (sum, s) => sum + s.durationMinutes);
+
+  final weekMinutes = completedPomodoro
+      .where((s) {
+        final now = DateTime.now();
+        final weekAgo = now.subtract(const Duration(days: 7));
+        return s.endTime!.isAfter(weekAgo);
+      })
+      .fold(0, (sum, s) => sum + s.durationMinutes);
+
+  final itemsByType = <String, int>{};
+  for (final item in items) {
+    itemsByType[item.type] = (itemsByType[item.type] ?? 0) + 1;
+  }
+
   return Analytics(
     totalItems: items.length,
     completedItems: items.where((i) => i.status == 'completed').length,
@@ -1094,12 +1119,14 @@ final analyticsProvider = Provider<Analytics>((ref) {
     pendingItems: items.where((i) => i.status == 'pending').length,
     totalXp: profile.xp,
     currentStreak: profile.streak,
+    longestStreak: profile.longestStreak,
     todayCompleted: goals.isNotEmpty ? goals.last.itemsCompleted : 0,
-    todayMinutes: pomodoro.fold(
-      0,
-      (sum, s) => sum + (s.completed ? s.durationMinutes : 0),
-    ),
+    todayMinutes: todayMinutes,
+    weekMinutes: weekMinutes,
+    totalPomodoroSessions: completedPomodoro.length,
     weeklyActivity: _generateWeeklyActivity(items),
+    monthlyActivity: _generateMonthlyActivity(items),
+    itemsByType: itemsByType,
     completionRate: items.isEmpty
         ? 0.0
         : items.where((i) => i.status == 'completed').length / items.length,
@@ -1126,6 +1153,26 @@ List<DailyActivity> _generateWeeklyActivity(List<LearningItem> items) {
   });
 }
 
+List<DailyActivity> _generateMonthlyActivity(List<LearningItem> items) {
+  final now = DateTime.now();
+  final monthStart = DateTime(now.year, now.month - 1, now.day);
+
+  return List.generate(30, (index) {
+    final day = monthStart.add(Duration(days: index));
+    final dayEnd = day.add(const Duration(days: 1));
+    final dayItems = items
+        .where(
+          (i) =>
+              i.status == 'completed' &&
+              i.updatedAt.isAfter(day) &&
+              i.updatedAt.isBefore(dayEnd),
+        )
+        .length;
+
+    return DailyActivity(date: day, itemsCompleted: dayItems);
+  });
+}
+
 class Analytics {
   final int totalItems;
   final int completedItems;
@@ -1133,9 +1180,14 @@ class Analytics {
   final int pendingItems;
   final int totalXp;
   final int currentStreak;
+  final int longestStreak;
   final int todayCompleted;
   final int todayMinutes;
+  final int weekMinutes;
+  final int totalPomodoroSessions;
   final List<DailyActivity> weeklyActivity;
+  final List<DailyActivity> monthlyActivity;
+  final Map<String, int> itemsByType;
   final double completionRate;
 
   Analytics({
@@ -1145,9 +1197,14 @@ class Analytics {
     required this.pendingItems,
     required this.totalXp,
     required this.currentStreak,
+    required this.longestStreak,
     required this.todayCompleted,
     required this.todayMinutes,
+    required this.weekMinutes,
+    required this.totalPomodoroSessions,
     required this.weeklyActivity,
+    required this.monthlyActivity,
+    required this.itemsByType,
     required this.completionRate,
   });
 }

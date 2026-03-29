@@ -459,6 +459,21 @@ class AnalyticsScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   Text(
+                    'ESTADÍSTICAS DE POMODORO',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.5,
+                      color: isDark
+                          ? AppColors.darkOnSurfaceVariant
+                          : AppColors.lightOnSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _PomodoroStats(analytics: analytics, isDark: isDark),
+                  const SizedBox(height: 24),
+
+                  Text(
                     'LOGROS DESBLOQUEADOS',
                     style: TextStyle(
                       fontSize: 12,
@@ -523,6 +538,110 @@ class _LegendItem extends StatelessWidget {
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PomodoroStats extends StatelessWidget {
+  final Analytics analytics;
+  final bool isDark;
+
+  const _PomodoroStats({required this.analytics, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: _StatItem(
+                icon: Icons.timer,
+                value: '${analytics.totalPomodoroSessions}',
+                label: 'Sesiones',
+                color: Colors.red,
+                isDark: isDark,
+              ),
+            ),
+            Container(
+              width: 1,
+              height: 50,
+              color: isDark
+                  ? AppColors.darkOutlineVariant
+                  : AppColors.lightOutlineVariant,
+            ),
+            Expanded(
+              child: _StatItem(
+                icon: Icons.access_time,
+                value: '${analytics.todayMinutes}',
+                label: 'Hoy (min)',
+                color: Colors.blue,
+                isDark: isDark,
+              ),
+            ),
+            Container(
+              width: 1,
+              height: 50,
+              color: isDark
+                  ? AppColors.darkOutlineVariant
+                  : AppColors.lightOutlineVariant,
+            ),
+            Expanded(
+              child: _StatItem(
+                icon: Icons.calendar_today,
+                value: '${analytics.weekMinutes}',
+                label: 'Esta semana',
+                color: Colors.green,
+                isDark: isDark,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+  final bool isDark;
+
+  const _StatItem({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: isDark
+                ? AppColors.darkOnSurfaceVariant
+                : AppColors.lightOnSurfaceVariant,
           ),
         ),
       ],

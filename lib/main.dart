@@ -94,51 +94,11 @@ void main() async {
   );
 }
 
-class AuraLearningApp extends ConsumerStatefulWidget {
+class AuraLearningApp extends ConsumerWidget {
   const AuraLearningApp({super.key});
 
   @override
-  ConsumerState<AuraLearningApp> createState() => _AuraLearningAppState();
-}
-
-class _AuraLearningAppState extends ConsumerState<AuraLearningApp>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _themeAnimController;
-  late Animation<double> _fadeAnimation;
-  bool _isTransitioning = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _themeAnimController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _themeAnimController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _themeAnimController.dispose();
-    super.dispose();
-  }
-
-  void _onThemeChanged(bool newIsDark) {
-    final currentIsDark = Theme.of(context).brightness == Brightness.dark;
-    if (currentIsDark != newIsDark) {
-      setState(() => _isTransitioning = true);
-      _themeAnimController.forward().then((_) {
-        _themeAnimController.reverse().then((_) {
-          if (mounted) setState(() => _isTransitioning = false);
-        });
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
 
     // Update backward compatibility colors based on theme
@@ -222,43 +182,21 @@ class _AuraLearningAppState extends ConsumerState<AuraLearningApp>
         ? AppColors.darkTertiary
         : AppColors.lightTertiary;
 
-    return AnimatedBuilder(
-      animation: _fadeAnimation,
-      builder: (context, child) {
-        return Stack(
-          children: [
-            MaterialApp(
-              title: 'Aura Learning',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: settings.theme == 'system'
-                  ? ThemeMode.system
-                  : settings.theme == 'dark'
-                  ? ThemeMode.dark
-                  : ThemeMode.light,
-              themeAnimationDuration: const Duration(milliseconds: 400),
-              themeAnimationCurve: Curves.easeInOut,
-              home: settings.hasCompletedOnboarding
-                  ? const MainNavigation()
-                  : const OnboardingScreen(),
-            ),
-            if (_isTransitioning)
-              AnimatedBuilder(
-                animation: _fadeAnimation,
-                builder: (context, _) {
-                  return IgnorePointer(
-                    child: Container(
-                      color: (isDark ? Colors.black : Colors.white).withValues(
-                        alpha: _fadeAnimation.value * 0.3,
-                      ),
-                    ),
-                  );
-                },
-              ),
-          ],
-        );
-      },
+    return MaterialApp(
+      title: 'Aura Learning',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: settings.theme == 'system'
+          ? ThemeMode.system
+          : settings.theme == 'dark'
+          ? ThemeMode.dark
+          : ThemeMode.light,
+      themeAnimationDuration: const Duration(milliseconds: 400),
+      themeAnimationCurve: Curves.easeInOut,
+      home: settings.hasCompletedOnboarding
+          ? const MainNavigation()
+          : const OnboardingScreen(),
     );
   }
 }

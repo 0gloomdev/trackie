@@ -687,6 +687,7 @@ class UserProfile {
   final int nivel;
   final int xp;
   final int streak;
+  final int longestStreak;
   final DateTime? lastActivityDate;
   final DateTime createdAt;
 
@@ -697,6 +698,7 @@ class UserProfile {
     this.nivel = 1,
     this.xp = 0,
     this.streak = 0,
+    this.longestStreak = 0,
     this.lastActivityDate,
     DateTime? createdAt,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -709,6 +711,7 @@ class UserProfile {
     int? nivel,
     int? xp,
     int? streak,
+    int? longestStreak,
     DateTime? lastActivityDate,
     DateTime? createdAt,
   }) {
@@ -719,6 +722,7 @@ class UserProfile {
       nivel: nivel ?? this.nivel,
       xp: xp ?? this.xp,
       streak: streak ?? this.streak,
+      longestStreak: longestStreak ?? this.longestStreak,
       lastActivityDate: lastActivityDate ?? this.lastActivityDate,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -731,6 +735,7 @@ class UserProfile {
     'nivel': nivel,
     'xp': xp,
     'streak': streak,
+    'longestStreak': longestStreak,
     'lastActivityDate': lastActivityDate?.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
   };
@@ -742,6 +747,7 @@ class UserProfile {
     nivel: json['nivel'] ?? 1,
     xp: json['xp'] ?? 0,
     streak: json['streak'] ?? 0,
+    longestStreak: json['longestStreak'] ?? 0,
     lastActivityDate: json['lastActivityDate'] != null
         ? DateTime.parse(json['lastActivityDate'])
         : null,
@@ -750,8 +756,13 @@ class UserProfile {
         : DateTime.now(),
   );
 
-  static UserProfile defaultProfile() =>
-      UserProfile(nombre: 'Usuario', nivel: 1, xp: 0, streak: 0);
+  static UserProfile defaultProfile() => UserProfile(
+    nombre: 'Usuario',
+    nivel: 1,
+    xp: 0,
+    streak: 0,
+    longestStreak: 0,
+  );
 
   int get level => nivel;
 

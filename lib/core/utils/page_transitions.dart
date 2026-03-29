@@ -58,6 +58,29 @@ class ScalePageRoute<T> extends PageRouteBuilder<T> {
       );
 }
 
+class SlideUpPageRoute<T> extends PageRouteBuilder<T> {
+  final Widget page;
+
+  SlideUpPageRoute({required this.page})
+    : super(
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          final tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: Curves.easeOutCubic));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 350),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+      );
+}
+
 class AnimatedListItem extends StatefulWidget {
   final Widget child;
   final int index;
