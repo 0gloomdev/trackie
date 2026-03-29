@@ -2,6 +2,48 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // ============================================
+  // SHADCN DESIGN TOKENS (New UI)
+  // ============================================
+
+  // Background
+  static const Color shadcnBackground = Color(0xFF060E20);
+  static const Color shadcnForeground = Color(0xFFE2E8F0);
+  static const Color shadcnCard = Color(0xFF0F1930);
+  static const Color shadcnCardForeground = Color(0xFFE2E8F0);
+
+  // Primary (Purple)
+  static const Color shadcnPrimary = Color(0xFF8B5CF6);
+  static const Color shadcnPrimaryForeground = Color(0xFFFFFFFF);
+
+  // Secondary (Cyan)
+  static const Color shadcnSecondary = Color(0xFF22D3EE);
+  static const Color shadcnSecondaryForeground = Color(0xFF060E20);
+
+  // Accent colors
+  static const Color shadcnAccent = Color(0xFF8B5CF6);
+  static const Color shadcnAccentForeground = Color(0xFFFFFFFF);
+
+  // Muted
+  static const Color shadcnMuted = Color(0xFF1F2B49);
+  static const Color shadcnMutedForeground = Color(0xFF94A3B8);
+
+  // Borders
+  static const Color shadcnBorder = Color(0xFF1F2B49);
+  static const Color shadcnInput = Color(0xFF1F2B49);
+  static const Color shadcnRing = Color(0xFF8B5CF6);
+
+  // Destructive
+  static const Color shadcnDestructive = Color(0xFFEF4444);
+  static const Color shadcnDestructiveForeground = Color(0xFFFFFFFF);
+
+  // Success
+  static const Color shadcnSuccess = Color(0xFF22C55E);
+
+  // Glows
+  static const Color shadcnGlowPurple = Color(0xFF8B5CF6);
+  static const Color shadcnGlowCyan = Color(0xFF22D3EE);
+
+  // ============================================
   // DARK MODE COLORS (Primary Theme)
   // ============================================
 

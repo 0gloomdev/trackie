@@ -21,6 +21,9 @@ dependencies:
   # Gráficos
   fl_chart: ^0.70.2
   
+  # Animaciones
+  flutter_animate: ^4.5.0
+  
   # Media viewers
   pdfx: ^2.8.0
   video_player: ^2.9.3
