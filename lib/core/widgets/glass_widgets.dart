@@ -3,6 +3,50 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
 /// ============================================
+/// GLASSAPPBAR - Custom App Bar Widget
+/// ============================================
+
+class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final String title;
+  final List<Widget>? actions;
+  final Widget? leading;
+  final PreferredSizeWidget? bottom;
+  final double elevation;
+  final Color? backgroundColor;
+  final TextStyle? titleTextStyle;
+
+  const GlassAppBar({
+    super.key,
+    required this.title,
+    this.actions,
+    this.leading,
+    this.bottom,
+    this.elevation = 0,
+    this.backgroundColor,
+    this.titleTextStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AppBar(
+      title: Text(title, style: titleTextStyle),
+      leading: leading,
+      actions: actions,
+      backgroundColor:
+          backgroundColor ??
+          (isDark ? Colors.grey[900]! : Colors.white).withValues(alpha: 0.7),
+      elevation: elevation,
+      bottom: bottom,
+    );
+  }
+
+  @override
+  Size get preferredSize =>
+      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0));
+}
+
+/// ============================================
 /// GLASSCARD - With States (Normal, Selected, Hover)
 /// ============================================
 
@@ -738,7 +782,10 @@ class _AnimatedGlassCardState extends State<AnimatedGlassCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
-        transform: Matrix4.identity()..translate(0.0, _isHovered ? -4.0 : 0.0),
+        // ignore: deprecated_member_use
+        transform: Matrix4.identity()
+          // ignore: deprecated_member_use
+          ..translate(0.0, _isHovered ? -4.0 : 0.0, 0.0),
         child: GlassCard(
           padding: widget.padding,
           width: widget.width,
@@ -799,7 +846,6 @@ class _ShimmerGlassCardState extends State<ShimmerGlassCard>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -841,7 +887,6 @@ class EmptyStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
 
     return Center(
@@ -1100,7 +1145,10 @@ class _NeonButtonState extends State<NeonButton>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: widget.width,
-        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+        // ignore: deprecated_member_use
+        transform: Matrix4.identity()
+          // ignore: deprecated_member_use
+          ..scale(_isHovered ? 1.02 : 1.0, _isHovered ? 1.02 : 1.0, 1.0),
         child: GestureDetector(
           onTap: widget.isLoading ? null : widget.onPressed,
           child: Container(

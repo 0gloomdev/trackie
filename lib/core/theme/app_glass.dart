@@ -41,32 +41,6 @@ class AppGlass {
   }
 }
 
-class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-  final Widget? leading;
-  final List<Widget>? actions;
-
-  const GlassAppBar({
-    super.key,
-    required this.title,
-    this.leading,
-    this.actions,
-  });
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: leading,
-      title: Text(title),
-      actions: actions,
-    );
-  }
-}
 
 extension ThemeColors on BuildContext {
   ColorScheme get themeColors => Theme.of(this).colorScheme;

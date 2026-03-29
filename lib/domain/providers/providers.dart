@@ -394,14 +394,18 @@ final filteredItemsProvider = Provider<List<LearningItem>>((ref) {
   final items = ref.watch(learningItemsProvider);
   final f = ref.watch(filterProvider);
   var filtered = items.toList();
-  if (f.type != null)
+  if (f.type != null) {
     filtered = filtered.where((i) => i.type == f.type).toList();
-  if (f.status != null)
+  }
+  if (f.status != null) {
     filtered = filtered.where((i) => i.status == f.status).toList();
-  if (f.categoryId != null)
+  }
+  if (f.categoryId != null) {
     filtered = filtered.where((i) => i.categoryId == f.categoryId).toList();
-  if (f.showFavoritesOnly)
+  }
+  if (f.showFavoritesOnly) {
     filtered = filtered.where((i) => i.isFavorite).toList();
+  }
   if (f.searchQuery != null && f.searchQuery!.isNotEmpty) {
     final q = f.searchQuery!.toLowerCase();
     filtered = filtered
@@ -556,8 +560,9 @@ class CommunityFeedNotifier extends StateNotifier<List<CommunityPost>> {
   }
 
   void _load() {
-    if (_repo != null) {
-      state = _repo!.getAllPosts();
+    final repo = _repo;
+    if (repo != null) {
+      state = repo.getAllPosts();
     } else {
       state = _generateDefaultFeed();
     }
@@ -588,22 +593,25 @@ class CommunityFeedNotifier extends StateNotifier<List<CommunityPost>> {
   }
 
   Future<void> addUserPost(CommunityPost post) async {
-    if (_repo != null) {
-      await _repo!.addPost(post);
+    final repo = _repo;
+    if (repo != null) {
+      await repo.addPost(post);
       _load();
     }
   }
 
   Future<void> likePost(String postId) async {
-    if (_repo != null) {
-      await _repo!.likePost(postId);
+    final repo = _repo;
+    if (repo != null) {
+      await repo.likePost(postId);
       _load();
     }
   }
 
   Future<void> addComment(String postId, Comment comment) async {
-    if (_repo != null) {
-      await _repo!.addComment(postId, comment);
+    final repo = _repo;
+    if (repo != null) {
+      await repo.addComment(postId, comment);
       _load();
     }
   }

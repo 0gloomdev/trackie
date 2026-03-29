@@ -19,7 +19,6 @@ import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
 import 'presentation/screens/editor/editor_screen.dart';
 import 'presentation/screens/search/search_screen.dart';
-import 'presentation/screens/analytics/analytics_screen.dart';
 import 'presentation/screens/notes/notes_screen.dart';
 import 'presentation/screens/reminders/reminders_screen.dart';
 
@@ -563,8 +562,14 @@ class _SidebarItemState extends State<_SidebarItem> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
+            // ignore: deprecated_member_use
             transform: Matrix4.identity()
-              ..translate(_isHovered && !widget.isSelected ? 4.0 : 0.0),
+              // ignore: deprecated_member_use
+              ..translate(
+                _isHovered && !widget.isSelected ? 4.0 : 0.0,
+                0.0,
+                0.0,
+              ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: widget.isSelected

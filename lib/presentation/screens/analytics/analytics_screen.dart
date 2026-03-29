@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_glass.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/glass_widgets.dart';
 import '../../../domain/providers/providers.dart';
@@ -12,14 +11,8 @@ class AnalyticsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final analytics = ref.watch(analyticsProvider);
-    final items = ref.watch(learningItemsProvider);
     final profile = ref.watch(userProfileProvider);
-
-    final completedItems = items.where((i) => i.status == 'completed').toList();
-    final inProgressItems = items
-        .where((i) => i.status == 'in_progress')
-        .toList();
-    final pendingItems = items.where((i) => i.status == 'pending').toList();
+    final items = ref.watch(learningItemsProvider);
 
     return Scaffold(
       backgroundColor: isDark
