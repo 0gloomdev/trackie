@@ -7,28 +7,28 @@ assignees: ''
 
 ---
 
-## Descripción
-[Descripción clara y concisa del bug]
+## Description
+[Clear and concise description of the bug]
 
-## Pasos para reproducir
-1. Ve a '...'
-2. Haz clic en '...'
-3. Desplázate hasta '...'
-4. Ver error
+## Steps to Reproduce
+1. Go to '...'
+2. Click on '...'
+3. Scroll down to '...'
+4. See error
 
-## Comportamiento esperado
-[Lo que debería pasar]
+## Expected Behavior
+[What should happen]
 
-## Comportamiento actual
-[Lo que realmente pasa]
+## Actual Behavior
+[What actually happens]
 
 ## Screenshots
-[Si aplica, añade screenshots aquí]
+[If applicable, add screenshots here]
 
-## Ambiente
-- OS: [ej. iOS 15.0, Android 12]
-- App Version: [ej. 0.5.0]
-- Flutter Version: [ej. 3.24.0]
+## Environment
+- OS: [e.g. iOS 15.0, Android 12, Linux]
+- App Version: [e.g. 1.0.0]
+- Flutter Version: [e.g. 3.41.5]
 
-## Información adicional
-[Añade cualquier otra información relevante]
+## Additional Information
+[Add any other relevant information]

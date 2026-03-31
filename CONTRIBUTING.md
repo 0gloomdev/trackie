@@ -1,39 +1,39 @@
 # Contributing to Trackie
 
-¡Gracias por tu interés en contribuir a Trackie! 🎉
+Thank you for your interest in contributing to Trackie! 🎉
 
-## Código de Conducta
+## Code of Conduct
 
-Este proyecto se adhiere al [Código de Conducta de Trackie](). Al participar, se espera que mantengas este código.
+This project adheres to the [Trackie Code of Conduct](). By participating, you are expected to uphold this code.
 
-## ¿Cómo contribuir?
+## How to Contribute
 
-### 1. Reportar Bugs
+### 1. Report Bugs
 
-Si encuentras un bug, por favor crea un issue con:
-- Título descriptivo
-- Pasos para reproducir
-- Comportamiento esperado vs actual
-- Screenshots si aplica
+If you find a bug, please create an issue with:
+- Descriptive title
+- Steps to reproduce
+- Expected vs actual behavior
+- Screenshots if applicable
 
-### 2. Proponer Features
+### 2. Propose Features
 
-Antes de crear una feature:
-1. Busca issues existentes
-2. Si no existe, crea uno con la etiqueta `enhancement`
-3. Describe tu propuesta detalladamente
+Before creating a feature:
+1. Search for existing issues
+2. If it doesn't exist, create one with the `enhancement` label
+3. Describe your proposal in detail
 
 ### 3. Pull Requests
 
-#### Proceso:
-1. Fork el repositorio
-2. Crea una rama: `git checkout -b feature/tu-feature`
-3. Haz tus cambios siguiendo las convenciones
-4. Commit con mensajes claros: `git commit -m "feat: add new feature"`
-5. Push a tu fork: `git push origin feature/tu-feature`
-6. Abre un Pull Request
+#### Process:
+1. Fork the repository
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Make your changes following the conventions
+4. Commit with clear messages: `git commit -m "feat: add new feature"`
+5. Push to your fork: `git push origin feature/your-feature`
+6. Open a Pull Request
 
-#### Convenciones de Commits:
+#### Commit Conventions:
 
 ```
 feat(core): add new dashboard widget
@@ -44,20 +44,20 @@ test(auth): add unit tests for login
 chore(deps): update flutter version
 ```
 
-#### Convenciones de Ramas:
-- `feature/*` - Nuevas funcionalidades
+#### Branch Conventions:
+- `feature/*` - New features
 - `fix/*` - Bug fixes
 - `refactor/*` - Refactoring
-- `docs/*` - Documentación
+- `docs/*` - Documentation
 
-## Estándares de Código
+## Code Standards
 
 ### Flutter/Dart
-- Sigue las [guías oficiales](https://dart.dev/guides/language/effective-dart)
-- Usa `flutter analyze` antes de commitear
-- Mantén coverage de tests >70%
+- Follow the [official guides](https://dart.dev/guides/language/effective-dart)
+- Run `flutter analyze` before committing
+- Maintain test coverage >70%
 
-### Estructura de Archivos
+### File Structure
 ```
 lib/
 ├── core/           # Constants, themes, utils
@@ -66,32 +66,35 @@ lib/
 └── presentation/   # UI screens, widgets
 ```
 
-## Configuración de Desarrollo
+## Development Setup
 
 ```bash
-# Clonar
-git clone https://github.com/tu-usuario/trackie.git
+# Clone
+git clone https://github.com/0gloomdev/trackie.git
 cd trackie
 
-# Instalar dependencias
+# Install dependencies
 flutter pub get
 
-# Ejecutar análisis
+# Run analysis
 flutter analyze
 
-# Ejecutar tests
+# Run tests
 flutter test
 
-# Build web
+# Build for web
 flutter build web
+
+# Build for Android
+flutter build apk --debug
 ```
 
-## Recursos
+## Resources
 
-- [Documentación](https://docs.trackie.app)
-- [Issue Tracker](https://github.com/trackie/trackie/issues)
-- [Discussions](https://github.com/trackie/trackie/discussions)
+- [Documentation](https://docs.trackie.app)
+- [Issue Tracker](https://github.com/0gloomdev/trackie/issues)
+- [Discussions](https://github.com/0gloomdev/trackie/discussions)
 
 ---
 
-¡esperamos tu contribución! 🚀
+We look forward to your contribution! 🚀
