@@ -28,13 +28,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Header(),
+            header(),
             const SizedBox(height: 32),
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 1, child: _Sidebar()),
+                  Expanded(flex: 1, child: sidebar()),
                   const SizedBox(width: 24),
                   Expanded(flex: 2, child: _buildContent(settings, profile)),
                 ],
@@ -63,7 +63,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Widget _Header() {
+  Widget header() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -85,7 +85,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _Sidebar() {
+  Widget sidebar() {
     final menuItems = [
       'Profile',
       'Notifications',
