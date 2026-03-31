@@ -15,7 +15,7 @@
 
 ## About
 
-**Trackie** (renamed to **Aura Learning**) is an open-source application for managing your personal learning. Organize courses, books, PDFs, podcasts, videos, and more in one place with a beautiful **Liquid Nebula** glassmorphism interface.
+**Trackie** is an open-source application for managing your personal learning. Organize courses, books, PDFs, podcasts, videos, and more in one place with a beautiful **Liquid Nebula** glassmorphism interface.
 
 ### Version: `v1.0.0 - Liquid Nebula`
 
