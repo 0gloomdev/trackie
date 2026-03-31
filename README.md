@@ -1,11 +1,11 @@
 <div align="center">
-  <img src="assets/logo.svg" width="120" alt="Trackie Logo" />
+  <img src="assets/branding/logo.svg" width="120" alt="Trackie Logo" />
   <h1>Trackie</h1>
-  <p>Tu centro de aprendizaje personal</p>
+  <p>Track Everything, Everywhere</p>
   
   <p>
-    <img src="https://img.shields.io/badge/version-0.5.0-purple?style=flat-square" alt="version" />
-    <img src="https://img.shields.io/badge/Flutter-3.24-blue?style=flat-square" alt="Flutter" />
+    <img src="https://img.shields.io/badge/version-1.0.0-purple?style=flat-square" alt="version" />
+    <img src="https://img.shields.io/badge/Flutter-3.41-blue?style=flat-square" alt="Flutter" />
     <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
     <img src="https://img.shields.io/badge/Platform-Web%20%7C%20Mobile%20%7C%20Desktop-blueviolet?style=flat-square" alt="Platform" />
   </p>
@@ -13,68 +13,77 @@
 
 ---
 
-## Acerca de
+## About
 
-**Trackie** es una aplicación de código abierto para gestionar tu aprendizaje personal. Organiza cursos, libros, PDFs, podcasts, videos y más en un solo lugar con una hermosa interfaz "Liquid Glass".
+**Trackie** (renamed to **Aura Learning**) is an open-source application for managing your personal learning. Organize courses, books, PDFs, podcasts, videos, and more in one place with a beautiful **Liquid Nebula** glassmorphism interface.
 
-### Código: `v0.5.0 - Liquid Glass`
+### Version: `v1.0.0 - Liquid Nebula`
 
 ---
 
-## Características
+## Features
 
-| Categoría | Funcionalidades |
-|-----------|-----------------|
-| **Gestión** | CRUD completo de items, tipos múltiples de contenido |
-| **Organización** | Categorías, etiquetas, favoritos, items fijados |
-| **Búsqueda** | Filtros avanzados, búsqueda en tiempo real |
-| **Acciones** | Bulk actions, duplicar, importar/exportar |
-| **UI/UX** | Liquid Glass UI, temas claro/oscuro |
-| **Estadísticas** | Dashboard con gráficos de progreso |
-| **Metadatos** | Auto-fetch de URLs (título, thumbnail, favicon) |
+| Category | Features |
+|----------|----------|
+| **Management** | Full CRUD operations, multiple content types |
+| **Organization** | Categories, tags, favorites, pinned items |
+| **Search** | Advanced filters, real-time search |
+| **Actions** | Bulk actions, duplicate, import/export |
+| **UI/UX** | Liquid Glass UI, dark/light themes |
+| **Statistics** | Dashboard with progress charts |
+| **Metadata** | Auto-fetch URLs (title, thumbnail, favicon) |
+| **Internationalization** | English & Spanish language support |
+| **Timer** | Pomodoro timer for focused learning |
+| **Notes** | Personal notes with pin support |
+| **Reminders** | Date/time reminders with notifications |
 
 ---
 
 ## Tech Stack
 
-- **Framework**: Flutter 3.24+
-- **Lenguaje**: Dart 3.5+
-- **Estado**: Riverpod
-- **Storage**: Hive (100% local, funciona en web)
-- **UI**: Material Design 3 + Custom Glassmorphism
+- **Framework**: Flutter 3.41+
+- **Language**: Dart 3.11+
+- **State Management**: Riverpod
+- **Storage**: Hive (100% local, works on web)
+- **UI**: Custom Glassmorphism + shadcn/ui inspired design
 
 ---
 
-## Instalación
+## Installation
 
 ```bash
-# Clonar repositorio
-git clone https://github.com/tu-usuario/trackie.git
+# Clone repository
+git clone https://github.com/0gloomdev/trackie.git
 cd trackie
 
-# Instalar dependencias
+# Install dependencies
 flutter pub get
 
-# Ejecutar en desarrollo
+# Run in development
 flutter run
 
-# Build web
+# Build for Web
 flutter build web --release
 
-# Build Android
-flutter build apk --debug
+# Build for Android
+flutter build apk --release
+
+# Build for Linux
+flutter build linux --release
 ```
 
 ---
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 lib/
 ├── core/
 │   ├── constants/     # App constants, content types
-│   ├── services/     # URL metadata service
-│   └── theme/         # App theme (light/dark)
+│   ├── services/      # URL metadata service
+│   ├── theme/         # App theme (light/dark)
+│   ├── utils/         # Translations
+│   └── widgets/       # shadcn-style widgets
 ├── data/
 │   ├── models/        # LearningItem, Category, Tag, Settings
 │   └── repositories/  # Hive repositories
@@ -86,68 +95,86 @@ lib/
 
 ---
 
-## Ramas del Repositorio
+## Screens
 
-| Rama | Propósito |
-|------|-----------|
-| `main` | Producción estable |
-| `develop` | Desarrollo activo |
-| `feature/*` | Nuevas funcionalidades |
-| `fix/*` | Bug fixes |
-| `refactor/*` | Refactoring |
+| Screen | Description |
+|--------|-------------|
+| **Dashboard** | Overview with stats, weekly chart, recent items |
+| **Library** | Grid/list view of all saved items |
+| **Courses** | Filtered view of course content |
+| **Achievements** | XP system and unlockable achievements |
+| **Community** | User activity and progress tracking |
+| **Notes** | Personal notes with search |
+| **Reminders** | Date/time based notifications |
+| **Timer** | Pomodoro timer with session tracking |
+| **Settings** | Profile, appearance, language, data management |
 
 ---
 
-## Contribuir
+## Contributing
 
-¡Toda contribución es bienvenida! Lee [CONTRIBUTING.md](CONTRIBUTING.md) para más detalles.
+All contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-1. Fork el repositorio
-2. Crea tu rama (`git checkout -b feature/amazing-feature`)
-3. Commit tus cambios (`git commit -m 'feat: add amazing feature'`)
-4. Push a la rama (`git push origin feature/amazing-feature`)
-5. Abre un Pull Request
+1. Fork the repository
+2. Create your branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
 ## Changelog
 
-### v0.5.0 - Liquid Glass (Actual)
-- Dashboard mejorado con estadísticas visuales
-- Sistema de items fijados (Pinned)
-- Búsqueda avanzada en tiempo real
-- Filtros por tipo, estado, prioridad
-- Bulk actions (selección múltiple)
-- Duplicar items
-- Auto-fetch de metadatos URL
+### v1.0.0 - Liquid Nebula (Current)
+- Complete shadcn/ui-inspired design migration
+- Full internationalization (English/Spanish)
+- All 16 screens migrated to new UI
+- Keyboard shortcuts implementation
+- Pomodoro timer with session tracking
+- Notes and reminders system
+
+### v0.5.0 - Liquid Glass
+- Dashboard with visual statistics
+- Pinned items system
+- Advanced real-time search
+- Filters by type, status, priority
+- Bulk actions (multi-select)
+- Duplicate items
+- Auto-fetch URL metadata
 
 ### v0.4.0 - Crystal Clear
-- UI Glassmorphism completa
-- Tema oscuro/claro
+- Complete Glassmorphism UI
+- Dark/light theme
 
 ### v0.3.0 - Solid Foundation
-- Modelo de datos completo
-- Repositorios Hive
+- Complete data model
+- Hive repositories
 
 ---
 
 ## Roadmap
 
-- [ ] Colecciones (agrupación de items)
-- [ ] Import/Export JSON
-- [ ] Lector de contenido integrado
-- [ ] Notas avanzadas con markdown
-- [ ] PWA instalable
-- [ ] Tests unitarios
+- [ ] Collections (item grouping)
+- [ ] JSON Import/Export
+- [ ] Integrated content reader
+- [ ] Advanced markdown notes
+- [ ] Installable PWA
+- [ ] Unit tests
 
 ---
 
-## Licencia
+## License
 
-MIT License - ver [LICENSE](LICENSE) para detalles.
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+## Branding Assets
+
+For branding materials (logos, banners, color palette), see [BRANDING.md](BRANDING.md).
 
 ---
 
 <div align="center">
-  ⭐ Hecho con ❤️ por la comunidad
+  ⭐ Made with ❤️ by the community
 </div>
