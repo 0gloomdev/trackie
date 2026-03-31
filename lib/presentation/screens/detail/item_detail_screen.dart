@@ -494,11 +494,7 @@ class _DetailsCard extends StatelessWidget {
           _DetailRow(label: 'Estado', value: item.status),
           _DetailRow(label: 'Progreso', value: '${item.progress}%'),
           _DetailRow(label: 'Creado', value: _formatDate(item.createdAt)),
-          if (item.updatedAt != null)
-            _DetailRow(
-              label: 'Actualizado',
-              value: _formatDate(item.updatedAt),
-            ),
+          _DetailRow(label: 'Actualizado', value: _formatDate(item.updatedAt)),
         ],
       ),
     );

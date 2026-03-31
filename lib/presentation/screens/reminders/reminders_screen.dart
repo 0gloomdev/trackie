@@ -367,7 +367,6 @@ class _ReminderCard extends ConsumerWidget {
 
   String _formatDateTime(DateTime date) {
     final now = DateTime.now();
-    final diff = date.difference(now);
 
     if (date.day == now.day &&
         date.month == now.month &&

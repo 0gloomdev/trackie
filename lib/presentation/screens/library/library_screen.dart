@@ -69,10 +69,10 @@ class _FilterChips extends StatelessWidget {
               label: f['label'] as String,
               isActive: isActive,
               onTap: () {
-                final value = f['value'];
+                final dynamic val = f['value'];
                 ref.read(filterProvider.notifier).state = filter.copyWith(
-                  type: value as String?,
-                  clearType: value == null,
+                  type: val as String?,
+                  clearType: val == null,
                 );
               },
             ),
