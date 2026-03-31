@@ -152,11 +152,11 @@ class _QuickActions extends StatelessWidget {
       },
       {
         'icon': Icons.message,
-        'label': 'Contacto',
+        'label': 'Contact',
         'color': AppColors.shadcnSecondary,
       },
-      {'icon': Icons.star, 'label': 'Valoranos', 'color': Colors.amber},
-      {'icon': Icons.description, 'label': 'Términos', 'color': Colors.green},
+      {'icon': Icons.star, 'label': 'Rate Us', 'color': Colors.amber},
+      {'icon': Icons.description, 'label': 'Terms', 'color': Colors.green},
     ];
 
     return Row(

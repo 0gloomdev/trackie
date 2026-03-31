@@ -45,7 +45,7 @@ class CoursesScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 32),
                   if (inProgress.isNotEmpty) ...[
-                    _SectionTitle(title: 'En Progreso'),
+                    _SectionTitle(title: 'In Progress'),
                     const SizedBox(height: 16),
                   ],
                 ],
@@ -362,7 +362,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'No hay cursos aún',
+            'No courses yet',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,

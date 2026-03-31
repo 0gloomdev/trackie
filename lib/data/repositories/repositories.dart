@@ -4,8 +4,8 @@ import '../models/models.dart';
 class LearningRepository {
   late Box<dynamic> _box;
 
-  void init(Box<dynamic> box) {
-    _box = box;
+  Future<void> init() async {
+    _box = await Hive.openBox('learning_items');
   }
 
   List<LearningItem> getAll() =>
@@ -94,8 +94,8 @@ class LearningRepository {
 class CategoryRepository {
   late Box<dynamic> _box;
 
-  void init(Box<dynamic> box) {
-    _box = box;
+  Future<void> init() async {
+    _box = await Hive.openBox('categories');
   }
 
   List<Category> getAll() =>
@@ -130,8 +130,8 @@ class CategoryRepository {
 class TagRepository {
   late Box<dynamic> _box;
 
-  void init(Box<dynamic> box) {
-    _box = box;
+  Future<void> init() async {
+    _box = await Hive.openBox('tags');
   }
 
   List<Tag> getAll() =>
@@ -163,8 +163,8 @@ class SettingsRepository {
   static const String _key = 'app_settings';
   late Box<dynamic> _box;
 
-  void init(Box<dynamic> box) {
-    _box = box;
+  Future<void> init() async {
+    _box = await Hive.openBox('settings');
   }
 
   AppSettings get() {

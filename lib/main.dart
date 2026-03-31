@@ -57,8 +57,8 @@ void main() async {
 
   await Hive.initFlutter('/home/gloom/.trackie/data');
 
-  final settingsBox = await Hive.openBox('settings');
-  final itemsBox = await Hive.openBox('items');
+  await Hive.openBox('settings');
+  await Hive.openBox('items');
   final achievementsBox = await Hive.openBox('achievements');
   final profileBox = await Hive.openBox('profile');
   final communityBox = await Hive.openBox('community');
@@ -67,9 +67,9 @@ void main() async {
   final sessionsBox = await Hive.openBox('sessions');
 
   final settingsRepo = SettingsRepository();
-  settingsRepo.init(settingsBox);
+  await settingsRepo.init();
   final learningRepo = LearningRepository();
-  learningRepo.init(itemsBox);
+  await learningRepo.init();
   final achievementsRepo = AchievementsRepository();
   achievementsRepo.init(achievementsBox);
   final profileRepo = ProfileRepository();

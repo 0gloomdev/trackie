@@ -54,21 +54,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     children: const [
                       _OnboardingPage(
                         icon: Icons.folder_copy,
-                        title: 'Guarda tu contenido',
+                        title: 'Save your content',
                         description:
-                            'Agrega enlaces, videos, cursos y más. Organiza todo en un solo lugar.',
+                            'Add links, videos, courses and more. Organize everything in one place.',
                         color: AppColors.shadcnPrimary,
                       ),
                       _OnboardingPage(
                         icon: Icons.timer,
-                        title: 'Usa el Pomodoro',
+                        title: 'Use Pomodoro',
                         description:
-                            'Mantén el enfoque con sesiones de estudio de 25 minutos.',
+                            'Stay focused with 25-minute study sessions.',
                         color: AppColors.shadcnSecondary,
                       ),
                       _OnboardingPage(
                         icon: Icons.emoji_events,
-                        title: 'Gana logros',
+                        title: 'Earn achievements',
                         description:
                             'Completa tareas y desbloquea logros mientras aprendes.',
                         color: Colors.amber,

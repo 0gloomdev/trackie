@@ -74,7 +74,6 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
     }
     ref.read(pomodoroTimeProvider.notifier).state = _selectedMinutes * 60;
     ref.read(userProfileProvider.notifier).addXp(10);
-    ref.read(dailyGoalsProvider.notifier).addMinutesStudied(_selectedMinutes);
     _showCompletionDialog();
   }
 
@@ -89,7 +88,7 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
             Icon(Icons.celebration, color: Colors.amber),
             const SizedBox(width: 8),
             const Text(
-              '¡Sesión completada!',
+              'Session completed!',
               style: TextStyle(color: Colors.white),
             ),
           ],
@@ -97,7 +96,7 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Has ganado:', style: TextStyle(color: Colors.white70)),
+            const Text('You earned:', style: TextStyle(color: Colors.white70)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -126,12 +125,6 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
         ],
       ),
     );
-  }
-
-  String _formatTime(int seconds) {
-    final mins = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -199,7 +192,7 @@ class _Header extends StatelessWidget {
         ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2),
         const SizedBox(height: 4),
         Text(
-          'Enfócate y alcanza tus metas',
+          'Focus and reach your goals',
           style: TextStyle(
             fontSize: 16,
             color: Colors.white.withAlpha(179),
@@ -305,13 +298,13 @@ class _TimerCircle extends StatelessWidget {
   String _getStateLabel(PomodoroState state) {
     switch (state) {
       case PomodoroState.idle:
-        return 'LISTO';
+        return 'READY';
       case PomodoroState.running:
-        return 'EN CURSO';
+        return 'RUNNING';
       case PomodoroState.paused:
-        return 'PAUSADO';
+        return 'PAUSED';
       case PomodoroState.breakTime:
-        return 'DESCANSO';
+        return 'BREAK';
     }
   }
 }

@@ -42,7 +42,7 @@ class CommunityScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   _ProgressCards(profile: profile),
                   const SizedBox(height: 32),
-                  _SectionTitle(title: 'Estadísticas'),
+                  _SectionTitle(title: 'Statistics'),
                 ],
               ),
             ),
@@ -60,19 +60,19 @@ class CommunityScreen extends ConsumerWidget {
                 _StatCard(
                   icon: Icons.folder,
                   value: '${analytics.completedItems}',
-                  label: 'Items completados',
+                  label: 'Items completed',
                   color: AppColors.shadcnPrimary,
                 ),
                 _StatCard(
                   icon: Icons.check_circle,
                   value: '${profile.streak}',
-                  label: 'Días de racha',
+                  label: 'Days streak',
                   color: Colors.orange,
                 ),
                 _StatCard(
                   icon: Icons.star,
                   value: '${profile.xp}',
-                  label: 'XP Total',
+                  label: 'Total XP',
                   color: Colors.amber,
                 ),
                 _StatCard(
@@ -184,7 +184,7 @@ class _UserStatsCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${profile.streak} días',
+                      '${profile.streak} days',
                       style: TextStyle(fontSize: 14, color: Colors.orange),
                     ),
                   ],
@@ -255,7 +255,7 @@ class _ProgressCards extends StatelessWidget {
       children: [
         Expanded(
           child: _ProgressCard(
-            title: 'Nivel',
+            title: 'Level',
             current: profile.nivel,
             max: 10,
             color: AppColors.shadcnPrimary,

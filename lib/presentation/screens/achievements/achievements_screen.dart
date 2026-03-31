@@ -4,8 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/shadcn_widgets.dart';
 import '../../../core/utils/translations.dart';
-import '../../../domain/providers/providers.dart';
 import '../../../data/models/models.dart';
+import '../../../domain/providers/providers.dart';
 
 class AchievementsScreen extends ConsumerWidget {
   const AchievementsScreen({super.key});

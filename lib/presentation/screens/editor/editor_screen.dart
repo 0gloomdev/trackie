@@ -65,7 +65,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     }
     if (!_isValidUrl(url)) {
       setState(() {
-        _urlError = 'URL inválida';
+        _urlError = 'Invalid URL';
         _fetchedMetadata = null;
       });
       return;
@@ -179,7 +179,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(24),
                   children: [
-                    _SectionLabel(label: 'Título'),
+                    _SectionLabel(label: 'Title'),
                     const SizedBox(height: 8),
                     ShadcnInput(
                       controller: _titleController,
@@ -193,11 +193,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                       onChanged: (type) => setState(() => _selectedType = type),
                     ),
                     const SizedBox(height: 24),
-                    _SectionLabel(label: 'Descripción'),
+                    _SectionLabel(label: 'Description'),
                     const SizedBox(height: 8),
                     ShadcnInput(
                       controller: _descriptionController,
-                      hintText: 'Descripción opcional...',
+                      hintText: 'Optional description...',
                       maxLines: 3,
                     ),
                     const SizedBox(height: 24),
@@ -304,7 +304,7 @@ class _AppBar extends StatelessWidget {
             onPressed: onClose,
           ),
           Text(
-            isEditing ? 'Editar' : 'Nuevo Elemento',
+            isEditing ? 'Edit' : 'New Item',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -661,14 +661,14 @@ class _MetadataPreview extends StatelessWidget {
               metadata.favicon!,
               width: 16,
               height: 16,
-              errorBuilder: (_, __, ___) =>
+              errorBuilder: (_, _, _) =>
                   const Icon(Icons.language, size: 16, color: Colors.white54),
             ),
             const SizedBox(width: 8),
           ],
           Expanded(
             child: Text(
-              metadata.title ?? 'Título encontrado',
+              metadata.title ?? 'Found title',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,

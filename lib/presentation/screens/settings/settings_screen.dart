@@ -19,18 +19,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
-    final profile = ref.watch(userProfileProvider);
-    final isEnglish = settings.locale == 'en';
-
-    final menuItems = isEnglish
-        ? ['Profile', 'Notifications', 'Privacy', 'Data & Sync', 'Appearance']
-        : [
-            'Perfil',
-            'Notificaciones',
-            'Privacidad',
-            'Datos y Sincronización',
-            'Apariencia',
-          ];
+    final UserProfile profile = ref.watch(userProfileProvider);
 
     return Scaffold(
       backgroundColor: AppColors.shadcnBackground,
@@ -75,14 +64,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _Header() {
-    final settings = ref.watch(settingsProvider);
-    final isEnglish = settings.locale == 'en';
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          isEnglish ? 'Settings' : 'Ajustes',
+        const Text(
+          'Settings',
           style: TextStyle(
             fontSize: 40,
             fontWeight: FontWeight.w900,
@@ -91,32 +77,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2, end: 0),
         const SizedBox(height: 8),
-        Text(
-          isEnglish
-              ? 'Customize your Aura Learning experience'
-              : 'Personaliza tu experiencia Aura Learning',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white.withAlpha(179),
-            fontWeight: FontWeight.w500,
-          ),
+        const Text(
+          'Customize your Aura Learning experience',
+          style: TextStyle(fontSize: 16, color: Colors.white),
         ).animate(delay: 100.ms).fadeIn(duration: 600.ms),
       ],
     );
   }
 
   Widget _Sidebar() {
-    final settings = ref.watch(settingsProvider);
-    final isEnglish = settings.locale == 'en';
-    final menuItems = isEnglish
-        ? ['Profile', 'Notifications', 'Privacy', 'Data & Sync', 'Appearance']
-        : [
-            'Perfil',
-            'Notificaciones',
-            'Privacidad',
-            'Datos y Sincronización',
-            'Apariencia',
-          ];
+    final menuItems = [
+      'Profile',
+      'Notifications',
+      'Privacy',
+      'Data & Sync',
+      'Appearance',
+    ];
 
     return Column(
       children: List.generate(menuItems.length, (index) {
@@ -241,7 +217,7 @@ class _ProfileSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        profile.nombre.isNotEmpty ? profile.nombre : 'Usuario',
+                        profile.nombre.isNotEmpty ? profile.nombre : 'User',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -250,7 +226,7 @@ class _ProfileSection extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Nivel ${profile.nivel} • ${profile.xp} XP',
+                        'Level ${profile.nivel} • ${profile.xp} XP',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.white.withAlpha(128),
@@ -264,16 +240,16 @@ class _ProfileSection extends StatelessWidget {
             const SizedBox(height: 24),
             _SettingsToggle(
               icon: Icons.cloud_off,
-              title: 'Sincronización Offline (Hive)',
-              subtitle: 'Almacenamiento local prioritario activado',
+              title: 'Offline Sync (Hive)',
+              subtitle: 'Local storage prioritized',
               value: true,
               color: AppColors.shadcnPrimary,
             ),
             const SizedBox(height: 12),
             _SettingsToggle(
               icon: Icons.battery_saver,
-              title: 'Modo Ahorro de Energía',
-              subtitle: 'Reduce animaciones',
+              title: 'Battery Saver',
+              subtitle: 'Reduce animations',
               value: settings.compactMode,
               color: AppColors.shadcnSecondary,
               onChanged: (value) {
@@ -302,18 +278,12 @@ class _NotificationsSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionTitle(
-              title: isEnglish
-                  ? 'NOTIFICATIONS'
-                  : 'CONFIGURACIÓN DE NOTIFICACIONES',
-            ),
+            _SectionTitle(title: 'NOTIFICATIONS'),
             const SizedBox(height: 20),
             _SettingsToggle(
               icon: Icons.notifications,
-              title: isEnglish ? 'Push Notifications' : 'Notificaciones Push',
-              subtitle: isEnglish
-                  ? 'Receive alerts and reminders'
-                  : 'Recibe alertas y recordatorios',
+              title: 'Push Notifications',
+              subtitle: 'Receive alerts and reminders',
               value: settings.notificationsEnabled,
               color: AppColors.shadcnPrimary,
               onChanged: (value) {
@@ -371,19 +341,19 @@ class _PrivacySection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionTitle(title: 'Privacidad y Seguridad'),
+            _SectionTitle(title: 'Privacy & Security'),
             const SizedBox(height: 20),
             _SettingsTile(
               icon: Icons.lock,
-              title: 'PIN de Bloqueo',
-              subtitle: settings.pinLockEnabled ? 'Activado' : 'Desactivado',
+              title: 'PIN Lock',
+              subtitle: settings.pinLockEnabled ? 'Enabled' : 'Disabled',
               onTap: () {},
             ),
             const SizedBox(height: 12),
             _SettingsToggle(
               icon: Icons.fingerprint,
-              title: 'Biometría',
-              subtitle: 'Usar huella o rostro para desbloquear',
+              title: 'Biometrics',
+              subtitle: 'Use fingerprint or face to unlock',
               value: settings.pinLockEnabled,
               color: AppColors.shadcnPrimary,
               onChanged: (value) {
@@ -414,28 +384,28 @@ class _DataSection extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SectionTitle(title: 'Datos y Respaldo'),
+                _SectionTitle(title: 'Data & Backup'),
                 const SizedBox(height: 20),
                 _SettingsTile(
                   icon: Icons.download,
-                  title: 'Exportar Datos',
-                  subtitle: 'Descargar como JSON',
+                  title: 'Export Data',
+                  subtitle: 'Download as JSON',
                   onTap: () {},
                 ),
                 const SizedBox(height: 12),
                 _SettingsTile(
                   icon: Icons.upload,
-                  title: 'Importar Datos',
-                  subtitle: 'Cargar desde JSON',
+                  title: 'Import Data',
+                  subtitle: 'Load from JSON',
                   onTap: () {},
                 ),
                 const SizedBox(height: 12),
                 _SettingsToggle(
                   icon: Icons.backup,
-                  title: 'Auto Respaldo',
+                  title: 'Auto Backup',
                   subtitle: settings.autoBackupEnabled
-                      ? 'Cada ${settings.autoBackupFrequency} días'
-                      : 'Desactivado',
+                      ? 'Every ${settings.autoBackupFrequency} days'
+                      : 'Disabled',
                   value: settings.autoBackupEnabled,
                   color: AppColors.shadcnPrimary,
                   onChanged: (value) {
@@ -459,7 +429,7 @@ class _DataSection extends ConsumerWidget {
                     Icon(Icons.warning, color: Colors.red.shade400, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'Zona de Peligro',
+                      'Danger Zone',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.red.shade400,
@@ -469,7 +439,7 @@ class _DataSection extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Una vez que elimines tus datos, no hay vuelta atrás. Por favor, asegúrate.',
+                  'Once you delete your data, there is no going back. Please be certain.',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withAlpha(128),
@@ -481,8 +451,8 @@ class _DataSection extends ConsumerWidget {
                     Expanded(
                       child: _SettingsTile(
                         icon: Icons.delete_forever,
-                        title: 'Borrar Todos los Datos',
-                        subtitle: 'Eliminar permanentemente',
+                        title: 'Delete All Data',
+                        subtitle: 'Permanently delete everything',
                         isDestructive: true,
                         onTap: () {},
                       ),
@@ -531,9 +501,9 @@ class _AppearanceSection extends ConsumerWidget {
             const SizedBox(height: 12),
             _SettingsTile(
               icon: Icons.view_module,
-              title: isEnglish ? 'Default View' : 'Vista Predeterminada',
+              title: 'Default View',
               subtitle: settings.defaultView == 'grid'
-                  ? (isEnglish ? 'Grid' : 'Cuadrícula')
+                  ? 'Grid'
                   : (isEnglish ? 'List' : 'Lista'),
               onTap: () {},
             ),
@@ -580,7 +550,7 @@ class _AppearanceSection extends ConsumerWidget {
         backgroundColor: AppColors.shadcnBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          'Seleccionar Tema',
+          'Select Theme',
           style: TextStyle(color: Colors.white),
         ),
         content: Column(
@@ -627,14 +597,14 @@ class _AppearanceSection extends ConsumerWidget {
         backgroundColor: AppColors.shadcnBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          'Seleccionar Idioma',
+          'Select Language',
           style: TextStyle(color: Colors.white),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             _ThemeOption(
-              title: 'Español',
+              title: 'Spanish',
               isSelected: settings.locale == 'es',
               onTap: () {
                 ref.read(settingsProvider.notifier).setLocale('es');

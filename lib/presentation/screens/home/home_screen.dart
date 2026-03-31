@@ -66,11 +66,11 @@ class _HeroSection extends StatelessWidget {
     final hour = DateTime.now().hour;
     String greeting;
     if (hour < 12) {
-      greeting = 'Buenos días';
+      greeting = 'Good morning';
     } else if (hour < 18) {
-      greeting = 'Buenas tardes';
+      greeting = 'Good afternoon';
     } else {
-      greeting = 'Buenas noches';
+      greeting = 'Good evening';
     }
 
     return Column(
@@ -86,7 +86,7 @@ class _HeroSection extends StatelessWidget {
             colors: [AppColors.shadcnPrimary, Colors.white],
           ).createShader(bounds),
           child: const Text(
-            'Resumen de tu universo.',
+            'Your universe overview.',
             style: TextStyle(
               fontSize: 42,
               fontWeight: FontWeight.w900,
@@ -97,7 +97,7 @@ class _HeroSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Has guardado $weekItems elementos esta semana. Sigue así.',
+          'You saved $weekItems items this week. Keep it up!',
           style: TextStyle(fontSize: 16, color: Colors.white.withAlpha(179)),
         ),
       ],
@@ -120,8 +120,8 @@ class _StatsGrid extends StatelessWidget {
             icon: Icons.download_done,
             iconColor: AppColors.shadcnSecondary,
             value: '${analytics.totalItems}',
-            label: 'Total Guardados',
-            subLabel: 'ítems',
+            label: 'Total Saved',
+            subLabel: 'items',
           ),
         ),
         const SizedBox(width: 16),
@@ -131,7 +131,7 @@ class _StatsGrid extends StatelessWidget {
             iconColor: AppColors.shadcnPrimary,
             value:
                 '+${analytics.weeklyActivity.fold(0, (sum, a) => sum + a.itemsCompleted)}',
-            label: 'Esta semana',
+            label: 'This week',
             subLabel: '+12%',
             isPositive: true,
           ),
@@ -142,8 +142,8 @@ class _StatsGrid extends StatelessWidget {
             icon: Icons.offline_bolt,
             iconColor: AppColors.shadcnSuccess,
             value: '100%',
-            label: 'Sincronización',
-            subLabel: 'Offline Activa',
+            label: 'Sync',
+            subLabel: 'Offline Active',
           ),
         ),
       ],
@@ -254,7 +254,7 @@ class _WeeklyChart extends StatelessWidget {
         : weeklyActivity.map((a) => a.itemsCompleted.toDouble()).toList();
 
     final maxVal = data.isEmpty ? 1.0 : data.reduce((a, b) => a > b ? a : b);
-    final days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return ShadcnCard(
       padding: const EdgeInsets.all(24),
@@ -262,7 +262,7 @@ class _WeeklyChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Crecimiento de Colección',
+            'Collection Growth',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -395,7 +395,7 @@ class _RecentItemsSection extends StatelessWidget {
               ),
             ),
             Text(
-              'Ver Todo',
+              'See All',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -518,7 +518,7 @@ class _AchievementsPreview extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Logros Desbloqueados',
+              'Unlocked Achievements',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -527,7 +527,7 @@ class _AchievementsPreview extends StatelessWidget {
               ),
             ),
             Text(
-              'Ver Todo',
+              'See All',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,

@@ -108,7 +108,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                   const SizedBox(height: 24),
                   if (item.description != null &&
                       item.description!.isNotEmpty) ...[
-                    _SectionTitle(title: 'Descripción'),
+                    _SectionTitle(title: 'Description'),
                     const SizedBox(height: 12),
                     _DescriptionCard(description: item.description!),
                     const SizedBox(height: 24),
@@ -497,7 +497,7 @@ class _DetailsCard extends StatelessWidget {
           if (item.updatedAt != null)
             _DetailRow(
               label: 'Actualizado',
-              value: _formatDate(item.updatedAt!),
+              value: _formatDate(item.updatedAt),
             ),
         ],
       ),

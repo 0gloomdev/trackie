@@ -45,7 +45,7 @@ class _Header extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Métricas Detalladas',
+          'Detailed Metrics',
           style: TextStyle(
             fontSize: 40,
             fontWeight: FontWeight.w900,
@@ -62,7 +62,7 @@ class _Header extends StatelessWidget {
         ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2, end: 0),
         const SizedBox(height: 8),
         Text(
-          'Analítica de captura y hábitos de archivo',
+          'Capture and file habit analytics',
           style: TextStyle(
             fontSize: 16,
             color: Colors.white.withAlpha(179),
@@ -85,7 +85,7 @@ class _StatsGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle(title: 'Resumen General'),
+        _SectionTitle(title: 'Overview'),
         const SizedBox(height: 16),
         GridView.count(
           crossAxisCount: 2,
@@ -103,21 +103,21 @@ class _StatsGrid extends StatelessWidget {
               index: 0,
             ),
             _StatCard(
-              title: 'Completados',
+              title: 'Completed',
               value: '${analytics.completedItems}',
               icon: Icons.check_circle,
               color: Colors.green,
               index: 1,
             ),
             _StatCard(
-              title: 'En Progreso',
+              title: 'In Progress',
               value: '${analytics.inProgressItems}',
               icon: Icons.pending,
               color: Colors.orange,
               index: 2,
             ),
             _StatCard(
-              title: 'Pendientes',
+              title: 'Pending',
               value: '${analytics.pendingItems}',
               icon: Icons.schedule,
               color: Colors.grey,
@@ -126,7 +126,7 @@ class _StatsGrid extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 24),
-        _SectionTitle(title: 'Rendimiento'),
+        _SectionTitle(title: 'Performance'),
         const SizedBox(height: 16),
         GridView.count(
           crossAxisCount: 2,
@@ -137,29 +137,29 @@ class _StatsGrid extends StatelessWidget {
           childAspectRatio: 1.6,
           children: [
             _StatCard(
-              title: 'Tasa de Completado',
+              title: 'Completion Rate',
               value: '${(analytics.completionRate * 100).toStringAsFixed(1)}%',
               icon: Icons.trending_up,
               color: AppColors.shadcnSecondary,
               index: 4,
             ),
             _StatCard(
-              title: 'XP Total',
+              title: 'Total XP',
               value: '${analytics.totalXp}',
               icon: Icons.star,
               color: Colors.amber,
               index: 5,
             ),
             _StatCard(
-              title: 'Nivel',
+              title: 'Level',
               value: '${profile.nivel}',
               icon: Icons.military_tech,
               color: Colors.purple,
               index: 6,
             ),
             _StatCard(
-              title: 'Racha',
-              value: '${analytics.currentStreak} días',
+              title: 'Streak',
+              value: '${analytics.currentStreak} days',
               icon: Icons.local_fire_department,
               color: Colors.red,
               index: 7,
@@ -278,7 +278,7 @@ class _WeeklyChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    final weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return ShadcnCard(
       padding: const EdgeInsets.all(20),
@@ -286,7 +286,7 @@ class _WeeklyChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Distribución Semanal',
+            'Weekly Distribution',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -370,9 +370,10 @@ class _WeeklyChart extends StatelessWidget {
   }
 
   double _getMaxY() {
-    final max = analytics.weeklyActivity.isEmpty
+    final weeklyActivity = analytics.weeklyActivity;
+    final max = weeklyActivity.isEmpty
         ? 10.0
-        : analytics.weeklyActivity
+        : weeklyActivity
               .map((e) => e.itemsCompleted)
               .reduce((a, b) => a > b ? a : b)
               .toDouble();
@@ -380,9 +381,10 @@ class _WeeklyChart extends StatelessWidget {
   }
 
   List<BarChartGroupData> _getBarGroups() {
+    final weeklyActivity = analytics.weeklyActivity;
     return List.generate(7, (index) {
-      final value = index < analytics.weeklyActivity.length
-          ? analytics.weeklyActivity[index].itemsCompleted.toDouble()
+      final value = index < weeklyActivity.length
+          ? weeklyActivity[index].itemsCompleted.toDouble()
           : 0.0;
       return BarChartGroupData(
         x: index,
@@ -414,7 +416,7 @@ class _CompletionRate extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Tasa de Extracción (URL)',
+            'Extraction Rate (URL)',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -472,7 +474,7 @@ class _CompletionRate extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'ÉXITO',
+                        'SUCCESS',
                         style: TextStyle(
                           fontSize: 10,
                           letterSpacing: 2,
@@ -487,7 +489,7 @@ class _CompletionRate extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Tasa de éxito extrayendo metadata mediante parseo automático.',
+            'Success rate extracting metadata via automatic parsing.',
             style: TextStyle(fontSize: 12, color: Colors.white.withAlpha(179)),
             textAlign: TextAlign.center,
           ),
@@ -507,7 +509,7 @@ class _PomodoroStats extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle(title: 'Estadísticas de Pomodoro'),
+        _SectionTitle(title: 'Pomodoro Statistics'),
         const SizedBox(height: 16),
         ShadcnCard(
               padding: const EdgeInsets.all(20),
@@ -517,7 +519,7 @@ class _PomodoroStats extends StatelessWidget {
                     child: _PomodoroStatItem(
                       icon: Icons.timer,
                       value: '${analytics.totalPomodoroSessions}',
-                      label: 'Sesiones',
+                      label: 'Sessions',
                       color: Colors.red,
                     ),
                   ),
@@ -530,7 +532,7 @@ class _PomodoroStats extends StatelessWidget {
                     child: _PomodoroStatItem(
                       icon: Icons.access_time,
                       value: '${analytics.todayMinutes}',
-                      label: 'Hoy (min)',
+                      label: 'Today (min)',
                       color: AppColors.shadcnSecondary,
                     ),
                   ),
@@ -543,7 +545,7 @@ class _PomodoroStats extends StatelessWidget {
                     child: _PomodoroStatItem(
                       icon: Icons.calendar_today,
                       value: '${analytics.weekMinutes}',
-                      label: 'Esta semana',
+                      label: 'This week',
                       color: Colors.green,
                     ),
                   ),
@@ -607,7 +609,7 @@ class _AchievementsSummary extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionTitle(title: 'Logros Desbloqueados'),
+            _SectionTitle(title: 'Unlocked Achievements'),
             const SizedBox(height: 16),
             ShadcnCard(
               padding: const EdgeInsets.all(16),
@@ -632,7 +634,7 @@ class _AchievementsSummary extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$unlocked de $total logros',
+                          '$unlocked of $total achievements',
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,

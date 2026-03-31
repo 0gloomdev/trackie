@@ -368,16 +368,15 @@ class _ReminderCard extends ConsumerWidget {
   String _formatDateTime(DateTime date) {
     final now = DateTime.now();
     final diff = date.difference(now);
-    final isPast = diff.isNegative;
 
     if (date.day == now.day &&
         date.month == now.month &&
         date.year == now.year) {
-      return 'Hoy ${_formatTime(date)}';
+      return 'Today ${_formatTime(date)}';
     } else if (date.day == now.day + 1 &&
         date.month == now.month &&
         date.year == now.year) {
-      return 'Mañana ${_formatTime(date)}';
+      return 'Tomorrow ${_formatTime(date)}';
     } else {
       return '${date.day}/${date.month} ${_formatTime(date)}';
     }
@@ -440,12 +439,12 @@ class _ReminderEditorSheetState extends ConsumerState<_ReminderEditorSheet> {
                       onPressed: () => Navigator.pop(context),
                       backgroundColor: Colors.white.withAlpha(26),
                       child: const Text(
-                        'Cancelar',
+                        'Cancel',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
                     Text(
-                      'Nuevo Recordatorio',
+                      'New Reminder',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -459,10 +458,7 @@ class _ReminderEditorSheetState extends ConsumerState<_ReminderEditorSheet> {
                         children: [
                           Icon(Icons.check, color: Colors.white, size: 18),
                           SizedBox(width: 8),
-                          Text(
-                            'Guardar',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          Text('Save', style: TextStyle(color: Colors.white)),
                         ],
                       ),
                     ),
@@ -471,7 +467,7 @@ class _ReminderEditorSheetState extends ConsumerState<_ReminderEditorSheet> {
                 const SizedBox(height: 24),
                 ShadcnInput(
                   controller: _titleController,
-                  hintText: 'Título del recordatorio',
+                  hintText: 'Reminder title',
                 ),
                 const SizedBox(height: 16),
                 Text(

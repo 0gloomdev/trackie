@@ -44,12 +44,12 @@ class _FilterChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final filters = [
-      {'label': 'Todos', 'value': null},
-      {'label': 'Cursos', 'value': 'course'},
-      {'label': 'Libros', 'value': 'book'},
+      {'label': 'All', 'value': null},
+      {'label': 'Courses', 'value': 'course'},
+      {'label': 'Books', 'value': 'book'},
       {'label': 'PDFs', 'value': 'pdf'},
       {'label': 'Videos', 'value': 'video'},
-      {'label': 'Artículos', 'value': 'article'},
+      {'label': 'Articles', 'value': 'article'},
     ];
 
     return Container(

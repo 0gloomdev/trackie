@@ -178,7 +178,7 @@ class _SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return ShadcnInput(
       controller: controller,
-      hintText: 'Buscar notas...',
+      hintText: 'Search notes...',
       prefixIcon: const Icon(Icons.search, color: Colors.white54),
       onChanged: onChanged,
     ).animate(delay: 150.ms).fadeIn().slideY(begin: 0.1);
@@ -211,7 +211,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'No hay notas aún',
+            'No notes yet',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -220,7 +220,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Crea tu primera nota para comenzar',
+            'Create your first note to get started',
             style: TextStyle(fontSize: 14, color: Colors.white.withAlpha(128)),
           ),
           const SizedBox(height: 24),
@@ -231,7 +231,7 @@ class _EmptyState extends StatelessWidget {
               children: [
                 Icon(Icons.add, color: Colors.white, size: 18),
                 SizedBox(width: 8),
-                Text('Crear nota', style: TextStyle(color: Colors.white)),
+                Text('Create note', style: TextStyle(color: Colors.white)),
               ],
             ),
           ),
@@ -257,7 +257,7 @@ class _NotesList extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         if (pinnedNotes.isNotEmpty) ...[
-          SliverToBoxAdapter(child: _SectionTitle(title: 'Fijadas')),
+          SliverToBoxAdapter(child: _SectionTitle(title: 'Pinned')),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) => _NoteCard(
@@ -270,7 +270,7 @@ class _NotesList extends StatelessWidget {
           ),
         ],
         if (unpinnedNotes.isNotEmpty) ...[
-          SliverToBoxAdapter(child: _SectionTitle(title: 'Todas las notas')),
+          SliverToBoxAdapter(child: _SectionTitle(title: 'All Notes')),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) => _NoteCard(
@@ -345,7 +345,7 @@ class _NoteCard extends ConsumerWidget {
                   ),
                 Expanded(
                   child: Text(
-                    note.title.isEmpty ? 'Sin título' : note.title,
+                    note.title.isEmpty ? 'Untitled' : note.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -414,11 +414,11 @@ class _NoteCard extends ConsumerWidget {
     final now = DateTime.now();
     final diff = now.difference(date);
     if (diff.inDays == 0) {
-      return 'Hoy';
+      return 'Today';
     } else if (diff.inDays == 1) {
-      return 'Ayer';
+      return 'Yesterday';
     } else if (diff.inDays < 7) {
-      return '${diff.inDays} días';
+      return '${diff.inDays} days ago';
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
@@ -506,12 +506,12 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
                       onPressed: () => Navigator.pop(context),
                       backgroundColor: Colors.white.withAlpha(26),
                       child: const Text(
-                        'Cancelar',
+                        'Cancel',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
                     Text(
-                      widget.note == null ? 'Nueva Nota' : 'Editar Nota',
+                      widget.note == null ? 'New Note' : 'Edit Note',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -525,10 +525,7 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
                         children: [
                           Icon(Icons.check, color: Colors.white, size: 18),
                           SizedBox(width: 8),
-                          Text(
-                            'Guardar',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          Text('Save', style: TextStyle(color: Colors.white)),
                         ],
                       ),
                     ),
@@ -537,7 +534,7 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
                 const SizedBox(height: 24),
                 ShadcnInput(
                   controller: _titleController,
-                  hintText: 'Título de la nota',
+                  hintText: 'Note title',
                 ),
                 const SizedBox(height: 16),
                 Expanded(
@@ -554,7 +551,7 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
                       textAlignVertical: TextAlignVertical.top,
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: 'Escribe tu nota...',
+                        hintText: 'Write your note...',
                         hintStyle: const TextStyle(color: Color(0x80FFFFFF)),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.all(16),
@@ -574,7 +571,7 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Fijar nota',
+                      'Pin note',
                       style: TextStyle(
                         color: _isPinned
                             ? AppColors.shadcnSecondary
