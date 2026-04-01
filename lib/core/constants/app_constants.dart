@@ -16,16 +16,11 @@ class AppConstants {
   static const List<ContentType> contentTypes = [
     ContentType(
       id: 'course',
-      name: 'Curso',
+      name: 'Course',
       icon: 'play_circle',
       color: 0xFF6366F1,
     ),
-    ContentType(
-      id: 'book',
-      name: 'Libro',
-      icon: 'menu_book',
-      color: 0xFF8B4513,
-    ),
+    ContentType(id: 'book', name: 'Book', icon: 'menu_book', color: 0xFF8B4513),
     ContentType(
       id: 'pdf',
       name: 'PDF',
@@ -47,7 +42,7 @@ class AppConstants {
     ),
     ContentType(
       id: 'article',
-      name: 'Artículo',
+      name: 'Article',
       icon: 'article',
       color: 0xFF9C27B0,
     ),
@@ -57,8 +52,44 @@ class AppConstants {
       icon: 'podcasts',
       color: 0xFFFF9800,
     ),
-    ContentType(id: 'note', name: 'Nota', icon: 'note', color: 0xFF607D8B),
-    ContentType(id: 'link', name: 'Enlace', icon: 'link', color: 0xFF2196F3),
+    ContentType(id: 'note', name: 'Note', icon: 'note', color: 0xFF607D8B),
+    ContentType(id: 'link', name: 'Link', icon: 'link', color: 0xFF2196F3),
+    ContentType(
+      id: 'tutorial',
+      name: 'Tutorial',
+      icon: 'build',
+      color: 0xFF00BCD4,
+    ),
+    ContentType(
+      id: 'doc',
+      name: 'Documentation',
+      icon: 'description',
+      color: 0xFF3F51B5,
+    ),
+    ContentType(
+      id: 'workshop',
+      name: 'Workshop',
+      icon: 'groups',
+      color: 0xFF009688,
+    ),
+    ContentType(
+      id: 'bootcamp',
+      name: 'Bootcamp',
+      icon: 'military_tech',
+      color: 0xFFE91E63,
+    ),
+    ContentType(
+      id: 'certification',
+      name: 'Certification',
+      icon: 'verified',
+      color: 0xFFCDDC39,
+    ),
+    ContentType(
+      id: 'project',
+      name: 'Project',
+      icon: 'folder_special',
+      color: 0xFF9C27B0,
+    ),
   ];
 
   static const List<ContentStatus> statuses = [
@@ -77,28 +108,28 @@ class AppConstants {
 
   static const List<OnboardingStep> onboardingSteps = [
     OnboardingStep(
-      title: 'Bienvenido a Trackie',
-      description: 'Tu centro de aprendizaje personal',
+      title: 'Welcome to Trackie',
+      description: 'Your personal learning hub',
       icon: 'school',
     ),
     OnboardingStep(
-      title: 'Agrega tu contenido',
-      description: 'Cursos, libros, PDFs, podcasts y más',
+      title: 'Add your content',
+      description: 'Courses, books, PDFs, podcasts and more',
       icon: 'add_circle',
     ),
     OnboardingStep(
-      title: 'Organiza con etiquetas',
-      description: 'Crea categorías y etiquetas personalizadas',
+      title: 'Organize with tags',
+      description: 'Create custom categories and tags',
       icon: 'label',
     ),
     OnboardingStep(
-      title: 'Seguimiento de progreso',
-      description: 'Visualiza tu avance con estadísticas',
+      title: 'Track your progress',
+      description: 'Visualize your progress with statistics',
       icon: 'trending_up',
     ),
     OnboardingStep(
-      title: '¡Listo para aprender!',
-      description: 'Comienza tu viaje de conocimiento',
+      title: 'Ready to learn!',
+      description: 'Start your learning journey',
       icon: 'celebration',
     ),
   ];

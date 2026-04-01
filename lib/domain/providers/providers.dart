@@ -1,17 +1,42 @@
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../data/models/models.dart';
 import '../../data/repositories/repositories.dart';
+import '../../core/services/data_export_service.dart';
 
-final learningRepositoryProvider = Provider<LearningRepository>(
-  (ref) => LearningRepository(),
-);
-final categoryRepositoryProvider = Provider<CategoryRepository>(
-  (ref) => CategoryRepository(),
-);
-final tagRepositoryProvider = Provider<TagRepository>((ref) => TagRepository());
-final settingsRepositoryProvider = Provider<SettingsRepository>(
-  (ref) => SettingsRepository(),
-);
+final learningRepositoryProvider = Provider<LearningRepository>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+final tagRepositoryProvider = Provider<TagRepository>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+final achievementsRepositoryProvider = Provider<AchievementsRepository>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+final communityRepositoryProvider = Provider<CommunityRepository>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+
+final dataExportServiceProvider = Provider<DataExportService>((ref) {
+  return DataExportService(
+    learningRepo: ref.watch(learningRepositoryProvider),
+    categoryRepo: ref.watch(categoryRepositoryProvider),
+    tagRepo: ref.watch(tagRepositoryProvider),
+    settingsRepo: ref.watch(settingsRepositoryProvider),
+    achievementsRepo: ref.watch(achievementsRepositoryProvider),
+    profileRepo: ref.watch(profileRepositoryProvider),
+  );
+});
 
 final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>(
   (ref) => SettingsNotifier(ref.watch(settingsRepositoryProvider)),
@@ -43,6 +68,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await update(state.copyWith(compactMode: !state.compactMode));
   }
 
+  Future<void> toggleTheme() async {
+    final newTheme = state.theme == 'dark' ? 'light' : 'dark';
+    await setTheme(newTheme);
+  }
+
   Future<void> toggleViewMode() async {
     await update(
       state.copyWith(
@@ -51,19 +81,35 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     );
   }
 
+  Future<void> setLocale(String locale) async {
+    await update(state.copyWith(locale: locale));
+  }
+
+  Future<void> toggleNotifications() async {
+    await update(
+      state.copyWith(notificationsEnabled: !state.notificationsEnabled),
+    );
+  }
+
   Future<void> completeOnboarding() async {
     await update(state.copyWith(showOnboarding: false));
+  }
+
+  Future<void> updateLastBackupDate(DateTime date) async {
+    await update(state.copyWith(lastBackupDate: date));
   }
 }
 
 final learningItemsProvider =
     StateNotifierProvider<LearningItemsNotifier, List<LearningItem>>(
-      (ref) => LearningItemsNotifier(ref.watch(learningRepositoryProvider)),
+      (ref) =>
+          LearningItemsNotifier(ref.watch(learningRepositoryProvider), ref),
     );
 
 class LearningItemsNotifier extends StateNotifier<List<LearningItem>> {
   final LearningRepository _repo;
-  LearningItemsNotifier(this._repo) : super([]) {
+  final Ref ref;
+  LearningItemsNotifier(this._repo, this.ref) : super([]) {
     _load();
   }
   void _load() {
@@ -76,8 +122,29 @@ class LearningItemsNotifier extends StateNotifier<List<LearningItem>> {
   }
 
   Future<void> update(LearningItem i) async {
+    final oldItem = _repo.getById(i.id);
+    final wasCompleted = oldItem?.status != 'completed';
+    final isNowCompleted = i.status == 'completed';
+
     await _repo.update(i);
     _load();
+
+    if (wasCompleted && isNowCompleted) {
+      final checker = ref.read(achievementCheckerProvider);
+      await checker.checkItemCompleted(i);
+      ref.read(dailyGoalsProvider.notifier).incrementItemsCompleted();
+
+      // Add notification for item completion
+      ref
+          .read(notificationsProvider.notifier)
+          .addNotification(
+            AppNotification(
+              titulo: 'Item Completed!',
+              mensaje: i.title,
+              tipo: 'item',
+            ),
+          );
+    }
   }
 
   Future<void> delete(String id) async {
@@ -88,8 +155,14 @@ class LearningItemsNotifier extends StateNotifier<List<LearningItem>> {
   Future<void> toggleFavorite(String id) async {
     final i = _repo.getById(id);
     if (i != null) {
-      await _repo.update(i.copyWith(isFavorite: !i.isFavorite));
+      final newFavorite = !i.isFavorite;
+      await _repo.update(i.copyWith(isFavorite: newFavorite));
       _load();
+
+      if (newFavorite) {
+        final checker = ref.read(achievementCheckerProvider);
+        await checker.checkFavoritesChanged();
+      }
     }
   }
 
@@ -180,6 +253,11 @@ class LearningItemsNotifier extends StateNotifier<List<LearningItem>> {
   }
 
   void refresh() => _load();
+
+  Future<void> deleteAll() async {
+    await _repo.deleteAll();
+    _load();
+  }
 }
 
 final categoriesProvider =
@@ -232,6 +310,53 @@ class TagsNotifier extends StateNotifier<List<Tag>> {
 
   Future<void> delete(String id) async {
     await _repo.delete(id);
+    _load();
+  }
+}
+
+final achievementsProvider =
+    StateNotifierProvider<AchievementsNotifier, List<Achievement>>(
+      (ref) => AchievementsNotifier(ref.watch(achievementsRepositoryProvider)),
+    );
+
+class AchievementsNotifier extends StateNotifier<List<Achievement>> {
+  final AchievementsRepository _repo;
+  AchievementsNotifier(this._repo) : super([]) {
+    _load();
+  }
+  void _load() {
+    state = _repo.getAll();
+  }
+
+  Future<void> unlock(String id) async {
+    await _repo.unlock(id);
+    _load();
+  }
+
+  int get unlockedCount => state.where((a) => a.desbloqueado).length;
+}
+
+final userProfileProvider =
+    StateNotifierProvider<UserProfileNotifier, UserProfile>(
+      (ref) => UserProfileNotifier(ref.watch(profileRepositoryProvider)),
+    );
+
+class UserProfileNotifier extends StateNotifier<UserProfile> {
+  final ProfileRepository _repo;
+  UserProfileNotifier(this._repo) : super(UserProfile.defaultProfile()) {
+    _load();
+  }
+  void _load() {
+    state = _repo.get();
+  }
+
+  Future<void> addXp(int amount) async {
+    await _repo.addXp(amount);
+    _load();
+  }
+
+  Future<void> updateProfile(UserProfile p) async {
+    await _repo.save(p);
     _load();
   }
 }
@@ -289,14 +414,18 @@ final filteredItemsProvider = Provider<List<LearningItem>>((ref) {
   final items = ref.watch(learningItemsProvider);
   final f = ref.watch(filterProvider);
   var filtered = items.toList();
-  if (f.type != null)
+  if (f.type != null) {
     filtered = filtered.where((i) => i.type == f.type).toList();
-  if (f.status != null)
+  }
+  if (f.status != null) {
     filtered = filtered.where((i) => i.status == f.status).toList();
-  if (f.categoryId != null)
+  }
+  if (f.categoryId != null) {
     filtered = filtered.where((i) => i.categoryId == f.categoryId).toList();
-  if (f.showFavoritesOnly)
+  }
+  if (f.showFavoritesOnly) {
     filtered = filtered.where((i) => i.isFavorite).toList();
+  }
   if (f.searchQuery != null && f.searchQuery!.isNotEmpty) {
     final q = f.searchQuery!.toLowerCase();
     filtered = filtered
@@ -377,6 +506,7 @@ final recentItemsProvider = Provider<List<LearningItem>>((ref) {
 });
 
 final searchProvider = StateProvider<String>((ref) => '');
+final versionTapProvider = StateProvider<int>((ref) => 0);
 
 final advancedFilteredItemsProvider = Provider<List<LearningItem>>((ref) {
   final items = ref.watch(learningItemsProvider);
@@ -431,4 +561,1139 @@ final advancedFilteredItemsProvider = Provider<List<LearningItem>>((ref) {
   });
 
   return filtered;
+});
+
+// ============================================
+// COMMUNITY FEED PROVIDER
+// ============================================
+
+final communityFeedProvider =
+    StateNotifierProvider<CommunityFeedNotifier, List<CommunityPost>>(
+      (ref) => CommunityFeedNotifier(ref.watch(communityRepositoryProvider)),
+    );
+
+class CommunityFeedNotifier extends StateNotifier<List<CommunityPost>> {
+  final CommunityRepository? _repo;
+
+  CommunityFeedNotifier(this._repo) : super([]) {
+    _load();
+  }
+
+  void _load() {
+    final repo = _repo;
+    if (repo != null) {
+      state = repo.getAllPosts();
+    } else {
+      state = _generateDefaultFeed();
+    }
+  }
+
+  List<CommunityPost> _generateDefaultFeed() {
+    final now = DateTime.now();
+    return [
+      CommunityPost(
+        tipo: 'item_completed',
+        contenido: 'completed "Flutter Complete Guide"',
+        timestamp: now.subtract(const Duration(hours: 2)),
+        anonimo: false,
+        usuarioNombre: 'Maria G.',
+        likes: 12,
+        isUserPost: false,
+      ),
+      CommunityPost(
+        tipo: 'achievement_unlocked',
+        contenido: 'unlocked achievement "Master"',
+        timestamp: now.subtract(const Duration(hours: 5)),
+        anonimo: false,
+        usuarioNombre: 'Carlos R.',
+        likes: 8,
+        isUserPost: false,
+      ),
+    ];
+  }
+
+  Future<void> addUserPost(CommunityPost post) async {
+    final repo = _repo;
+    if (repo != null) {
+      await repo.addPost(post);
+      _load();
+    }
+  }
+
+  Future<void> likePost(String postId) async {
+    final repo = _repo;
+    if (repo != null) {
+      await repo.likePost(postId);
+      _load();
+    }
+  }
+
+  Future<void> addComment(String postId, Comment comment) async {
+    final repo = _repo;
+    if (repo != null) {
+      await repo.addComment(postId, comment);
+      _load();
+    }
+  }
+
+  void refresh() {
+    _load();
+  }
+
+  Future<void> shareItemCompleted(LearningItem item) async {
+    final post = CommunityPost(
+      tipo: 'item_completed',
+      contenido: 'completed "${item.title}"',
+      relatedItemId: item.id,
+      isUserPost: true,
+    );
+    await addUserPost(post);
+  }
+
+  Future<void> shareAchievementUnlocked(Achievement achievement) async {
+    final post = CommunityPost(
+      tipo: 'achievement_unlocked',
+      contenido: 'unlocked achievement "${achievement.titulo}"',
+      relatedAchievementId: achievement.id,
+      isUserPost: true,
+    );
+    await addUserPost(post);
+  }
+
+  Future<void> shareStreakMilestone(int streak) async {
+    final post = CommunityPost(
+      tipo: 'streak_milestone',
+      contenido: 'reached $streak day streak',
+      isUserPost: true,
+    );
+    await addUserPost(post);
+  }
+
+  Future<void> shareLevelUp(int level) async {
+    final post = CommunityPost(
+      tipo: 'level_up',
+      contenido: 'reached level $level',
+      isUserPost: true,
+    );
+    await addUserPost(post);
+  }
+}
+
+// ============================================
+// SEARCH PROVIDER (Advanced)
+// ============================================
+
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+final searchHistoryProvider =
+    StateNotifierProvider<SearchHistoryNotifier, List<String>>(
+      (ref) => SearchHistoryNotifier(),
+    );
+
+class SearchHistoryNotifier extends StateNotifier<List<String>> {
+  SearchHistoryNotifier() : super([]) {
+    _load();
+  }
+
+  void _load() {
+    try {
+      final box = Hive.box('settings');
+      final data = box.get('searchHistory');
+      if (data != null) {
+        state = List<String>.from(data);
+      }
+    } catch (e) {
+      // Use empty history
+    }
+  }
+
+  Future<void> _save() async {
+    try {
+      final box = Hive.box('settings');
+      await box.put('searchHistory', state);
+    } catch (e) {
+      // Handle error
+    }
+  }
+
+  void addToHistory(String query) {
+    if (query.trim().isEmpty) return;
+
+    state = state.where((q) => q != query).toList();
+    state = [query, ...state].take(20).toList();
+    _save();
+  }
+
+  void removeFromHistory(String query) {
+    state = state.where((q) => q != query).toList();
+    _save();
+  }
+
+  void clearHistory() {
+    state = [];
+    _save();
+  }
+}
+
+// ============================================
+// NOTIFICATION PROVIDER
+// ============================================
+
+final notificationsProvider =
+    StateNotifierProvider<NotificationsNotifier, List<AppNotification>>(
+      (ref) => NotificationsNotifier(),
+    );
+
+class AppNotification {
+  final String id;
+  final String titulo;
+  final String mensaje;
+  final String tipo;
+  final DateTime timestamp;
+  final bool leida;
+
+  AppNotification({
+    String? id,
+    required this.titulo,
+    required this.mensaje,
+    required this.tipo,
+    DateTime? timestamp,
+    this.leida = false,
+  }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+       timestamp = timestamp ?? DateTime.now();
+}
+
+class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
+  NotificationsNotifier() : super([]);
+
+  void addNotification(AppNotification notification) {
+    state = [notification, ...state];
+  }
+
+  void markAsRead(String id) {
+    state = state.map((n) {
+      if (n.id == id) {
+        return AppNotification(
+          id: n.id,
+          titulo: n.titulo,
+          mensaje: n.mensaje,
+          tipo: n.tipo,
+          timestamp: n.timestamp,
+          leida: true,
+        );
+      }
+      return n;
+    }).toList();
+  }
+
+  void markAllAsRead() {
+    state = state
+        .map(
+          (n) => AppNotification(
+            id: n.id,
+            titulo: n.titulo,
+            mensaje: n.mensaje,
+            tipo: n.tipo,
+            timestamp: n.timestamp,
+            leida: true,
+          ),
+        )
+        .toList();
+  }
+
+  void clearNotifications() {
+    state = [];
+  }
+
+  int get unreadCount => state.where((n) => !n.leida).length;
+}
+
+// ============================================
+// ACHIEVEMENT CHECKER SERVICE
+// ============================================
+
+class AchievementChecker {
+  final Ref ref;
+
+  AchievementChecker(this.ref);
+
+  Future<void> checkItemCompleted(LearningItem item) async {
+    final items = ref.read(learningItemsProvider);
+    final completedCount = items.where((i) => i.status == 'completed').length;
+    final achievementsNotifier = ref.read(achievementsProvider.notifier);
+
+    if (completedCount >= 1) {
+      await achievementsNotifier.unlock('primer_paso');
+      await _addXpForUnlock('primer_paso');
+    }
+    if (completedCount >= 5) {
+      await achievementsNotifier.unlock('avido');
+      await _addXpForUnlock('avido');
+    }
+    if (completedCount >= 10) {
+      await achievementsNotifier.unlock('estudiante');
+      await _addXpForUnlock('estudiante');
+    }
+    if (completedCount >= 25) {
+      await achievementsNotifier.unlock('bibliotecario');
+      await _addXpForUnlock('bibliotecario');
+    }
+    if (completedCount >= 50) {
+      await achievementsNotifier.unlock('maestro');
+      await _addXpForUnlock('maestro');
+    }
+
+    final createdAt = item.createdAt;
+    final completedAt = item.updatedAt;
+    if (completedAt.difference(createdAt).inHours < 24) {
+      await achievementsNotifier.unlock('velocista');
+      await _addXpForUnlock('velocista');
+    }
+
+    final urgentCompleted = items
+        .where((i) => i.status == 'completed' && i.priority == 'high')
+        .length;
+    if (urgentCompleted >= 5) {
+      await achievementsNotifier.unlock('prioritario');
+      await _addXpForUnlock('prioritario');
+    }
+  }
+
+  Future<void> checkStreakUpdated(int streak) async {
+    final achievementsNotifier = ref.read(achievementsProvider.notifier);
+
+    if (streak >= 7) {
+      await achievementsNotifier.unlock('racha_7');
+      await _addXpForUnlock('racha_7');
+    }
+    if (streak >= 30) {
+      await achievementsNotifier.unlock('racha_30');
+      await _addXpForUnlock('racha_30');
+    }
+  }
+
+  Future<void> checkFavoritesChanged() async {
+    final items = ref.read(learningItemsProvider);
+    final favoriteCount = items.where((i) => i.isFavorite).length;
+
+    if (favoriteCount >= 10) {
+      final achievementsNotifier = ref.read(achievementsProvider.notifier);
+      await achievementsNotifier.unlock('coleccionista');
+      await _addXpForUnlock('coleccionista');
+    }
+  }
+
+  Future<void> checkNightStudy() async {
+    final hour = DateTime.now().hour;
+    if (hour >= 0 && hour < 5) {
+      final achievementsNotifier = ref.read(achievementsProvider.notifier);
+      await achievementsNotifier.unlock('noctambulo');
+      await _addXpForUnlock('noctambulo');
+    }
+  }
+
+  Future<void> _addXpForUnlock(String achievementId) async {
+    final achievements = ref.read(achievementsProvider);
+    final achievement = achievements.firstWhere(
+      (a) => a.id == achievementId,
+      orElse: () =>
+          Achievement(id: '', titulo: '', descripcion: '', icono: '', tipo: ''),
+    );
+    if (achievement.id.isNotEmpty && achievement.xpRecompensa > 0) {
+      ref.read(userProfileProvider.notifier).addXp(achievement.xpRecompensa);
+      ref
+          .read(notificationsProvider.notifier)
+          .addNotification(
+            AppNotification(
+              titulo: 'Achievement Unlocked!',
+              mensaje:
+                  '${achievement.titulo} (+${achievement.xpRecompensa} XP)',
+              tipo: 'achievement',
+            ),
+          );
+    }
+  }
+}
+
+final achievementCheckerProvider = Provider<AchievementChecker>((ref) {
+  return AchievementChecker(ref);
+});
+
+// ============================================
+// DAILY GOALS PROVIDER
+// ============================================
+
+final dailyGoalsProvider =
+    StateNotifierProvider<DailyGoalsNotifier, List<DailyGoal>>(
+      (ref) => DailyGoalsNotifier(ref),
+    );
+
+class DailyGoalsNotifier extends StateNotifier<List<DailyGoal>> {
+  final Ref _ref;
+  bool _goalCompletedNotified = false;
+
+  DailyGoalsNotifier(this._ref) : super([]) {
+    _load();
+  }
+
+  void _load() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final existing = state.where((g) {
+      final goalDate = DateTime(g.date.year, g.date.month, g.date.day);
+      return goalDate.isAtSameMomentAs(today);
+    }).toList();
+
+    if (existing.isEmpty) {
+      _goalCompletedNotified = false;
+      state = [...state, DailyGoal(date: today)];
+    } else {
+      // Reset notification flag if goal is not completed
+      if (!existing.first.completed) {
+        _goalCompletedNotified = false;
+      }
+    }
+  }
+
+  DailyGoal get todayGoal {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return state.firstWhere(
+      (g) => DateTime(
+        g.date.year,
+        g.date.month,
+        g.date.day,
+      ).isAtSameMomentAs(today),
+      orElse: () => DailyGoal(),
+    );
+  }
+
+  Future<void> updateTodayGoal(DailyGoal goal) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    state = state.map((g) {
+      final goalDate = DateTime(g.date.year, g.date.month, g.date.day);
+      if (goalDate.isAtSameMomentAs(today)) {
+        return goal;
+      }
+      return g;
+    }).toList();
+  }
+
+  Future<void> incrementItemsCompleted() async {
+    final goal = todayGoal;
+    final newCompleted = goal.itemsCompleted + 1;
+    final completed = newCompleted >= goal.itemsToComplete;
+    final wasCompleted = goal.completed;
+
+    await updateTodayGoal(
+      goal.copyWith(itemsCompleted: newCompleted, completed: completed),
+    );
+
+    // Notify when goal is first completed
+    if (completed && !wasCompleted && !_goalCompletedNotified) {
+      _goalCompletedNotified = true;
+      _ref
+          .read(notificationsProvider.notifier)
+          .addNotification(
+            AppNotification(
+              titulo: 'Daily Goal Reached!',
+              mensaje: 'You have completed your goal for today',
+              tipo: 'goal',
+            ),
+          );
+    }
+  }
+
+  Future<void> addMinutesStudied(int minutes) async {
+    final goal = todayGoal;
+    final wasCompleted = goal.completed;
+
+    await updateTodayGoal(
+      goal.copyWith(minutesStudied: goal.minutesStudied + minutes),
+    );
+
+    // Check if time goal is now complete
+    final updatedGoal = todayGoal;
+    if (updatedGoal.completed && !wasCompleted && !_goalCompletedNotified) {
+      _goalCompletedNotified = true;
+      _ref
+          .read(notificationsProvider.notifier)
+          .addNotification(
+            AppNotification(
+              titulo: 'Daily Goal Reached!',
+              mensaje: 'You have completed your goal for today',
+              tipo: 'goal',
+            ),
+          );
+    }
+  }
+
+  List<DailyGoal> getGoalsForWeek() {
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+
+    return state.where((g) {
+      return g.date.isAfter(weekStart) || g.date.isAtSameMomentAs(weekStart);
+    }).toList();
+  }
+}
+
+// ============================================
+// POMODORO PROVIDER
+// ============================================
+
+enum PomodoroState { idle, running, paused, breakTime }
+
+final pomodoroStateProvider = StateProvider<PomodoroState>(
+  (ref) => PomodoroState.idle,
+);
+final pomodoroTimeProvider = StateProvider<int>((ref) => 25 * 60);
+final pomodoroSessionProvider = StateProvider<PomodoroSession?>((ref) => null);
+final pomodoroSessionsProvider =
+    StateNotifierProvider<PomodoroSessionsNotifier, List<PomodoroSession>>(
+      (ref) => PomodoroSessionsNotifier(),
+    );
+
+class PomodoroSessionsNotifier extends StateNotifier<List<PomodoroSession>> {
+  PomodoroSessionsNotifier() : super([]);
+
+  Future<void> startSession({String? relatedItemId, int duration = 25}) async {
+    final session = PomodoroSession(
+      relatedItemId: relatedItemId,
+      durationMinutes: duration,
+    );
+    state = [...state, session];
+  }
+
+  Future<void> completeSession(String sessionId) async {
+    state = state.map((s) {
+      if (s.id == sessionId) {
+        return s.copyWith(completed: true, endTime: DateTime.now());
+      }
+      return s;
+    }).toList();
+  }
+
+  int get todayCompletedSessions {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return state.where((s) {
+      return s.completed && s.startTime.isAfter(today);
+    }).length;
+  }
+
+  int get todayMinutesStudied {
+    return state
+        .where((s) => s.completed)
+        .fold(0, (sum, s) => sum + s.durationMinutes);
+  }
+}
+
+// ============================================
+// ANALYTICS PROVIDER
+// ============================================
+
+final analyticsProvider = Provider<Analytics>((ref) {
+  final items = ref.watch(learningItemsProvider);
+  final goals = ref.watch(dailyGoalsProvider);
+  final pomodoro = ref.watch(pomodoroSessionsProvider);
+  final profile = ref.watch(userProfileProvider);
+
+  final completedPomodoro = pomodoro
+      .where((s) => s.completed && s.endTime != null)
+      .toList();
+  final todayMinutes = completedPomodoro
+      .where((s) {
+        final now = DateTime.now();
+        return s.endTime!.year == now.year &&
+            s.endTime!.month == now.month &&
+            s.endTime!.day == now.day;
+      })
+      .fold(0, (sum, s) => sum + s.durationMinutes);
+
+  final weekMinutes = completedPomodoro
+      .where((s) {
+        final now = DateTime.now();
+        final weekAgo = now.subtract(const Duration(days: 7));
+        return s.endTime!.isAfter(weekAgo);
+      })
+      .fold(0, (sum, s) => sum + s.durationMinutes);
+
+  final itemsByType = <String, int>{};
+  for (final item in items) {
+    itemsByType[item.type] = (itemsByType[item.type] ?? 0) + 1;
+  }
+
+  return Analytics(
+    totalItems: items.length,
+    completedItems: items.where((i) => i.status == 'completed').length,
+    inProgressItems: items.where((i) => i.status == 'in_progress').length,
+    pendingItems: items.where((i) => i.status == 'pending').length,
+    totalXp: profile.xp,
+    currentStreak: profile.streak,
+    longestStreak: profile.longestStreak,
+    todayCompleted: goals.isNotEmpty ? goals.last.itemsCompleted : 0,
+    todayMinutes: todayMinutes,
+    weekMinutes: weekMinutes,
+    totalPomodoroSessions: completedPomodoro.length,
+    weeklyActivity: _generateWeeklyActivity(items),
+    monthlyActivity: _generateMonthlyActivity(items),
+    itemsByType: itemsByType,
+    completionRate: items.isEmpty
+        ? 0.0
+        : items.where((i) => i.status == 'completed').length / items.length,
+  );
+});
+
+List<DailyActivity> _generateWeeklyActivity(List<LearningItem> items) {
+  final now = DateTime.now();
+  final weekStart = now.subtract(Duration(days: 7));
+
+  return List.generate(7, (index) {
+    final day = weekStart.add(Duration(days: index));
+    final dayEnd = day.add(const Duration(days: 1));
+    final dayItems = items
+        .where(
+          (i) =>
+              i.status == 'completed' &&
+              i.updatedAt.isAfter(day) &&
+              i.updatedAt.isBefore(dayEnd),
+        )
+        .length;
+
+    return DailyActivity(date: day, itemsCompleted: dayItems);
+  });
+}
+
+List<DailyActivity> _generateMonthlyActivity(List<LearningItem> items) {
+  final now = DateTime.now();
+  final monthStart = DateTime(now.year, now.month - 1, now.day);
+
+  return List.generate(30, (index) {
+    final day = monthStart.add(Duration(days: index));
+    final dayEnd = day.add(const Duration(days: 1));
+    final dayItems = items
+        .where(
+          (i) =>
+              i.status == 'completed' &&
+              i.updatedAt.isAfter(day) &&
+              i.updatedAt.isBefore(dayEnd),
+        )
+        .length;
+
+    return DailyActivity(date: day, itemsCompleted: dayItems);
+  });
+}
+
+class Analytics {
+  final int totalItems;
+  final int completedItems;
+  final int inProgressItems;
+  final int pendingItems;
+  final int totalXp;
+  final int currentStreak;
+  final int longestStreak;
+  final int todayCompleted;
+  final int todayMinutes;
+  final int weekMinutes;
+  final int totalPomodoroSessions;
+  final List<DailyActivity> weeklyActivity;
+  final List<DailyActivity> monthlyActivity;
+  final Map<String, int> itemsByType;
+  final double completionRate;
+
+  Analytics({
+    required this.totalItems,
+    required this.completedItems,
+    required this.inProgressItems,
+    required this.pendingItems,
+    required this.totalXp,
+    required this.currentStreak,
+    required this.longestStreak,
+    required this.todayCompleted,
+    required this.todayMinutes,
+    required this.weekMinutes,
+    required this.totalPomodoroSessions,
+    required this.weeklyActivity,
+    required this.monthlyActivity,
+    required this.itemsByType,
+    required this.completionRate,
+  });
+}
+
+// ============================================
+// RECOMMENDED RESOURCES PROVIDER
+// ============================================
+
+final recommendedResourcesProvider = Provider<List<RecommendedResource>>((ref) {
+  return RecommendedResource.getDefaults();
+});
+
+final featuredResourcesProvider = Provider<List<RecommendedResource>>((ref) {
+  final resources = ref.watch(recommendedResourcesProvider);
+  return resources.take(5).toList();
+});
+
+// ============================================
+// BACKGROUND REFRESH SERVICE
+// Efficient periodic refresh without overwhelming the system
+// ============================================
+
+final backgroundRefreshProvider = Provider<void>((ref) {
+  // This provider initializes the background refresh when first accessed
+  // It keeps all critical providers in memory by watching them
+  ref.watch(learningItemsProvider);
+  ref.watch(dailyGoalsProvider);
+  ref.watch(pomodoroSessionsProvider);
+  ref.watch(userProfileProvider);
+  ref.watch(achievementsProvider);
+  ref.watch(analyticsProvider);
+  ref.watch(statisticsProvider);
+});
+
+final lastUpdateProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
+final autoRefreshProvider = StreamProvider<DateTime>((ref) {
+  return Stream.periodic(const Duration(seconds: 30), (i) {
+    // This runs every 30 seconds to trigger UI updates for time-sensitive data
+    return DateTime.now();
+  });
+});
+
+// ============================================
+// NOTES PROVIDER
+// ============================================
+
+final notesRepositoryProvider = Provider<NotesRepository>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+
+final notesProvider = StateNotifierProvider<NotesNotifier, List<Note>>(
+  (ref) => NotesNotifier(ref.watch(notesRepositoryProvider)),
+);
+
+class NotesNotifier extends StateNotifier<List<Note>> {
+  final NotesRepository _repo;
+
+  NotesNotifier(this._repo) : super([]) {
+    _load();
+  }
+
+  void _load() {
+    state = _repo.getAll();
+  }
+
+  Future<void> add(Note note) async {
+    await _repo.add(note);
+    _load();
+  }
+
+  Future<void> update(Note note) async {
+    await _repo.update(note);
+    _load();
+  }
+
+  Future<void> delete(String id) async {
+    await _repo.delete(id);
+    _load();
+  }
+
+  Future<void> togglePinned(String id) async {
+    final note = _repo.getById(id);
+    if (note != null) {
+      await _repo.update(note.copyWith(isPinned: !note.isPinned));
+      _load();
+    }
+  }
+
+  List<Note> getByItemId(String itemId) {
+    return state.where((n) => n.itemId == itemId).toList();
+  }
+}
+
+// ============================================
+// REMINDERS PROVIDER
+// ============================================
+
+final remindersRepositoryProvider = Provider<RemindersRepository>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+
+final remindersProvider =
+    StateNotifierProvider<RemindersNotifier, List<Reminder>>(
+      (ref) => RemindersNotifier(ref.watch(remindersRepositoryProvider)),
+    );
+
+class RemindersNotifier extends StateNotifier<List<Reminder>> {
+  final RemindersRepository _repo;
+
+  RemindersNotifier(this._repo) : super([]) {
+    _load();
+  }
+
+  void _load() {
+    state = _repo.getAll();
+  }
+
+  Future<void> add(Reminder reminder) async {
+    await _repo.add(reminder);
+    _load();
+  }
+
+  Future<void> update(Reminder reminder) async {
+    await _repo.update(reminder);
+    _load();
+  }
+
+  Future<void> delete(String id) async {
+    await _repo.delete(id);
+    _load();
+  }
+
+  Future<void> markCompleted(String id) async {
+    await _repo.markCompleted(id);
+    _load();
+  }
+
+  List<Reminder> getPending() {
+    return state.where((r) => !r.isCompleted).toList();
+  }
+
+  List<Reminder> getToday() {
+    return state.where((r) => r.isToday).toList();
+  }
+
+  List<Reminder> getDue() {
+    return state.where((r) => r.isDue).toList();
+  }
+}
+
+// ============================================
+// STREAK MILESTONES
+// ============================================
+
+const List<int> streakMilestones = [3, 7, 14, 30, 60, 90, 180, 365];
+
+final nextStreakMilestoneProvider = Provider<int>((ref) {
+  final profile = ref.watch(userProfileProvider);
+  final currentStreak = profile.streak;
+
+  for (final milestone in streakMilestones) {
+    if (currentStreak < milestone) {
+      return milestone;
+    }
+  }
+  return streakMilestones.last;
+});
+
+final streakProgressProvider = Provider<double>((ref) {
+  final profile = ref.watch(userProfileProvider);
+  final nextMilestone = ref.watch(nextStreakMilestoneProvider);
+
+  final prevMilestone = streakMilestones
+      .where((m) => m < nextMilestone)
+      .fold<int>(0, (prev, m) => m);
+
+  if (nextMilestone == prevMilestone) return 1.0;
+
+  final progress =
+      (profile.streak - prevMilestone) / (nextMilestone - prevMilestone);
+  return progress.clamp(0.0, 1.0);
+});
+
+final streakDaysRemainingProvider = Provider<int>((ref) {
+  final profile = ref.watch(userProfileProvider);
+  final nextMilestone = ref.watch(nextStreakMilestoneProvider);
+  return nextMilestone - profile.streak;
+});
+
+final achievedMilestonesProvider = Provider<List<int>>((ref) {
+  final profile = ref.watch(userProfileProvider);
+  return streakMilestones.where((m) => profile.streak >= m).toList();
+});
+
+final nextMilestonesProvider = Provider<List<int>>((ref) {
+  final achieved = ref.watch(achievedMilestonesProvider);
+  return streakMilestones.where((m) => !achieved.contains(m)).take(3).toList();
+});
+
+// ============================================
+// LEARNING SESSIONS PROVIDER
+// ============================================
+
+final learningSessionsRepositoryProvider = Provider<LearningSessionsRepository>(
+  (ref) {
+    throw UnimplementedError('Must be overridden in main.dart');
+  },
+);
+
+final learningSessionsProvider =
+    StateNotifierProvider<LearningSessionsNotifier, List<LearningSession>>(
+      (ref) => LearningSessionsNotifier(
+        ref.watch(learningSessionsRepositoryProvider),
+      ),
+    );
+
+class LearningSessionsNotifier extends StateNotifier<List<LearningSession>> {
+  final LearningSessionsRepository _repo;
+
+  LearningSessionsNotifier(this._repo) : super([]) {
+    _load();
+  }
+
+  void _load() {
+    state = _repo.getAll();
+  }
+
+  Future<void> startSession({
+    String? itemId,
+    required String type,
+    required int durationMinutes,
+    String? notes,
+  }) async {
+    final session = LearningSession(
+      itemId: itemId,
+      type: type,
+      durationMinutes: durationMinutes,
+      startTime: DateTime.now(),
+      notes: notes,
+    );
+    await _repo.add(session);
+    _load();
+  }
+
+  Future<void> completeSession(String sessionId) async {
+    final session = _repo.getById(sessionId);
+    if (session != null) {
+      await _repo.update(
+        session.copyWith(completed: true, endTime: DateTime.now()),
+      );
+      _load();
+    }
+  }
+
+  Future<void> cancelSession(String sessionId) async {
+    await _repo.delete(sessionId);
+    _load();
+  }
+
+  List<LearningSession> getTodaySessions() {
+    return _repo.getTodaySessions();
+  }
+
+  int getTodayMinutes() {
+    return _repo.getTodayMinutes();
+  }
+
+  List<LearningSession> getByDateRange(DateTime start, DateTime end) {
+    return _repo.getByDateRange(start, end);
+  }
+
+  Map<DateTime, int> getWeeklyMinutes() {
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: 6));
+    final sessions = _repo.getByDateRange(
+      weekStart,
+      now.add(const Duration(days: 1)),
+    );
+
+    final Map<DateTime, int> weekly = {};
+    for (int i = 0; i < 7; i++) {
+      final day = weekStart.add(Duration(days: i));
+      final dayOnly = DateTime(day.year, day.month, day.day);
+      weekly[dayOnly] = 0;
+    }
+
+    for (final session in sessions.where((s) => s.completed)) {
+      final dayOnly = DateTime(
+        session.startTime.year,
+        session.startTime.month,
+        session.startTime.day,
+      );
+      weekly[dayOnly] = (weekly[dayOnly] ?? 0) + session.durationMinutes;
+    }
+
+    return weekly;
+  }
+}
+
+// Quick providers for dashboard
+final todayStudyMinutesProvider = Provider<int>((ref) {
+  final sessions = ref.watch(learningSessionsProvider);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return sessions
+      .where((s) => s.completed && s.startTime.isAfter(today))
+      .fold(0, (sum, s) => sum + s.durationMinutes);
+});
+
+final todaySessionsCountProvider = Provider<int>((ref) {
+  final sessions = ref.watch(learningSessionsProvider);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return sessions
+      .where((s) => s.completed && s.startTime.isAfter(today))
+      .length;
+});
+
+final weeklyStudyMinutesProvider = Provider<Map<String, int>>((ref) {
+  final sessions = ref.watch(learningSessionsProvider);
+  final now = DateTime.now();
+  final weekStart = now.subtract(Duration(days: now.weekday - 1));
+
+  final Map<String, int> weekly = {};
+  final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  for (int i = 0; i < 7; i++) {
+    final day = weekStart.add(Duration(days: i));
+    final dayStart = DateTime(day.year, day.month, day.day);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    final minutes = sessions
+        .where(
+          (s) =>
+              s.completed &&
+              s.startTime.isAfter(dayStart) &&
+              s.startTime.isBefore(dayEnd),
+        )
+        .fold(0, (sum, s) => sum + s.durationMinutes);
+    weekly[days[i]] = minutes;
+  }
+
+  return weekly;
+});
+
+final totalStudyMinutesProvider = Provider<int>((ref) {
+  final sessions = ref.watch(learningSessionsProvider);
+  return sessions
+      .where((s) => s.completed)
+      .fold(0, (sum, s) => sum + s.durationMinutes);
+});
+
+// ============================================
+// AUTO BACKUP PROVIDER
+// ============================================
+
+final autoBackupProvider = Provider<void>((ref) async {
+  final settings = ref.watch(settingsProvider);
+  if (!settings.autoBackupEnabled) return;
+
+  final lastBackup = settings.lastBackupDate;
+  final now = DateTime.now();
+  final daysSinceBackup = lastBackup != null
+      ? now.difference(lastBackup).inDays
+      : settings.autoBackupFrequency + 1;
+
+  if (daysSinceBackup >= settings.autoBackupFrequency) {
+    try {
+      final exportService = ref.read(dataExportServiceProvider);
+      final filePath = await exportService.exportToFile();
+      debugPrint('Auto backup completed: $filePath');
+
+      await ref.read(settingsProvider.notifier).updateLastBackupDate(now);
+    } catch (e) {
+      debugPrint('Auto backup failed: $e');
+    }
+  }
+});
+
+// ============================================
+// CUSTOM DOMAINS PROVIDER
+// ============================================
+
+final customDomainsBoxProvider = Provider<Box>((ref) {
+  throw UnimplementedError('Must be overridden in main.dart');
+});
+
+final customDomainsProvider =
+    StateNotifierProvider<CustomDomainsNotifier, List<CustomDomain>>((ref) {
+      final box = ref.watch(customDomainsBoxProvider);
+      return CustomDomainsNotifier(box);
+    });
+
+class CustomDomainsNotifier extends StateNotifier<List<CustomDomain>> {
+  final Box _box;
+
+  CustomDomainsNotifier(this._box) : super([]) {
+    _loadDomains();
+  }
+
+  void _loadDomains() {
+    final domains = _box.values
+        .map(
+          (dynamic item) =>
+              CustomDomain.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
+        .toList();
+    state = domains;
+  }
+
+  Future<void> addDomain(String domain, {String? description}) async {
+    final customDomain = CustomDomain(
+      domain: domain,
+      description: description,
+      status: DomainVerificationStatus.pending,
+      verificationCode: _generateVerificationCode(),
+    );
+    await _box.put(customDomain.id, customDomain.toJson());
+    state = [...state, customDomain];
+  }
+
+  Future<void> updateDomain(CustomDomain domain) async {
+    await _box.put(domain.id, domain.toJson());
+    state = state.map((d) => d.id == domain.id ? domain : d).toList();
+  }
+
+  Future<void> removeDomain(String id) async {
+    await _box.delete(id);
+    state = state.where((d) => d.id != id).toList();
+  }
+
+  Future<void> startVerification(String id) async {
+    final domain = state.firstWhere((d) => d.id == id);
+    final updated = domain.copyWith(status: DomainVerificationStatus.verifying);
+    await updateDomain(updated);
+  }
+
+  Future<void> completeVerification(
+    String id,
+    bool success, {
+    String? error,
+  }) async {
+    final domain = state.firstWhere((d) => d.id == id);
+    final updated = domain.copyWith(
+      status: success
+          ? DomainVerificationStatus.verified
+          : DomainVerificationStatus.failed,
+      verifiedAt: success ? DateTime.now() : null,
+      errorMessage: error,
+    );
+    await updateDomain(updated);
+  }
+
+  String _generateVerificationCode() {
+    final chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = DateTime.now().millisecondsSinceEpoch;
+    return List.generate(
+      8,
+      (i) => chars[(random + i * 7) % chars.length],
+    ).join();
+  }
+}
+
+final verifiedDomainsProvider = Provider<List<CustomDomain>>((ref) {
+  final domains = ref.watch(customDomainsProvider);
+  return domains.where((d) => d.isVerified).toList();
+});
+
+final pendingDomainsProvider = Provider<List<CustomDomain>>((ref) {
+  final domains = ref.watch(customDomainsProvider);
+  return domains.where((d) => d.isPending || d.isVerifying).toList();
+});
+
+final failedDomainsProvider = Provider<List<CustomDomain>>((ref) {
+  final domains = ref.watch(customDomainsProvider);
+  return domains.where((d) => d.hasFailed).toList();
 });

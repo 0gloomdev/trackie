@@ -1,0 +1,59 @@
+import 'package:flutter/material.dart';
+
+class AppGlass {
+  static const double radiusSmall = 8.0;
+  static const double radiusMedium = 16.0;
+  static const double radiusLarge = 24.0;
+  static const double radiusPill = 999.0;
+
+  static InputDecoration inputDecoration({
+    required String hintText,
+    IconData? prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: Colors.white.withValues(alpha: 0.1),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Colors.white, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    );
+  }
+
+  static SnackBar snackBar(String message) {
+    return SnackBar(
+      content: Text(message),
+      behavior: SnackBarBehavior.floating,
+    );
+  }
+}
+
+
+extension ThemeColors on BuildContext {
+  ColorScheme get themeColors => Theme.of(this).colorScheme;
+  Color get primary => themeColors.primary;
+  Color get secondary => themeColors.secondary;
+  Color get surface => themeColors.surface;
+  Color get onPrimary => themeColors.onPrimary;
+  Color get onSecondary => themeColors.onSecondary;
+  Color get onSurface => themeColors.onSurface;
+  Color get onSurfaceVariant => themeColors.onSurfaceVariant;
+  Color get error => themeColors.error;
+  Color get primaryContainer => themeColors.primaryContainer;
+  Color get tertiary => themeColors.tertiary;
+  Color get surfaceContainerHighest => themeColors.surfaceContainerHighest;
+  Color get outlineVariant => themeColors.outlineVariant;
+}

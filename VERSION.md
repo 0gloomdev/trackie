@@ -1,37 +1,37 @@
-# Trackie - Sistema de Versionado
+# Trackie - Versioning System
 
-## Modelo de Versionado: Semantic Versioning (SemVer)
+## Versioning Model: Semantic Versioning (SemVer)
 
-### Formato: `MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`
-
----
-
-## Versiones Internas (Code Names)
-
-### Serie "Liquid" (Lanzamientos principales)
-| Versión | Código | Descripción | Estado |
-|---------|--------|-------------|--------|
-| 0.1.0 | Liquid Alpha | Prototype inicial | ✅ Completado |
-| 0.2.0 | Liquid Beta | Primera versión funcional | ✅ Completado |
-| 0.5.0 | Liquid Glass | UI Glassmorphism completa | 🔄 Actual |
-| 1.0.0 | Liquid Flow | Primera versión estable | ⏳ Planeado |
-
-### Serie "Evolution" (Sub-versiones)
-| Código | Descripción |
-|--------|-------------|
-| v0.5.1 "Droplet" | Fixes y mejoras menores |
-| v0.5.2 "Stream" | Nuevas funcionalidades pequeñas |
-| v0.5.3 "River" | Mejoras de rendimiento |
-| v0.5.4 "Lake" | Refactoring interno |
-| v0.5.5 "Ocean" | Actualización de dependencias |
+### Format: `MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`
 
 ---
 
-## Ramas (Branching Strategy)
+## Internal Versions (Code Names)
+
+### "Liquid" Series (Major Releases)
+| Version | Code | Description | Status |
+|---------|------|-------------|--------|
+| 0.1.0 | Liquid Alpha | Initial prototype | ✅ Completed |
+| 0.2.0 | Liquid Beta | First functional version | ✅ Completed |
+| 0.5.0 | Liquid Glass | Complete Glassmorphism UI | 🔄 Current |
+| 1.0.0 | Liquid Flow | First stable version | ⏳ Planned |
+
+### "Evolution" Series (Sub-versions)
+| Code | Description |
+|------|-------------|
+| v0.5.1 "Droplet" | Bug fixes and minor improvements |
+| v0.5.2 "Stream" | Small new features |
+| v0.5.3 "River" | Performance improvements |
+| v0.5.4 "Lake" | Internal refactoring |
+| v0.5.5 "Ocean" | Dependency updates |
+
+---
+
+## Branches (Branching Strategy)
 
 ```
-main (producción)
-├── develop (desarrollo activo)
+main (production)
+├── develop (active development)
 │   ├── feature/dashboard-v2
 │   ├── feature/search-advanced
 │   ├── feature/bulk-actions
@@ -39,108 +39,116 @@ main (producción)
 │   ├── feature/collections
 │   ├── feature/import-export
 │   └── feature/reader-view
-├── hotfix/urgente (fixes críticos)
-├── release/v0.5.0 (pre-lanzamiento)
-└── experimental/* (pruebas)
+├── hotfix/urgent (critical fixes)
+├── release/v0.5.0 (pre-release)
+└── experimental/* (testing)
 ```
 
-### Convenciones de Ramas
-- `feature/*` - Nuevas funcionalidades
+### Branch Conventions
+- `feature/*` - New features
 - `fix/*` - Bug fixes
-- `hotfix/*` - Fixes críticos de producción
-- `refactor/*` - Refactoring de código
-- `docs/*` - Documentación
-- `experimental/*` - Pruebas/eksploración
+- `hotfix/*` - Critical production fixes
+- `refactor/*` - Code refactoring
+- `docs/*` - Documentation
+- `experimental/*` - Testing/exploration
 
 ---
 
-## Changelog Automático
+## Automatic Changelog
 
-### v0.5.0 - Liquid Glass (Actual)
-- ✅ Dashboard mejorado con estadísticas visuales
-- ✅ Sistema de items fijados (Pinned)
-- ✅ Búsqueda avanzada en tiempo real
-- ✅ Filtros por tipo, estado, prioridad
-- ✅ Bulk actions (selección múltiple)
-- ✅ Duplicar items
-- ✅ Auto-fetch de metadatos de URLs
-- ✅ Menú contextual con acciones rápidas
+### v1.0.0 - Liquid Nebula (Current)
+- ✅ Complete shadcn/ui-inspired design migration
+- ✅ Full internationalization (English/Spanish)
+- ✅ All 16 screens migrated to new UI
+- ✅ Keyboard shortcuts implementation
+- ✅ Pomodoro timer with session tracking
+- ✅ Notes and reminders system
+
+### v0.5.0 - Liquid Glass
+- ✅ Improved dashboard with visual statistics
+- ✅ Pinned items system
+- ✅ Advanced real-time search
+- ✅ Filters by type, status, priority
+- ✅ Bulk actions (multi-select)
+- ✅ Duplicate items
+- ✅ Auto-fetch URL metadata
+- ✅ Context menu with quick actions
 
 ### v0.4.0 - Crystal Clear
-- ✅ UI Glassmorphism
-- ✅ Tema oscuro/claro
-- ✅ Navegación fluida
+- ✅ Glassmorphism UI
+- ✅ Dark/light theme
+- ✅ Smooth navigation
 
 ### v0.3.0 - Solid Foundation
-- ✅ Modelo de datos completo
-- ✅ Repositorios Hive
+- ✅ Complete data model
+- ✅ Hive repositories
 - ✅ Provider state management
 
 ### v0.2.0 - First Flow
-- ✅ Pantallas básicas
-- ✅ CRUD de items
+- ✅ Basic screens
+- ✅ Item CRUD
 
 ### v0.1.0 - First Drop
-- ✅ Prototipo inicial
+- ✅ Initial prototype
 
 ---
 
-## Próximos Hitos
+## Upcoming Milestones
 
 ### v0.6.0 - "Deep Blue"
-- Colecciones (agrupación de items)
+- Collections (item grouping)
 - Import/Export JSON
-- Sistema de etiquetas inteligentes
-- Dashboard personalizable
+- Smart tag system
+- Customizable dashboard
 
 ### v0.7.0 - "Abyss"
-- Lector de contenido integrado
-- Notas avanzadas con markdown
-- Preservación de URLs (screenshots)
+- Integrated content reader
+- Advanced markdown notes
+- URL preservation (screenshots)
 
 ### v1.0.0 - "Liquid Flow"
-- Estabilidad total
-- Documentación completa
-- PWA instalable
-- Tests覆盖率 >80%
+- Full stability
+- Complete documentation
+- Installable PWA
+- Test coverage >80%
 
 ---
 
-## Labels para Issues
+## Issue Labels
 
-| Label | Color | Uso |
+| Label | Color | Use |
 |-------|-------|-----|
-| `enhancement` | 🟢 verde | Nuevas features |
-| `bug` | 🔴 rojo | Bugs |
-| `help wanted` | 🔵 azul | Ayuda necesaria |
-| `priority:high` | 🟣 morado | Alta prioridad |
-| `priority:medium` | 🟡 amarillo | Prioridad media |
-| `good first issue` | 💚 verde claro | Para beginners |
-| `documentation` | 📚 gris | Docs |
-| `refactoring` | 🔧 naranja | Refactoring |
+| `enhancement` | 🟢 green | New features |
+| `bug` | 🔴 red | Bugs |
+| `help wanted` | 🔵 blue | Help needed |
+| `priority:high` | 🟣 purple | High priority |
+| `priority:medium` | 🟡 yellow | Medium priority |
+| `good first issue` | 💚 light green | For beginners |
+| `documentation` | 📚 gray | Docs |
+| `refactoring` | 🔧 orange | Refactoring |
 
 ---
 
-## Workflow de Commits
+## Commit Workflow
 
 ```
-<tipo>(<alcance>): <descripción>
+<type>(<scope>): <description>
 
-[.Body opcional]
+[Optional Body]
 
-[Footer opcional]
+[Optional Footer]
 ```
 
-### Tipos
-- `feat`: Nueva funcionalidad
+### Types
+- `feat`: New feature
 - `fix`: Bug fix
-- `docs`: Documentación
-- `style`: Formateo (sin cambio de código)
+- `docs`: Documentation
+- `style`: Formatting (no code change)
 - `refactor`: Refactoring
 - `test`: Tests
-- `chore`: Mantenimiento
+- `chore`: Maintenance
 
-### Ejemplos
+### Examples
 ```
 feat(dashboard): add pinned items section
 fix(search): resolve filter not clearing properly

@@ -28,7 +28,7 @@ class UrlMetadataService {
       String? favicon;
 
       final titleEl = document.querySelector('title');
-      title = titleEl?.text?.trim();
+      title = titleEl?.text.trim();
 
       final ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle != null) {
