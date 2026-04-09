@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/shadcn_widgets.dart';
+import '../../../core/widgets/glass_design.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
 import '../../../domain/providers/customization_provider.dart';
@@ -271,10 +272,10 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShadcnCard(
+    return GlassContainer(
+      borderRadius: 32,
       padding: const EdgeInsets.all(40),
-      borderRadius: 40,
-      hoverEffect: true,
+      glowColor: AppColors.primary,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -299,7 +300,13 @@ class _HeroCard extends StatelessWidget {
               height: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withAlpha(26),
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.primary.withAlpha(51),
+                    AppColors.primary.withAlpha(13),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
@@ -473,10 +480,10 @@ class _VideoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShadcnCard(
+    return GlassContainer(
+      borderRadius: 32,
       padding: const EdgeInsets.all(32),
-      borderRadius: 40,
-      hoverEffect: true,
+      glowColor: AppColors.secondary,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -492,7 +499,7 @@ class _VideoCard extends StatelessWidget {
                     AppColors.surfaceContainer.withAlpha(153),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(40),
+                borderRadius: BorderRadius.circular(32),
               ),
               child: Center(
                 child: Icon(

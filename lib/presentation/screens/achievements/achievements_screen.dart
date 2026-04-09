@@ -280,137 +280,214 @@ class _AchievementCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUnlocked = achievement.unlocked;
 
-    return ShadcnCard(
-          padding: const EdgeInsets.all(24),
-          hoverEffect: true,
-          borderRadius: 24,
-          glowColor: isUnlocked ? AppColors.primary : null,
-          onTap: () => showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              backgroundColor: AppColors.surfaceContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: Text(achievement.title, style: AppTypography.cardTitle),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _getAchievementIcon(achievement.type),
-                    size: 80,
-                    color: isUnlocked
-                        ? AppColors.primary
-                        : AppColors.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    achievement.description,
-                    style: AppTypography.body,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    isUnlocked
-                        ? 'Unlocked'
-                        : 'Locked - ${achievement.xpReward} XP',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: isUnlocked
-                          ? AppColors.success
-                          : AppColors.onSurfaceVariant,
+    return GestureDetector(
+      onTap: () => _showAchievementDialog(context, isUnlocked),
+      child:
+          GlassContainer(
+                borderRadius: 24,
+                padding: const EdgeInsets.all(24),
+                glowColor: isUnlocked ? AppColors.primary : null,
+                borderColor: isUnlocked
+                    ? AppColors.primary.withAlpha(128)
+                    : Colors.white.withAlpha(26),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: isUnlocked
+                            ? LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.primary.withAlpha(51),
+                                  AppColors.primary.withAlpha(26),
+                                ],
+                              )
+                            : null,
+                        color: isUnlocked
+                            ? null
+                            : AppColors.surfaceContainerHighest,
+                        boxShadow: isUnlocked
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primary.withAlpha(77),
+                                  blurRadius: 25,
+                                  spreadRadius: 2,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Icon(
+                        _getAchievementIcon(achievement.type),
+                        size: 32,
+                        color: isUnlocked
+                            ? AppColors.primary
+                            : AppColors.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Close',
-                    style: TextStyle(color: AppColors.primary),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isUnlocked
-                      ? AppColors.primary.withAlpha(26)
-                      : AppColors.surfaceContainerHighest,
-                  boxShadow: isUnlocked
-                      ? [
-                          BoxShadow(
-                            color: AppColors.primary.withAlpha(77),
-                            blurRadius: 20,
-                            spreadRadius: 2,
+                    const SizedBox(height: 12),
+                    Text(
+                      achievement.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.cardTitle.copyWith(
+                        color: isUnlocked
+                            ? AppColors.onSurface
+                            : AppColors.onSurface.withAlpha(128),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      achievement.description,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySmall,
+                    ),
+                    const SizedBox(height: 8),
+                    if (isUnlocked)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(51),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          'Unlocked',
+                          style: AppTypography.typeBadge.copyWith(
+                            color: AppColors.primary,
                           ),
-                        ]
-                      : null,
+                        ),
+                      )
+                    else
+                      Text(
+                        '+${achievement.xpReward} XP',
+                        style: AppTypography.caption,
+                      ),
+                  ],
                 ),
-                child: Icon(
-                  _getAchievementIcon(achievement.type),
-                  size: 32,
+              )
+              .animate(delay: (50 * index).ms)
+              .fadeIn()
+              .scale(begin: const Offset(0.9, 0.9)),
+    );
+  }
+
+  void _showAchievementDialog(BuildContext context, bool isUnlocked) {
+    showDialog(
+      context: context,
+      builder: (_) => GlassContainer(
+        borderRadius: 24,
+        padding: const EdgeInsets.all(32),
+        glowColor: isUnlocked ? AppColors.primary : null,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: isUnlocked
+                    ? LinearGradient(
+                        colors: [
+                          AppColors.primary.withAlpha(51),
+                          AppColors.secondary.withAlpha(26),
+                        ],
+                      )
+                    : null,
+                color: isUnlocked ? null : AppColors.surfaceContainerHighest,
+                boxShadow: isUnlocked
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withAlpha(77),
+                          blurRadius: 30,
+                          spreadRadius: 5,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Icon(
+                _getAchievementIcon(achievement.type),
+                size: 48,
+                color: isUnlocked
+                    ? AppColors.primary
+                    : AppColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              achievement.title,
+              style: AppTypography.cardTitle.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              achievement.description,
+              style: AppTypography.body.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isUnlocked
+                    ? AppColors.success.withAlpha(26)
+                    : AppColors.primary.withAlpha(26),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
                   color: isUnlocked
-                      ? AppColors.primary
-                      : AppColors.onSurfaceVariant,
+                      ? AppColors.success.withAlpha(51)
+                      : AppColors.primary.withAlpha(51),
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                achievement.title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.cardTitle.copyWith(
-                  color: isUnlocked
-                      ? AppColors.onSurface
-                      : AppColors.onSurface.withAlpha(128),
+              child: Text(
+                isUnlocked ? '★ Unlocked' : '🔒 ${achievement.xpReward} XP',
+                style: AppTypography.bodySmall.copyWith(
+                  color: isUnlocked ? AppColors.success : AppColors.primary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                achievement.description,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.bodySmall,
-              ),
-              const SizedBox(height: 8),
-              if (isUnlocked)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withAlpha(51),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    'Unlocked',
-                    style: AppTypography.typeBadge.copyWith(
-                      color: AppColors.primary,
-                    ),
-                  ),
-                )
-              else
-                Text(
-                  '+${achievement.xpReward} XP',
-                  style: AppTypography.caption,
+            ),
+            const SizedBox(height: 24),
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
                 ),
-            ],
-          ),
-        )
-        .animate(delay: (50 * index).ms)
-        .fadeIn()
-        .scale(begin: const Offset(0.9, 0.9));
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withAlpha(26),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withAlpha(51)),
+                ),
+                child: Text(
+                  'Close',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   IconData _getAchievementIcon(String tipo) {

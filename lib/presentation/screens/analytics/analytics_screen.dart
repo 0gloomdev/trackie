@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/shadcn_widgets.dart';
+import '../../../core/widgets/glass_design.dart';
 import '../../../domain/providers/providers.dart';
 import '../../../domain/providers/customization_provider.dart';
 import '../timer/pomodoro_screen.dart';
@@ -209,10 +210,10 @@ class _KpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShadcnCard(
+    return GlassContainer(
+      borderRadius: 24,
       padding: const EdgeInsets.all(24),
-      borderRadius: 32,
-      hoverEffect: true,
+      glowColor: glowColor,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -224,7 +225,13 @@ class _KpiCard extends StatelessWidget {
               height: 96,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: glowColor.withAlpha(26),
+                gradient: RadialGradient(
+                  colors: [
+                    glowColor.withAlpha(51),
+                    glowColor.withAlpha(13),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
@@ -235,6 +242,7 @@ class _KpiCard extends StatelessWidget {
                 title.toUpperCase(),
                 style: AppTypography.typeBadge.copyWith(
                   color: AppColors.onSurfaceVariant,
+                  letterSpacing: 1.5,
                 ),
               ),
               const SizedBox(height: 8),
@@ -246,11 +254,22 @@ class _KpiCard extends StatelessWidget {
                     value,
                     style: AppTypography.statValue.copyWith(color: color),
                   ),
-                  Text(
-                    trend,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.secondary,
-                      fontWeight: FontWeight.w700,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withAlpha(26),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      trend,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.secondary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],

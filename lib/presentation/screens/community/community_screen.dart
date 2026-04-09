@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/shadcn_widgets.dart';
+import '../../../core/widgets/glass_design.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
 
