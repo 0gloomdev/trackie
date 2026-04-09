@@ -51,13 +51,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     controller: _pageController,
                     onPageChanged: (page) =>
                         setState(() => _currentPage = page),
-                    children: const [
+                    children: [
                       _OnboardingPage(
                         icon: Icons.folder_copy,
                         title: 'Save your content',
                         description:
                             'Add links, videos, courses and more. Organize everything in one place.',
                         color: AppColors.shadcnPrimary,
+                        pageIndex: 0,
                       ),
                       _OnboardingPage(
                         icon: Icons.timer,
@@ -65,13 +66,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         description:
                             'Stay focused with 25-minute study sessions.',
                         color: AppColors.shadcnSecondary,
+                        pageIndex: 1,
                       ),
                       _OnboardingPage(
                         icon: Icons.emoji_events,
                         title: 'Earn achievements',
                         description:
                             'Complete tasks and unlock achievements as you learn.',
-                        color: Colors.amber,
+                        color: AppColors.tertiary,
+                        pageIndex: 2,
                       ),
                     ],
                   ),
@@ -176,61 +179,166 @@ class _OnboardingPage extends StatelessWidget {
   final String title;
   final String description;
   final Color color;
+  final int pageIndex;
 
   const _OnboardingPage({
     required this.icon,
     required this.title,
     required this.description,
     required this.color,
+    required this.pageIndex,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bentoCards = [
+      {
+        'icon': Icons.folder_copy,
+        'title': 'Save',
+        'subtitle': 'Links & Content',
+      },
+      {'icon': Icons.timer, 'title': 'Focus', 'subtitle': 'Pomodoro Timer'},
+      {'icon': Icons.emoji_events, 'title': 'Achieve', 'subtitle': 'Earn XP'},
+    ];
+
     return Padding(
-      padding: const EdgeInsets.all(48),
+      padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-                width: 120,
-                height: 120,
+          // Bento Grid Effect
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Ambient glow
+              Container(
+                width: 250,
+                height: 250,
                 decoration: BoxDecoration(
-                  color: color.withAlpha(26),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withAlpha(77),
-                      blurRadius: 40,
-                      spreadRadius: 10,
-                    ),
-                  ],
+                  gradient: RadialGradient(
+                    colors: [
+                      color.withAlpha(51),
+                      color.withAlpha(13),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
-                child: Icon(icon, size: 56, color: color),
-              )
-              .animate()
-              .fadeIn(duration: 600.ms)
-              .scale(begin: const Offset(0.8, 0.8)),
+              ).animate().fadeIn(duration: 800.ms),
+              // Main Icon Container
+              Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [color.withAlpha(51), color.withAlpha(26)],
+                      ),
+                      border: Border.all(color: color.withAlpha(77), width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withAlpha(77),
+                          blurRadius: 40,
+                          spreadRadius: 10,
+                        ),
+                        BoxShadow(
+                          color: color.withAlpha(38),
+                          blurRadius: 80,
+                          spreadRadius: -20,
+                        ),
+                      ],
+                    ),
+                    child: Icon(icon, size: 64, color: color),
+                  )
+                  .animate()
+                  .fadeIn(duration: 600.ms)
+                  .scale(begin: const Offset(0.8, 0.8)),
+            ],
+          ),
           const SizedBox(height: 48),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -1,
+          // Title with gradient
+          ShaderMask(
+            shaderCallback: (bounds) => LinearGradient(
+              colors: [Colors.white, Colors.white.withAlpha(179)],
+            ).createShader(bounds),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: -1.5,
+                height: 1.1,
+              ),
             ),
           ).animate(delay: 200.ms).fadeIn(duration: 600.ms).slideY(begin: 0.2),
           const SizedBox(height: 16),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withAlpha(179),
-              height: 1.5,
+          // Description
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(13),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withAlpha(26)),
+            ),
+            child: Text(
+              description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white.withAlpha(179),
+                height: 1.5,
+              ),
             ),
           ).animate(delay: 400.ms).fadeIn(duration: 600.ms),
+          const SizedBox(height: 32),
+          // Feature indicators
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(3, (index) {
+              final isActive = index == pageIndex;
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? color.withAlpha(26)
+                      : Colors.white.withAlpha(13),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isActive
+                        ? color.withAlpha(77)
+                        : Colors.white.withAlpha(26),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      bentoCards[index]['icon'] as IconData,
+                      size: 14,
+                      color: isActive ? color : Colors.white.withAlpha(128),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      bentoCards[index]['title'] as String,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isActive ? color : Colors.white.withAlpha(128),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ).animate(delay: 600.ms).fadeIn(),
         ],
       ),
     );

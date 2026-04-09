@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/shadcn_widgets.dart';
+import '../../../core/widgets/glass_design.dart';
 import '../../../domain/providers/customization_provider.dart';
 
 class HelpScreen extends ConsumerStatefulWidget {
@@ -397,11 +399,13 @@ class _FaqSection extends StatelessWidget {
           final isExpanded = expandedFaq == i;
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: ShadcnCard(
+            child: GlassContainer(
+              borderRadius: 16,
               padding: const EdgeInsets.all(24),
-              borderRadius: 12,
-              hoverEffect: true,
-              onTap: () => onExpanded(isExpanded ? null : i),
+              glowColor: isExpanded ? AppColors.primary : null,
+              borderColor: isExpanded
+                  ? AppColors.primary.withAlpha(128)
+                  : Colors.white.withAlpha(26),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -415,15 +419,18 @@ class _FaqSection extends StatelessWidget {
                             color: isExpanded
                                 ? AppColors.primary
                                 : AppColors.onSurface,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                       AnimatedRotation(
                         turns: isExpanded ? 0.5 : 0,
                         duration: const Duration(milliseconds: 200),
-                        child: const Icon(
+                        child: Icon(
                           Icons.expand_more,
-                          color: AppColors.onSurfaceVariant,
+                          color: isExpanded
+                              ? AppColors.primary
+                              : AppColors.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -439,7 +446,7 @@ class _FaqSection extends StatelessWidget {
                   ],
                 ],
               ),
-            ),
+            ).animate().fadeIn(delay: (i * 100).ms),
           );
         }),
       ],
@@ -609,9 +616,28 @@ class _QuickLinkCardState extends State<_QuickLinkCard> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainer.withAlpha(179),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withAlpha(26)),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _isHovered
+                ? [widget.color.withAlpha(26), widget.color.withAlpha(13)]
+                : [Colors.white.withAlpha(13), Colors.white.withAlpha(5)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _isHovered
+                ? widget.color.withAlpha(77)
+                : Colors.white.withAlpha(26),
+          ),
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: widget.color.withAlpha(51),
+                    blurRadius: 20,
+                    spreadRadius: -5,
+                  ),
+                ]
+              : null,
         ),
         transform: Matrix4.diagonal3Values(
           _isHovered ? 1.02 : 1.0,
@@ -622,12 +648,24 @@ class _QuickLinkCardState extends State<_QuickLinkCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(widget.icon, color: widget.color, size: 32),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: widget.color.withAlpha(26),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(widget.icon, color: widget.color, size: 24),
+            ),
             const SizedBox(height: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.title, style: AppTypography.cardTitle),
+                Text(
+                  widget.title,
+                  style: AppTypography.cardTitle.copyWith(
+                    color: _isHovered ? widget.color : AppColors.onSurface,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(widget.subtitle, style: AppTypography.caption),
               ],

@@ -101,55 +101,74 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       'Custom Domains',
     ];
 
-    return Column(
-      children: List.generate(menuItems.length, (index) {
-        final isSelected = _selectedIndex == index;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: GestureDetector(
-            onTap: () => setState(() => _selectedIndex = index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withAlpha(51)
-                    : Colors.white.withAlpha(13),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary.withAlpha(128)
-                      : Colors.transparent,
-                  width: 1,
+    return GlassContainer(
+      borderRadius: 20,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: List.generate(menuItems.length, (index) {
+          final isSelected = _selectedIndex == index;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedIndex = index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
                 ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _getMenuIcon(index),
-                    color: isSelected
-                        ? AppColors.secondary
-                        : Colors.white.withAlpha(179),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    menuItems[index],
-                    style: TextStyle(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary.withAlpha(26)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border(
+                    left: BorderSide(
                       color: isSelected
-                          ? Colors.white
-                          : Colors.white.withAlpha(179),
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                          ? AppColors.secondary
+                          : Colors.transparent,
+                      width: 3,
                     ),
                   ),
-                ],
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withAlpha(26),
+                            blurRadius: 15,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _getMenuIcon(index),
+                      color: isSelected
+                          ? AppColors.secondary
+                          : Colors.white.withAlpha(128),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      menuItems[index],
+                      style: TextStyle(
+                        color: isSelected
+                            ? Colors.white
+                            : Colors.white.withAlpha(179),
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ).animate(delay: (50 * index).ms).fadeIn().slideX(begin: -0.1),
-        );
-      }),
+            ).animate(delay: (50 * index).ms).fadeIn().slideX(begin: -0.1),
+          );
+        }),
+      ),
     );
   }
 
@@ -182,22 +201,41 @@ class _ProfileSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
-      child: ShadcnCard(
+      child: GlassContainer(
+        borderRadius: 20,
         padding: const EdgeInsets.all(24),
+        glowColor: AppColors.primary,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Profile Settings',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.white.withAlpha(230),
+              ),
+            ),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 72,
+                  height: 72,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
                       colors: [AppColors.primary, AppColors.secondary],
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withAlpha(77),
+                        blurRadius: 20,
+                        spreadRadius: -5,
+                      ),
+                    ],
                   ),
-                  padding: const EdgeInsets.all(2),
+                  padding: const EdgeInsets.all(3),
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -217,7 +255,7 @@ class _ProfileSection extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,17 +263,31 @@ class _ProfileSection extends ConsumerWidget {
                       Text(
                         profile.nombre.isNotEmpty ? profile.nombre : 'User',
                         style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Level ${profile.nivel} • ${profile.xp} XP',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white.withAlpha(128),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withAlpha(26),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.secondary.withAlpha(51),
+                          ),
+                        ),
+                        child: Text(
+                          'Level ${profile.nivel} • ${profile.xp} XP',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondary,
+                          ),
                         ),
                       ),
                     ],
@@ -243,7 +295,7 @@ class _ProfileSection extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             _SettingsToggle(
               icon: Icons.cloud_off,
               title: 'Offline Sync (Hive)',
@@ -279,12 +331,38 @@ class _NotificationsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
-      child: ShadcnCard(
+      child: GlassContainer(
+        borderRadius: 20,
         padding: const EdgeInsets.all(24),
+        glowColor: AppColors.secondary,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionTitle(title: 'NOTIFICATIONS'),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withAlpha(26),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.notifications,
+                    color: AppColors.secondary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Notification Settings',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withAlpha(230),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             _SettingsToggle(
               icon: Icons.notifications,
@@ -511,12 +589,38 @@ class _DataSection extends ConsumerWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          ShadcnCard(
+          GlassContainer(
+            borderRadius: 20,
             padding: const EdgeInsets.all(24),
+            glowColor: AppColors.primary,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SectionTitle(title: 'Data & Backup'),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(26),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.storage,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Data & Backup',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withAlpha(230),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 20),
                 _SettingsTile(
                   icon: Icons.download,
@@ -550,7 +654,8 @@ class _DataSection extends ConsumerWidget {
             ),
           ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
           const SizedBox(height: 16),
-          ShadcnCard(
+          GlassContainer(
+            borderRadius: 20,
             padding: const EdgeInsets.all(24),
             borderColor: Colors.red.withAlpha(77),
             child: Column(
@@ -563,7 +668,8 @@ class _DataSection extends ConsumerWidget {
                     Text(
                       'Danger Zone',
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                         color: Colors.red.shade400,
                       ),
                     ),
@@ -779,12 +885,38 @@ class _AppearanceSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
-      child: ShadcnCard(
+      child: GlassContainer(
+        borderRadius: 20,
         padding: const EdgeInsets.all(24),
+        glowColor: AppColors.tertiary,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionTitle(title: 'APPEARANCE'),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.tertiary.withAlpha(26),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.palette,
+                    color: AppColors.tertiary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Appearance Settings',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withAlpha(230),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             _SettingsTile(
               icon: Icons.palette,
