@@ -1,1248 +1,1006 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../../core/constants/app_constants.dart';
-import '../../../core/services/url_metadata_service.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/shadcn_widgets.dart';
+import '../../../core/widgets/glass_design.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
-import '../viewer/content_viewer.dart';
+import '../../../domain/providers/customization_provider.dart';
 import '../detail/item_detail_screen.dart';
+import '../achievements/achievements_screen.dart';
 
-class HomeTab extends ConsumerStatefulWidget {
+class HomeTab extends ConsumerWidget {
   const HomeTab({super.key});
 
   @override
-  ConsumerState<HomeTab> createState() => _HomeTabState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final analytics = ref.watch(analyticsProvider);
+    final recentItems = ref.watch(recentInProgressItemsProvider);
+    final profile = ref.watch(userProfileProvider);
+    final customization = ref.watch(customizationProvider);
+    final width = MediaQuery.of(context).size.width;
+    final isDesktop = width >= 1024;
+    final isTablet = width >= 600 && width < 1024;
+
+    final effectivePadding = customization.compactMode
+        ? 12.0
+        : (isDesktop ? 48.0 : (isTablet ? 24.0 : 16.0));
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(effectivePadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _HeroSection(
+            profile: profile,
+            weekItems: analytics.weeklyActivity.fold(
+              0,
+              (sum, a) => sum + a.itemsCompleted,
+            ),
+          ),
+          const SizedBox(height: 32),
+          _StatsGrid(analytics: analytics),
+          const SizedBox(height: 32),
+          if (isDesktop) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: _WeeklyChart(weeklyActivity: analytics.weeklyActivity),
+                ),
+                const SizedBox(width: 24),
+                Expanded(flex: 1, child: const _AchievementsPreview()),
+              ],
+            ),
+          ] else ...[
+            _WeeklyChart(weeklyActivity: analytics.weeklyActivity),
+            const SizedBox(height: 32),
+            const _AchievementsPreview(),
+          ],
+          const SizedBox(height: 32),
+          if (recentItems.isNotEmpty) _RecentItemsSection(items: recentItems),
+          const SizedBox(height: 100),
+        ],
+      ),
+    ).animate().fadeIn(duration: 400.ms);
+  }
 }
 
-class _HomeTabState extends ConsumerState<HomeTab> {
-  bool _isSearchExpanded = false;
-  final _searchController = TextEditingController();
+class _HeroSection extends StatelessWidget {
+  final UserProfile? profile;
+  final int weekItems;
+
+  const _HeroSection({this.profile, required this.weekItems});
+
+  @override
+  Widget build(BuildContext context) {
+    final hour = DateTime.now().hour;
+    String greeting;
+    if (hour < 12) {
+      greeting = 'Good morning';
+    } else if (hour < 18) {
+      greeting = 'Good afternoon';
+    } else {
+      greeting = 'Good evening';
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Ambient glow orbs
+        Positioned(
+          top: -100,
+          right: -100,
+          child: Container(
+            width: 400,
+            height: 400,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.neonPurple.withAlpha(26),
+                  AppColors.neonPurple.withAlpha(13),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: -150,
+          left: -150,
+          child: Container(
+            width: 350,
+            height: 350,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.neonCyanStrong.withAlpha(26),
+                  AppColors.neonCyan.withAlpha(13),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Content
+        GlassContainer(
+          borderRadius: 32,
+          padding: const EdgeInsets.all(48),
+          opacity: 0.1,
+          blur: 15,
+          borderColor: Colors.white.withAlpha(26),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // System Online badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withAlpha(26),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: AppColors.primary.withAlpha(51)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withAlpha(128),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'System Online',
+                      style: AppTypography.typeBadge.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                '$greeting,',
+                style: AppTypography.subtitle.copyWith(
+                  color: AppColors.onSurface.withAlpha(179),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ShaderMask(
+                shaderCallback: (bounds) =>
+                    AppColors.brandGradient.createShader(bounds),
+                child: Text(
+                  '${profile?.nombre.isNotEmpty == true ? profile!.nombre : 'User'}!',
+                  style: AppTypography.heroTitle.copyWith(
+                    color: Colors.white,
+                    fontSize: 56,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Your celestial synchronization is at 94%. We\'ve identified 3 new archives for your Navigation Theory course. Ready to transcend?',
+                style: AppTypography.body.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.1, end: 0);
+  }
+}
+
+class _StatsGrid extends StatelessWidget {
+  final Analytics analytics;
+
+  const _StatsGrid({required this.analytics});
+
+  @override
+  Widget build(BuildContext context) {
+    final weekItems = analytics.weeklyActivity.fold(
+      0,
+      (sum, a) => sum + a.itemsCompleted,
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        if (isMobile) {
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      title: 'Total Items',
+                      value: '${analytics.totalItems}',
+                      icon: Icons.storage,
+                      iconColor: AppColors.secondary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _StatCard(
+                      title: 'This Week',
+                      value: '+$weekItems',
+                      icon: Icons.trending_up,
+                      iconColor: AppColors.primary,
+                      accent: 'Expanded',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      title: 'Completed',
+                      value:
+                          '${(analytics.completionRate * 100).toStringAsFixed(0)}%',
+                      icon: Icons.task_alt,
+                      iconColor: AppColors.tertiary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _StatCard(
+                      title: 'Current Streak',
+                      value: '${analytics.currentStreak}',
+                      icon: Icons.bolt,
+                      iconColor: AppColors.secondary,
+                      accent: 'days',
+                      isHighlighted: true,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child:
+                  _StatCard(
+                        title: 'Total Items',
+                        value: '${analytics.totalItems}',
+                        icon: Icons.storage,
+                        iconColor: AppColors.secondary,
+                      )
+                      .animate(delay: 100.ms)
+                      .fadeIn(duration: 400.ms)
+                      .slideY(begin: 0.2, end: 0),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child:
+                  _StatCard(
+                        title: 'This Week',
+                        value: '+$weekItems',
+                        icon: Icons.trending_up,
+                        iconColor: AppColors.primary,
+                        accent: 'Expanded',
+                      )
+                      .animate(delay: 200.ms)
+                      .fadeIn(duration: 400.ms)
+                      .slideY(begin: 0.2, end: 0),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child:
+                  _StatCard(
+                        title: 'Completed',
+                        value:
+                            '${(analytics.completionRate * 100).toStringAsFixed(0)}%',
+                        icon: Icons.task_alt,
+                        iconColor: AppColors.tertiary,
+                      )
+                      .animate(delay: 300.ms)
+                      .fadeIn(duration: 400.ms)
+                      .slideY(begin: 0.2, end: 0),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child:
+                  _StatCard(
+                        title: 'Current Streak',
+                        value: '${analytics.currentStreak}',
+                        icon: Icons.bolt,
+                        iconColor: AppColors.secondary,
+                        accent: 'days',
+                        isHighlighted: true,
+                      )
+                      .animate(delay: 400.ms)
+                      .fadeIn(duration: 400.ms)
+                      .slideY(begin: 0.2, end: 0),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color iconColor;
+  final String? accent;
+  final bool isHighlighted;
+
+  const _StatCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.iconColor,
+    this.accent,
+    this.isHighlighted = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ShadcnCard(
+      padding: const EdgeInsets.all(32),
+      borderRadius: 24,
+      glowColor: isHighlighted ? AppColors.secondary : null,
+      useGlassEffect: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: AppTypography.body.copyWith(
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                value,
+                style: AppTypography.statValue.copyWith(
+                  color: iconColor,
+                  fontSize: 36,
+                ),
+              ),
+              Icon(icon, color: iconColor, size: 28),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeeklyChart extends StatelessWidget {
+  final List<DailyActivity> weeklyActivity;
+
+  const _WeeklyChart({required this.weeklyActivity});
+
+  @override
+  Widget build(BuildContext context) {
+    final data = weeklyActivity.isEmpty
+        ? List.generate(7, (i) => 0.0)
+        : weeklyActivity.map((a) => a.itemsCompleted.toDouble()).toList();
+
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    return ShadcnCard(
+          padding: const EdgeInsets.all(32),
+          borderRadius: 32,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Weekly Activity', style: AppTypography.cardTitle),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Learning metrics across the sector',
+                        style: AppTypography.bodySmall,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      _ChartFilterButton(label: 'Daily', isActive: false),
+                      const SizedBox(width: 8),
+                      _ChartFilterButton(label: 'Weekly', isActive: true),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                height: 256,
+                child: _BarChart(data: data, labels: days),
+              ),
+            ],
+          ),
+        )
+        .animate()
+        .fadeIn(delay: 200.ms, duration: 500.ms)
+        .slideY(begin: 0.1, end: 0);
+  }
+}
+
+class _ChartFilterButton extends StatelessWidget {
+  final String label;
+  final bool isActive;
+
+  const _ChartFilterButton({required this.label, required this.isActive});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isActive ? AppColors.secondary : AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: AppColors.secondary.withAlpha(51),
+                  blurRadius: 15,
+                ),
+              ]
+            : null,
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: AppTypography.typeBadge.copyWith(
+          color: isActive ? AppColors.onSecondary : AppColors.onSurface,
+        ),
+      ),
+    );
+  }
+}
+
+class _BarChart extends StatelessWidget {
+  final List<double> data;
+  final List<String> labels;
+
+  const _BarChart({required this.data, required this.labels});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxVal = data.isEmpty ? 10.0 : data.reduce((a, b) => a > b ? a : b);
+    final maxIndex = data.indexOf(maxVal);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: List.generate(labels.length, (i) {
+        final heightPercent = maxVal > 0 ? (data[i] / maxVal).toDouble() : 0.0;
+        final isMax = i == maxIndex && data[i] > 0;
+
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: heightPercent),
+                  duration: Duration(milliseconds: 500 + (i * 100)),
+                  curve: Curves.easeOut,
+                  builder: (context, value, child) {
+                    return Container(
+                      width: double.infinity,
+                      height: value * 200,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withAlpha(
+                          [26, 102, 255, 51, 153, 204, 26][i],
+                        ),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(8),
+                        ),
+                        boxShadow: isMax
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.secondary.withAlpha(102),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, -5),
+                                ),
+                              ]
+                            : null,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  labels[i].toUpperCase(),
+                  style: AppTypography.typeBadge.copyWith(
+                    color: isMax
+                        ? AppColors.secondary
+                        : AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _RecentItemsSection extends StatefulWidget {
+  final List<LearningItem> items;
+
+  const _RecentItemsSection({required this.items});
+
+  @override
+  State<_RecentItemsSection> createState() => _RecentItemsSectionState();
+}
+
+class _RecentItemsSectionState extends State<_RecentItemsSection> {
+  final _scrollController = ScrollController();
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final stats = ref.watch(statisticsProvider);
-    final pinnedItems = ref.watch(pinnedItemsProvider);
-    final recentItems = ref.watch(recentItemsProvider);
-    final inProgressItems = ref.watch(recentInProgressItemsProvider);
-    final searchQuery = ref.watch(searchProvider);
-
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar.large(
-            title: _isSearchExpanded
-                ? TextField(
-                    controller: _searchController,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: 'Buscar en todo...',
-                      border: InputBorder.none,
-                      filled: false,
-                    ),
-                    onChanged: (v) =>
-                        ref.read(searchProvider.notifier).state = v,
-                  )
-                : const Text('Trackie'),
-            actions: [
-              IconButton(
-                icon: Icon(_isSearchExpanded ? Icons.close : Icons.search),
-                onPressed: () {
-                  setState(() {
-                    _isSearchExpanded = !_isSearchExpanded;
-                    if (!_isSearchExpanded) {
-                      _searchController.clear();
-                      ref.read(searchProvider.notifier).state = '';
-                    }
-                  });
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline),
-                onPressed: () => _showAddDialog(context, ref),
-              ),
-            ],
-          ),
-          if (searchQuery.isNotEmpty)
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _SearchResultsSection(query: searchQuery),
-                ]),
-              ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _GreetingSection(),
-                  const SizedBox(height: 24),
-                  _StatsSection(stats: stats),
-                  const SizedBox(height: 32),
-
-                  if (pinnedItems.isNotEmpty) ...[
-                    _SectionHeader(
-                      title: 'Fijados',
-                      icon: Icons.push_pin,
-                      actionLabel: 'Ver todos',
-                      onAction: () {},
-                    ),
-                    const SizedBox(height: 12),
-                    _PinnedItemsGrid(items: pinnedItems),
-                    const SizedBox(height: 24),
-                  ],
-
-                  _SectionHeader(
-                    title: 'Continuar aprendiendo',
-                    icon: Icons.trending_up,
-                    actionLabel: inProgressItems.isNotEmpty
-                        ? '${inProgressItems.length} activos'
-                        : null,
-                    onAction: () {},
-                  ),
-                  const SizedBox(height: 12),
-                  if (inProgressItems.isEmpty)
-                    _EmptyState(
-                      icon: Icons.school_outlined,
-                      title: '¡Comienza a aprender!',
-                      subtitle: 'Agrega tu primer contenido',
-                      actionLabel: 'Agregar',
-                      onAction: () => _showAddDialog(context, ref),
-                    )
-                  else
-                    ...inProgressItems
-                        .take(5)
-                        .map(
-                          (item) => _LearningItemCard(
-                            item: item,
-                            onTap: () => _openDetail(context, item.id),
-                            onTogglePin: () => ref
-                                .read(learningItemsProvider.notifier)
-                                .togglePinned(item.id),
-                            onToggleFavorite: () => ref
-                                .read(learningItemsProvider.notifier)
-                                .toggleFavorite(item.id),
-                            onDuplicate: () => ref
-                                .read(learningItemsProvider.notifier)
-                                .duplicateItem(item.id),
-                            onDelete: () =>
-                                _confirmDelete(context, ref, item.id),
-                          ),
-                        ),
-                  const SizedBox(height: 24),
-
-                  _SectionHeader(title: 'Recientes', icon: Icons.access_time),
-                  const SizedBox(height: 12),
-                  if (recentItems.isEmpty)
-                    _EmptyState(
-                      icon: Icons.library_books_outlined,
-                      title: 'Sin actividad reciente',
-                      subtitle: 'Tu historial aparecerá aquí',
-                    )
-                  else
-                    ...recentItems
-                        .take(5)
-                        .map(
-                          (item) => _LearningItemCard(
-                            item: item,
-                            compact: true,
-                            onTap: () => _openDetail(context, item.id),
-                            onTogglePin: () => ref
-                                .read(learningItemsProvider.notifier)
-                                .togglePinned(item.id),
-                            onToggleFavorite: () => ref
-                                .read(learningItemsProvider.notifier)
-                                .toggleFavorite(item.id),
-                            onDuplicate: () => ref
-                                .read(learningItemsProvider.notifier)
-                                .duplicateItem(item.id),
-                            onDelete: () =>
-                                _confirmDelete(context, ref, item.id),
-                          ),
-                        ),
-                ]),
-              ),
-            ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddDialog(context, ref),
-        icon: const Icon(Icons.add),
-        label: const Text('Agregar'),
-      ),
-    );
-  }
-
-  void _openDetail(BuildContext context, String itemId) {
-    ref.read(learningItemsProvider.notifier).updateLastAccessed(itemId);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => ItemDetailScreen(itemId: itemId)),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, WidgetRef ref, String id) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar'),
-        content: const Text('¿Estás seguro de eliminar este elemento?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              ref.read(learningItemsProvider.notifier).delete(id);
-              Navigator.pop(ctx);
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddDialog(BuildContext context, WidgetRef ref) {
-    final titleController = TextEditingController();
-    final urlController = TextEditingController();
-    final descController = TextEditingController();
-    String selectedType = 'course';
-    String? selectedPath;
-    bool _isLoadingMetadata = false;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: StatefulBuilder(
-          builder: (ctx, setState) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Nuevo elemento',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextField(
-                        controller: urlController,
-                        decoration: InputDecoration(
-                          labelText: 'URL (opcional)',
-                          hintText: 'https://...',
-                          prefixIcon: const Icon(Icons.link),
-                          suffixIcon: _isLoadingMetadata
-                              ? const Padding(
-                                  padding: EdgeInsets.all(12),
-                                  child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                )
-                              : urlController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.auto_awesome),
-                                  tooltip: 'Obtener metadatos',
-                                  onPressed: () async {
-                                    final url = urlController.text.trim();
-                                    if (url.isEmpty || !url.startsWith('http'))
-                                      return;
-                                    setState(() => _isLoadingMetadata = true);
-                                    final metadata =
-                                        await UrlMetadataService.fetchMetadata(
-                                          url,
-                                        );
-                                    if (metadata.title != null &&
-                                        titleController.text.isEmpty) {
-                                      titleController.text = metadata.title!;
-                                    }
-                                    if (metadata.description != null &&
-                                        descController.text.isEmpty) {
-                                      descController.text =
-                                          metadata.description!;
-                                    }
-                                    if (metadata.title != null) {
-                                      setState(() {});
-                                    }
-                                    setState(() => _isLoadingMetadata = false);
-                                  },
-                                )
-                              : null,
-                        ),
-                        onChanged: (v) => setState(() {}),
-                      ),
-                      const SizedBox(height: 16),
-
-                      GestureDetector(
-                        onTap: () async {
-                          final result = await FilePicker.platform.pickFiles(
-                            type: FileType.custom,
-                            allowedExtensions: [
-                              'pdf',
-                              'mp4',
-                              'mp3',
-                              'wav',
-                              'epub',
-                              'mobi',
-                              'avi',
-                              'mkv',
-                              'm4a',
-                            ],
-                          );
-                          if (result != null &&
-                              result.files.single.path != null) {
-                            setState(
-                              () => selectedPath = result.files.single.path!,
-                            );
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primaryContainer
-                                .withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.folder_open,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  selectedPath ?? 'Seleccionar archivo local',
-                                  style: TextStyle(
-                                    color: selectedPath == null
-                                        ? Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant
-                                        : Theme.of(context).colorScheme.primary,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      TextField(
-                        controller: titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Título',
-                          hintText: 'Nombre del recurso',
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      TextField(
-                        controller: descController,
-                        maxLines: 2,
-                        decoration: const InputDecoration(
-                          labelText: 'Descripción (opcional)',
-                          hintText: 'Breve descripción...',
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      Text(
-                        'Tipo de contenido',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: AppConstants.contentTypes
-                            .map(
-                              (t) => _TypeChip(
-                                type: t,
-                                selected: selectedType,
-                                onTap: () =>
-                                    setState(() => selectedType = t.id),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () async {
-                    if (titleController.text.trim().isEmpty) return;
-
-                    String finalType = selectedType;
-                    String? urlFavicon;
-                    String? urlThumbnail;
-
-                    if (selectedPath != null) {
-                      final ext = selectedPath!.split('.').last.toLowerCase();
-                      if (ext == 'pdf')
-                        finalType = 'pdf';
-                      else if (['mp4', 'mov', 'avi', 'mkv'].contains(ext))
-                        finalType = 'video';
-                      else if (['mp3', 'wav', 'aac', 'm4a'].contains(ext))
-                        finalType = 'audio';
-                      else if (['epub', 'mobi'].contains(ext))
-                        finalType = 'book';
-                    }
-
-                    final url = urlController.text.trim();
-                    if (url.isNotEmpty && url.startsWith('http')) {
-                      final metadata = await UrlMetadataService.fetchMetadata(
-                        url,
-                      );
-                      urlFavicon = metadata.favicon;
-                      urlThumbnail = metadata.imageUrl;
-                    }
-
-                    ref
-                        .read(learningItemsProvider.notifier)
-                        .add(
-                          LearningItem(
-                            title: titleController.text.trim(),
-                            type: finalType,
-                            description: descController.text.trim().isEmpty
-                                ? null
-                                : descController.text.trim(),
-                            url: url.isEmpty ? null : url,
-                            urlFavicon: urlFavicon,
-                            urlThumbnail: urlThumbnail,
-                            localPath: selectedPath,
-                          ),
-                        );
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Agregar'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchResultsSection extends ConsumerWidget {
-  final String query;
-  const _SearchResultsSection({required this.query});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final results = ref.watch(advancedFilteredItemsProvider);
-
-    if (results.isEmpty) {
-      return _EmptyState(
-        icon: Icons.search_off,
-        title: 'Sin resultados',
-        subtitle: 'No se encontraron elementos para "$query"',
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '${results.length} resultados',
-          style: Theme.of(context).textTheme.titleMedium,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Recent Archives', style: AppTypography.sectionTitle),
+                const SizedBox(height: 4),
+                Text(
+                  'Jump back into the stream',
+                  style: AppTypography.typeBadge.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                _ScrollButton(
+                  icon: Icons.chevron_left,
+                  onTap: () => _scrollController.animateTo(
+                    _scrollController.offset - 344,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _ScrollButton(
+                  icon: Icons.chevron_right,
+                  onTap: () => _scrollController.animateTo(
+                    _scrollController.offset + 344,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        ...results.map(
-          (item) => _LearningItemCard(
-            item: item,
-            onTap: () {
-              ref
-                  .read(learningItemsProvider.notifier)
-                  .updateLastAccessed(item.id);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ItemDetailScreen(itemId: item.id),
+        const SizedBox(height: 24),
+        SizedBox(
+          height: 280,
+          child: ListView.builder(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            itemCount: widget.items.length,
+            itemBuilder: (context, index) {
+              final item = widget.items[index];
+              return _RecentItemCard(
+                item: item,
+                index: index,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ItemDetailScreen(itemId: item.id),
+                  ),
                 ),
               );
             },
-            onTogglePin: () =>
-                ref.read(learningItemsProvider.notifier).togglePinned(item.id),
-            onToggleFavorite: () => ref
-                .read(learningItemsProvider.notifier)
-                .toggleFavorite(item.id),
-            onDuplicate: () =>
-                ref.read(learningItemsProvider.notifier).duplicateItem(item.id),
-            onDelete: () =>
-                ref.read(learningItemsProvider.notifier).delete(item.id),
           ),
         ),
       ],
+    ).animate().fadeIn(delay: 300.ms);
+  }
+}
+
+class _ScrollButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _ScrollButton({required this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Icon(icon, color: AppColors.onSurfaceVariant, size: 20),
+      ),
     );
   }
 }
 
-class _GreetingSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final hour = DateTime.now().hour;
-    String greeting;
-    if (hour < 12)
-      greeting = '¡Buenos días!';
-    else if (hour < 18)
-      greeting = '¡Buenas tardes!';
-    else
-      greeting = '¡Buenas noches!';
+class _RecentItemCard extends StatelessWidget {
+  final LearningItem item;
+  final int index;
+  final VoidCallback? onTap;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          greeting,
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '¿Qué aprenderás hoy?',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
+  const _RecentItemCard({required this.item, required this.index, this.onTap});
+
+  Color _getTypeColor() {
+    switch (item.type.toLowerCase()) {
+      case 'course':
+        return AppColors.primary;
+      case 'video':
+        return AppColors.secondary;
+      case 'book':
+        return AppColors.tertiary;
+      case 'pdf':
+        return AppColors.primary;
+      default:
+        return AppColors.onSurfaceVariant;
+    }
   }
-}
 
-class _StatsSection extends StatelessWidget {
-  final Map<String, dynamic> stats;
-  const _StatsSection({required this.stats});
+  IconData _getTypeIcon() {
+    switch (item.type.toLowerCase()) {
+      case 'course':
+        return Icons.school;
+      case 'video':
+        return Icons.play_circle;
+      case 'book':
+        return Icons.menu_book;
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      default:
+        return Icons.article;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final total = stats['total'] as int;
-    final completed = stats['completed'] as int;
-    final inProgress = stats['inProgress'] as int;
-    final progressPercent = total > 0 ? (completed / total * 100).round() : 0;
+    final typeColor = _getTypeColor();
 
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.secondary,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      width: 320,
+      margin: EdgeInsets.only(right: index < 3 ? 24 : 0),
+      child: ShadcnCard(
+        padding: EdgeInsets.zero,
+        borderRadius: 24,
+        hoverEffect: true,
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image area
+            Container(
+              height: 160,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerHighest,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+              ),
+              child: Stack(
                 children: [
-                  Text(
-                    'Progreso general',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 14,
+                  Positioned.fill(
+                    child: Center(
+                      child: Icon(
+                        _getTypeIcon(),
+                        size: 64,
+                        color: typeColor.withAlpha(77),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$progressPercent%',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            AppColors.surfaceContainerLow.withAlpha(204),
+                          ],
+                        ),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(24),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface.withAlpha(204),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        item.type.toUpperCase(),
+                        style: AppTypography.typeBadge.copyWith(
+                          color: typeColor,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.emoji_events, color: Colors.white, size: 28),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: progressPercent / 100,
-              minHeight: 8,
-              backgroundColor: Colors.white.withValues(alpha: 0.3),
-              color: Colors.white,
             ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _StatItem(label: 'Total', value: '$total'),
-              _StatItem(label: 'Completados', value: '$completed'),
-              _StatItem(label: 'En curso', value: '$inProgress'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _StatItem({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
-  const _SectionHeader({
-    required this.title,
-    required this.icon,
-    this.actionLabel,
-    this.onAction,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const Spacer(),
-        if (actionLabel != null)
-          GestureDetector(
-            onTap: onAction,
-            child: Text(
-              actionLabel!,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontSize: 13,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _PinnedItemsGrid extends StatelessWidget {
-  final List<LearningItem> items;
-  const _PinnedItemsGrid({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 120,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: items.length > 5 ? 5 : items.length,
-        itemBuilder: (ctx, i) => _PinnedItemCard(item: items[i]),
-      ),
-    );
-  }
-}
-
-class _PinnedItemCard extends StatelessWidget {
-  final LearningItem item;
-  const _PinnedItemCard({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    final typeData = AppConstants.contentTypes.firstWhere(
-      (t) => t.id == item.type,
-      orElse: () => AppConstants.contentTypes.first,
-    );
-
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ItemDetailScreen(itemId: item.id)),
-      ),
-      child: Container(
-        width: 160,
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Theme.of(
-            context,
-          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Color(typeData.color).withValues(alpha: 0.3),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Color(typeData.color).withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: AppTypography.cardTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: Icon(
-                    _getIcon(item.type),
-                    size: 16,
-                    color: Color(typeData.color),
-                  ),
-                ),
-                const Spacer(),
-                Icon(
-                  Icons.push_pin,
-                  size: 14,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ],
-            ),
-            const Spacer(),
-            Text(
-              item.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-            ),
-            const SizedBox(height: 4),
-            LinearProgressIndicator(
-              value: item.progress / 100,
-              minHeight: 4,
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest,
-              color: Color(typeData.color),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'course':
-        return Icons.play_circle;
-      case 'book':
-        return Icons.menu_book;
-      case 'pdf':
-        return Icons.picture_as_pdf;
-      case 'video':
-        return Icons.video_library;
-      case 'audio':
-        return Icons.headphones;
-      case 'article':
-        return Icons.article;
-      case 'link':
-        return Icons.link;
-      default:
-        return Icons.library_books;
-    }
-  }
-}
-
-class _LearningItemCard extends StatelessWidget {
-  final LearningItem item;
-  final VoidCallback onTap;
-  final VoidCallback onTogglePin;
-  final VoidCallback onToggleFavorite;
-  final VoidCallback onDuplicate;
-  final VoidCallback onDelete;
-  final bool compact;
-
-  const _LearningItemCard({
-    required this.item,
-    required this.onTap,
-    required this.onTogglePin,
-    required this.onToggleFavorite,
-    required this.onDuplicate,
-    required this.onDelete,
-    this.compact = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final typeData = AppConstants.contentTypes.firstWhere(
-      (t) => t.id == item.type,
-      orElse: () => AppConstants.contentTypes.first,
-    );
-    final color = Color(typeData.color);
-    final statusData = AppConstants.statuses.firstWhere(
-      (s) => s.id == item.status,
-      orElse: () => AppConstants.statuses.first,
-    );
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(
-            context,
-          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(_getIcon(item.type), color: color),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 4),
+                  Text('Last modified: recently', style: AppTypography.caption),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          if (item.isPinned)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 4),
-                              child: Icon(
-                                Icons.push_pin,
-                                size: 14,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Color(
-                                statusData.color,
-                              ).withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              statusData.name,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Color(statusData.color),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${item.progress}%',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: color,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      Icon(
+                        Icons.open_in_new,
+                        size: 20,
+                        color: AppColors.onSurfaceVariant,
                       ),
                     ],
                   ),
-                ),
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  onSelected: (v) {
-                    switch (v) {
-                      case 'pin':
-                        onTogglePin();
-                        break;
-                      case 'favorite':
-                        onToggleFavorite();
-                        break;
-                      case 'duplicate':
-                        onDuplicate();
-                        break;
-                      case 'delete':
-                        onDelete();
-                        break;
-                      case 'open_url':
-                        if (item.url != null) launchUrl(Uri.parse(item.url!));
-                        break;
-                    }
-                  },
-                  itemBuilder: (ctx) => [
-                    PopupMenuItem(
-                      value: 'pin',
-                      child: Row(
-                        children: [
-                          Icon(
-                            item.isPinned
-                                ? Icons.push_pin_outlined
-                                : Icons.push_pin,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(item.isPinned ? 'Desfijar' : 'Fijar'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'favorite',
-                      child: Row(
-                        children: [
-                          Icon(
-                            item.isFavorite
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            item.isFavorite
-                                ? 'Quitar favorito'
-                                : 'Agregar a favoritos',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'duplicate',
-                      child: Row(
-                        children: [
-                          Icon(Icons.copy, size: 20),
-                          SizedBox(width: 8),
-                          Text('Duplicar'),
-                        ],
-                      ),
-                    ),
-                    if (item.url != null)
-                      const PopupMenuItem(
-                        value: 'open_url',
-                        child: Row(
-                          children: [
-                            Icon(Icons.open_in_new, size: 20),
-                            SizedBox(width: 8),
-                            Text('Abrir URL'),
-                          ],
-                        ),
-                      ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Eliminar', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            if (!compact) ...[
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: item.progress / 100,
-                  minHeight: 6,
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest,
-                  color: color,
-                ),
+                ],
               ),
-            ],
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'course':
-        return Icons.play_circle;
-      case 'book':
-        return Icons.menu_book;
-      case 'pdf':
-        return Icons.picture_as_pdf;
-      case 'video':
-        return Icons.video_library;
-      case 'audio':
-        return Icons.headphones;
-      case 'article':
-        return Icons.article;
-      case 'link':
-        return Icons.link;
-      default:
-        return Icons.library_books;
-    }
+    ).animate(delay: (100 * index).ms).fadeIn().slideX(begin: 0.1);
   }
 }
 
-class _TypeChip extends StatelessWidget {
-  final ContentType type;
-  final String selected;
-  final VoidCallback onTap;
-
-  const _TypeChip({
-    required this.type,
-    required this.selected,
-    required this.onTap,
-  });
+class _AchievementsPreview extends StatelessWidget {
+  const _AchievementsPreview();
 
   @override
   Widget build(BuildContext context) {
-    final isSelected = type.id == selected;
-    final color = Color(type.color);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? color.withValues(alpha: 0.2)
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-          border: isSelected ? Border.all(color: color, width: 2) : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              _getIcon(type.id),
-              size: 16,
-              color: isSelected
-                  ? color
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+    return ShadcnCard(
+      padding: const EdgeInsets.all(32),
+      borderRadius: 32,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Milestones', style: AppTypography.cardTitle),
+          const SizedBox(height: 4),
+          Text('Unlocked achievements', style: AppTypography.bodySmall),
+          const SizedBox(height: 24),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 0.85,
+            children: const [
+              _MilestoneCard(
+                icon: Icons.wb_sunny,
+                title: 'Early Bird',
+                subtitle: '7-day morning streak',
+                color: AppColors.primary,
+                isUnlocked: true,
+              ),
+              _MilestoneCard(
+                icon: Icons.auto_stories,
+                title: 'Bookworm',
+                subtitle: '50 items read',
+                color: AppColors.secondary,
+                isUnlocked: true,
+              ),
+              _MilestoneCard(
+                icon: Icons.star,
+                title: 'Supernova',
+                subtitle: 'Elite performance',
+                color: AppColors.tertiary,
+                isUnlocked: true,
+              ),
+              _MilestoneCard(
+                icon: Icons.psychology,
+                title: 'Mastermind',
+                subtitle: 'Advanced logic unit',
+                color: AppColors.onSurfaceVariant,
+                isUnlocked: false,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AchievementsScreen()),
             ),
-            const SizedBox(width: 6),
-            Text(
-              type.name,
-              style: TextStyle(
-                color: isSelected
-                    ? color
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.primary.withAlpha(51)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'View Repository',
+                textAlign: TextAlign.center,
+                style: AppTypography.typeBadge.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'course':
-        return Icons.play_circle;
-      case 'book':
-        return Icons.menu_book;
-      case 'pdf':
-        return Icons.picture_as_pdf;
-      case 'video':
-        return Icons.video_library;
-      case 'audio':
-        return Icons.headphones;
-      case 'article':
-        return Icons.article;
-      case 'link':
-        return Icons.link;
-      case 'podcast':
-        return Icons.podcasts;
-      case 'note':
-        return Icons.note;
-      case 'epub':
-        return Icons.book;
-      default:
-        return Icons.library_books;
-    }
+    ).animate().fadeIn(delay: 400.ms);
   }
 }
 
-class _EmptyState extends StatelessWidget {
+class _MilestoneCard extends StatefulWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final String? actionLabel;
-  final VoidCallback? onAction;
+  final Color color;
+  final bool isUnlocked;
 
-  const _EmptyState({
+  const _MilestoneCard({
     required this.icon,
     required this.title,
     required this.subtitle,
-    this.actionLabel,
-    this.onAction,
+    required this.color,
+    required this.isUnlocked,
   });
 
   @override
+  State<_MilestoneCard> createState() => _MilestoneCardState();
+}
+
+class _MilestoneCardState extends State<_MilestoneCard> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primaryContainer.withValues(alpha: 0.5),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              size: 40,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: widget.isUnlocked
+              ? AppColors.surfaceContainer.withAlpha(128)
+              : AppColors.surfaceContainerHighest.withAlpha(128),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: widget.isUnlocked
+                ? widget.color.withAlpha(51)
+                : Colors.white.withAlpha(13),
           ),
-          const SizedBox(height: 16),
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+          boxShadow: widget.isUnlocked
+              ? [
+                  BoxShadow(
+                    color: widget.color.withAlpha(26),
+                    blurRadius: _isHovered ? 30 : 20,
+                    spreadRadius: _isHovered ? 4 : 2,
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.isUnlocked
+                    ? widget.color.withAlpha(51)
+                    : AppColors.surfaceContainerHighest,
+                boxShadow: widget.isUnlocked
+                    ? [
+                        BoxShadow(
+                          color: widget.color.withAlpha(26),
+                          blurRadius: 20,
+                          spreadRadius: 4,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Icon(
+                widget.icon,
+                color: widget.isUnlocked
+                    ? widget.color
+                    : AppColors.onSurfaceVariant,
+                size: 24,
+              ),
             ),
-          ),
-          if (actionLabel != null) ...[
-            const SizedBox(height: 16),
-            FilledButton.tonal(onPressed: onAction, child: Text(actionLabel!)),
+            const SizedBox(height: 8),
+            Text(
+              widget.title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                color: widget.isUnlocked
+                    ? AppColors.onSurface
+                    : AppColors.onSurface.withAlpha(128),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              widget.subtitle,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.caption.copyWith(fontSize: 10),
+            ),
           ],
-        ],
+        ),
       ),
     );
   }

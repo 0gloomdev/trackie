@@ -112,27 +112,27 @@ class LearningItem {
   };
 
   factory LearningItem.fromJson(Map<String, dynamic> json) => LearningItem(
-    id: json['id'],
-    title: json['title'],
-    type: json['type'],
-    description: json['description'],
-    url: json['url'],
-    urlFavicon: json['urlFavicon'],
-    urlThumbnail: json['urlThumbnail'],
-    localPath: json['localPath'],
-    progress: json['progress'] ?? 0,
-    status: json['status'] ?? 'pending',
-    priority: json['priority'],
-    categoryId: json['categoryId'],
-    tags: List<String>.from(json['tags'] ?? []),
-    notes: json['notes'],
-    isFavorite: json['isFavorite'] ?? false,
-    isPinned: json['isPinned'] ?? false,
+    id: json['id'] as String,
+    title: json['title'] as String,
+    type: json['type'] as String,
+    description: json['description'] as String?,
+    url: json['url'] as String?,
+    urlFavicon: json['urlFavicon'] as String?,
+    urlThumbnail: json['urlThumbnail'] as String?,
+    localPath: json['localPath'] as String?,
+    progress: json['progress'] as int? ?? 0,
+    status: json['status'] as String? ?? 'pending',
+    priority: json['priority'] as String?,
+    categoryId: json['categoryId'] as String?,
+    tags: (json['tags'] as List?)?.cast<String>() ?? [],
+    notes: json['notes'] as String?,
+    isFavorite: json['isFavorite'] as bool? ?? false,
+    isPinned: json['isPinned'] as bool? ?? false,
     lastAccessedAt: json['lastAccessedAt'] != null
-        ? DateTime.parse(json['lastAccessedAt'])
+        ? DateTime.parse(json['lastAccessedAt'] as String)
         : null,
-    createdAt: DateTime.parse(json['createdAt']),
-    updatedAt: DateTime.parse(json['updatedAt']),
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    updatedAt: DateTime.parse(json['updatedAt'] as String),
   );
 }
 
@@ -155,10 +155,10 @@ class Category {
     'createdAt': createdAt.toIso8601String(),
   };
   factory Category.fromJson(Map<String, dynamic> json) => Category(
-    id: json['id'],
-    name: json['name'],
-    color: json['color'] ?? 0xFF6366F1,
-    createdAt: DateTime.parse(json['createdAt']),
+    id: json['id'] as String,
+    name: json['name'] as String,
+    color: json['color'] as int? ?? 0xFF6366F1,
+    createdAt: DateTime.parse(json['createdAt'] as String),
   );
 }
 
@@ -208,13 +208,13 @@ class Tag {
   };
 
   factory Tag.fromJson(Map<String, dynamic> json) => Tag(
-    id: json['id'],
-    name: json['name'],
-    color: json['color'] ?? 0xFF6366F1,
-    category: json['category'],
-    usageCount: json['usageCount'] ?? 0,
+    id: json['id'] as String,
+    name: json['name'] as String,
+    color: json['color'] as int? ?? 0xFF6366F1,
+    category: json['category'] as String?,
+    usageCount: json['usageCount'] as int? ?? 0,
     createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
+        ? DateTime.parse(json['createdAt'] as String)
         : DateTime.now(),
   );
 }
@@ -223,6 +223,7 @@ class AppSettings {
   final String theme;
   final bool showOnboarding;
   final bool notificationsEnabled;
+  final bool pomodoroNotifications;
   final bool achievementsNotifications;
   final String defaultView;
   final bool compactMode;
@@ -237,6 +238,7 @@ class AppSettings {
     this.theme = 'system',
     this.showOnboarding = true,
     this.notificationsEnabled = true,
+    this.pomodoroNotifications = true,
     this.achievementsNotifications = true,
     this.defaultView = 'grid',
     this.compactMode = false,
@@ -252,6 +254,7 @@ class AppSettings {
     String? theme,
     bool? showOnboarding,
     bool? notificationsEnabled,
+    bool? pomodoroNotifications,
     bool? achievementsNotifications,
     String? defaultView,
     bool? compactMode,
@@ -266,6 +269,8 @@ class AppSettings {
       theme: theme ?? this.theme,
       showOnboarding: showOnboarding ?? this.showOnboarding,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      pomodoroNotifications:
+          pomodoroNotifications ?? this.pomodoroNotifications,
       achievementsNotifications:
           achievementsNotifications ?? this.achievementsNotifications,
       defaultView: defaultView ?? this.defaultView,
@@ -294,20 +299,21 @@ class AppSettings {
     'locale': locale,
   };
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
-    theme: json['theme'] ?? 'system',
-    showOnboarding: json['showOnboarding'] ?? true,
-    notificationsEnabled: json['notificationsEnabled'] ?? true,
-    achievementsNotifications: json['achievementsNotifications'] ?? true,
-    defaultView: json['defaultView'] ?? 'grid',
-    compactMode: json['compactMode'] ?? false,
-    pinLockEnabled: json['pinLockEnabled'] ?? false,
-    pinCode: json['pinCode'],
-    autoBackupEnabled: json['autoBackupEnabled'] ?? false,
-    autoBackupFrequency: json['autoBackupFrequency'] ?? 7,
+    theme: json['theme'] as String? ?? 'system',
+    showOnboarding: json['showOnboarding'] as bool? ?? true,
+    notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
+    achievementsNotifications:
+        json['achievementsNotifications'] as bool? ?? true,
+    defaultView: json['defaultView'] as String? ?? 'grid',
+    compactMode: json['compactMode'] as bool? ?? false,
+    pinLockEnabled: json['pinLockEnabled'] as bool? ?? false,
+    pinCode: json['pinCode'] as String?,
+    autoBackupEnabled: json['autoBackupEnabled'] as bool? ?? false,
+    autoBackupFrequency: json['autoBackupFrequency'] as int? ?? 7,
     lastBackupDate: json['lastBackupDate'] != null
-        ? DateTime.parse(json['lastBackupDate'])
+        ? DateTime.parse(json['lastBackupDate'] as String)
         : null,
-    locale: json['locale'] ?? 'en',
+    locale: json['locale'] as String? ?? 'en',
   );
 
   bool get hasCompletedOnboarding => !showOnboarding;
@@ -368,13 +374,13 @@ class DailyGoal {
   };
 
   factory DailyGoal.fromJson(Map<String, dynamic> json) => DailyGoal(
-    id: json['id'],
-    date: DateTime.parse(json['date']),
-    itemsToComplete: json['itemsToComplete'] ?? 3,
-    itemsCompleted: json['itemsCompleted'] ?? 0,
-    minutesToStudy: json['minutesToStudy'] ?? 30,
-    minutesStudied: json['minutesStudied'] ?? 0,
-    completed: json['completed'] ?? false,
+    id: json['id'] as String,
+    date: DateTime.parse(json['date'] as String),
+    itemsToComplete: json['itemsToComplete'] as int? ?? 3,
+    itemsCompleted: json['itemsCompleted'] as int? ?? 0,
+    minutesToStudy: json['minutesToStudy'] as int? ?? 30,
+    minutesStudied: json['minutesStudied'] as int? ?? 0,
+    completed: json['completed'] as bool? ?? false,
   );
 
   double get itemsProgress => itemsToComplete > 0
@@ -445,15 +451,15 @@ class Reminder {
   };
 
   factory Reminder.fromJson(Map<String, dynamic> json) => Reminder(
-    id: json['id'],
-    title: json['title'],
-    message: json['message'],
-    scheduledTime: DateTime.parse(json['scheduledTime']),
-    itemId: json['itemId'],
-    isCompleted: json['isCompleted'] ?? false,
-    repeatType: json['repeatType'] ?? 'once',
+    id: json['id'] as String,
+    title: json['title'] as String,
+    message: json['message'] as String?,
+    scheduledTime: DateTime.parse(json['scheduledTime'] as String),
+    itemId: json['itemId'] as String?,
+    isCompleted: json['isCompleted'] as bool? ?? false,
+    repeatType: json['repeatType'] as String? ?? 'once',
     daysOfWeek: json['daysOfWeek'] != null
-        ? List<int>.from(json['daysOfWeek'])
+        ? (json['daysOfWeek'] as List).cast<int>()
         : null,
   );
 
@@ -798,167 +804,167 @@ class UserProfile {
 
 class Achievement {
   final String id;
-  final String titulo;
-  final String descripcion;
-  final String icono;
-  final bool desbloqueado;
-  final DateTime? desbloqueadoEn;
-  final int xpRecompensa;
-  final String tipo; // milestone, streak, special
+  final String title;
+  final String description;
+  final String icon;
+  final bool unlocked;
+  final DateTime? unlockedAt;
+  final int xpReward;
+  final String type; // milestone, streak, special
 
   Achievement({
     required this.id,
-    required this.titulo,
-    required this.descripcion,
-    required this.icono,
-    this.desbloqueado = false,
-    this.desbloqueadoEn,
-    this.xpRecompensa = 0,
-    required this.tipo,
+    required this.title,
+    required this.description,
+    required this.icon,
+    this.unlocked = false,
+    this.unlockedAt,
+    this.xpReward = 0,
+    required this.type,
   });
 
   Achievement copyWith({
     String? id,
-    String? titulo,
-    String? descripcion,
-    String? icono,
-    bool? desbloqueado,
-    DateTime? desbloqueadoEn,
-    int? xpRecompensa,
-    String? tipo,
+    String? title,
+    String? description,
+    String? icon,
+    bool? unlocked,
+    DateTime? unlockedAt,
+    int? xpReward,
+    String? type,
   }) {
     return Achievement(
       id: id ?? this.id,
-      titulo: titulo ?? this.titulo,
-      descripcion: descripcion ?? this.descripcion,
-      icono: icono ?? this.icono,
-      desbloqueado: desbloqueado ?? this.desbloqueado,
-      desbloqueadoEn: desbloqueadoEn ?? this.desbloqueadoEn,
-      xpRecompensa: xpRecompensa ?? this.xpRecompensa,
-      tipo: tipo ?? this.tipo,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      icon: icon ?? this.icon,
+      unlocked: unlocked ?? this.unlocked,
+      unlockedAt: unlockedAt ?? this.unlockedAt,
+      xpReward: xpReward ?? this.xpReward,
+      type: type ?? this.type,
     );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'titulo': titulo,
-    'descripcion': descripcion,
-    'icono': icono,
-    'desbloqueado': desbloqueado,
-    'desbloqueadoEn': desbloqueadoEn?.toIso8601String(),
-    'xpRecompensa': xpRecompensa,
-    'tipo': tipo,
+    'title': title,
+    'description': description,
+    'icon': icon,
+    'unlocked': unlocked,
+    'unlockedAt': unlockedAt?.toIso8601String(),
+    'xpReward': xpReward,
+    'type': type,
   };
 
   factory Achievement.fromJson(Map<String, dynamic> json) => Achievement(
     id: json['id'],
-    titulo: json['titulo'],
-    descripcion: json['descripcion'],
-    icono: json['icono'],
-    desbloqueado: json['desbloqueado'] ?? false,
-    desbloqueadoEn: json['desbloqueadoEn'] != null
-        ? DateTime.parse(json['desbloqueadoEn'])
+    title: json['title'] ?? json['titulo'],
+    description: json['description'] ?? json['descripcion'],
+    icon: json['icon'] ?? json['icono'],
+    unlocked: json['unlocked'] ?? json['desbloqueado'] ?? false,
+    unlockedAt: (json['unlockedAt'] ?? json['desbloqueadoEn']) != null
+        ? DateTime.parse(json['unlockedAt'] ?? json['desbloqueadoEn'])
         : null,
-    xpRecompensa: json['xpRecompensa'] ?? 0,
-    tipo: json['tipo'] ?? 'milestone',
+    xpReward: json['xpReward'] ?? json['xpRecompensa'] ?? 0,
+    type: json['type'] ?? json['tipo'] ?? 'milestone',
   );
 
   static List<Achievement> getDefaultAchievements() => [
     Achievement(
       id: 'primer_paso',
-      titulo: 'First Step',
-      descripcion: 'Complete your first item',
-      icono: 'emoji_events',
-      xpRecompensa: 50,
-      tipo: 'milestone',
+      title: 'First Step',
+      description: 'Complete your first item',
+      icon: 'emoji_events',
+      xpReward: 50,
+      type: 'milestone',
     ),
     Achievement(
       id: 'avido',
-      titulo: 'Avid Learner',
-      descripcion: 'Complete 5 items',
-      icono: 'menu_book',
-      xpRecompensa: 100,
-      tipo: 'milestone',
+      title: 'Avid Learner',
+      description: 'Complete 5 items',
+      icon: 'menu_book',
+      xpReward: 100,
+      type: 'milestone',
     ),
     Achievement(
       id: 'estudiante',
-      titulo: 'Student',
-      descripcion: 'Complete 10 items',
-      icono: 'school',
-      xpRecompensa: 150,
-      tipo: 'milestone',
+      title: 'Student',
+      description: 'Complete 10 items',
+      icon: 'school',
+      xpReward: 150,
+      type: 'milestone',
     ),
     Achievement(
       id: 'bibliotecario',
-      titulo: 'Librarian',
-      descripcion: 'Complete 25 items',
-      icono: 'local_library',
-      xpRecompensa: 250,
-      tipo: 'milestone',
+      title: 'Librarian',
+      description: 'Complete 25 items',
+      icon: 'local_library',
+      xpReward: 250,
+      type: 'milestone',
     ),
     Achievement(
       id: 'maestro',
-      titulo: 'Master',
-      descripcion: 'Complete 50 items',
-      icono: 'military_tech',
-      xpRecompensa: 500,
-      tipo: 'milestone',
+      title: 'Master',
+      description: 'Complete 50 items',
+      icon: 'military_tech',
+      xpReward: 500,
+      type: 'milestone',
     ),
     Achievement(
       id: 'velocista',
-      titulo: 'Sprinter',
-      descripcion: 'Complete an item in less than 24 hours',
-      icono: 'bolt',
-      xpRecompensa: 75,
-      tipo: 'special',
+      title: 'Sprinter',
+      description: 'Complete an item in less than 24 hours',
+      icon: 'bolt',
+      xpReward: 75,
+      type: 'special',
     ),
     Achievement(
       id: 'racha_7',
-      titulo: '7-Day Streak',
-      descripcion: '7 days of consecutive activity',
-      icono: 'local_fire_department',
-      xpRecompensa: 100,
-      tipo: 'streak',
+      title: '7-Day Streak',
+      description: '7 days of consecutive activity',
+      icon: 'local_fire_department',
+      xpReward: 100,
+      type: 'streak',
     ),
     Achievement(
       id: 'racha_30',
-      titulo: '30-Day Streak',
-      descripcion: '30 days of consecutive activity',
-      icono: 'whatshot',
-      xpRecompensa: 300,
-      tipo: 'streak',
+      title: '30-Day Streak',
+      description: '30 days of consecutive activity',
+      icon: 'whatshot',
+      xpReward: 300,
+      type: 'streak',
     ),
     Achievement(
       id: 'coleccionista',
-      titulo: 'Collector',
-      descripcion: '10 items in favorites',
-      icono: 'star',
-      xpRecompensa: 100,
-      tipo: 'special',
+      title: 'Collector',
+      description: '10 items in favorites',
+      icon: 'star',
+      xpReward: 100,
+      type: 'special',
     ),
     Achievement(
-      id: 'prioritario',
-      titulo: 'Priority',
-      descripcion: 'Complete 5 urgent items',
-      icono: 'flag',
-      xpRecompensa: 100,
-      tipo: 'special',
+      id: 'prioritas',
+      title: 'Prioritizer',
+      description: 'Complete 5 high-priority items',
+      icon: 'priority_high',
+      xpReward: 100,
+      type: 'special',
     ),
     Achievement(
       id: 'analista',
-      titulo: 'Analyst',
-      descripcion: 'View stats 20 times',
-      icono: 'insights',
-      xpRecompensa: 50,
-      tipo: 'special',
+      title: 'Analyst',
+      description: 'View stats 20 times',
+      icon: 'analytics',
+      xpReward: 50,
+      type: 'special',
     ),
     Achievement(
       id: 'noctambulo',
-      titulo: 'Night Owl',
-      descripcion: 'Study after midnight',
-      icono: 'nightlight',
-      xpRecompensa: 25,
-      tipo: 'special',
+      title: 'Night Owl',
+      description: 'Study after midnight',
+      icon: 'dark_mode',
+      xpReward: 25,
+      type: 'special',
     ),
   ];
 }
@@ -970,63 +976,63 @@ class Achievement {
 class CommunityPost {
   final String id;
   final String
-  tipo; // item_completed, achievement_unlocked, item_added, streak_milestone, level_up
-  final String contenido;
+  type; // item_completed, achievement_unlocked, item_added, streak_milestone, level_up
+  final String content;
   final DateTime timestamp;
-  final bool anonimo;
-  final String? usuarioId;
-  final String? usuarioNombre;
-  final String? usuarioAvatar;
+  final bool anonymous;
+  final String? userId;
+  final String? userName;
+  final String? userAvatar;
   final int likes;
-  final List<Comment> comentarios;
+  final List<Comment> comments;
   final String? relatedItemId;
   final String? relatedAchievementId;
   final bool isUserPost; // true if this is the current user's post
 
   CommunityPost({
     String? id,
-    required this.tipo,
-    required this.contenido,
+    required this.type,
+    required this.content,
     DateTime? timestamp,
-    this.anonimo = true,
-    this.usuarioId,
-    this.usuarioNombre,
-    this.usuarioAvatar,
+    this.anonymous = true,
+    this.userId,
+    this.userName,
+    this.userAvatar,
     this.likes = 0,
-    List<Comment>? comentarios,
+    List<Comment>? comments,
     this.relatedItemId,
     this.relatedAchievementId,
     this.isUserPost = false,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
        timestamp = timestamp ?? DateTime.now(),
-       comentarios = comentarios ?? [];
+       comments = comments ?? [];
 
   CommunityPost copyWith({
     String? id,
-    String? tipo,
-    String? contenido,
+    String? type,
+    String? content,
     DateTime? timestamp,
-    bool? anonimo,
-    String? usuarioId,
-    String? usuarioNombre,
-    String? usuarioAvatar,
+    bool? anonymous,
+    String? userId,
+    String? userName,
+    String? userAvatar,
     int? likes,
-    List<Comment>? comentarios,
+    List<Comment>? comments,
     String? relatedItemId,
     String? relatedAchievementId,
     bool? isUserPost,
   }) {
     return CommunityPost(
       id: id ?? this.id,
-      tipo: tipo ?? this.tipo,
-      contenido: contenido ?? this.contenido,
+      type: type ?? this.type,
+      content: content ?? this.content,
       timestamp: timestamp ?? this.timestamp,
-      anonimo: anonimo ?? this.anonimo,
-      usuarioId: usuarioId ?? this.usuarioId,
-      usuarioNombre: usuarioNombre ?? this.usuarioNombre,
-      usuarioAvatar: usuarioAvatar ?? this.usuarioAvatar,
+      anonymous: anonymous ?? this.anonymous,
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      userAvatar: userAvatar ?? this.userAvatar,
       likes: likes ?? this.likes,
-      comentarios: comentarios ?? this.comentarios,
+      comments: comments ?? this.comments,
       relatedItemId: relatedItemId ?? this.relatedItemId,
       relatedAchievementId: relatedAchievementId ?? this.relatedAchievementId,
       isUserPost: isUserPost ?? this.isUserPost,
@@ -1035,15 +1041,15 @@ class CommunityPost {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'tipo': tipo,
-    'contenido': contenido,
+    'type': type,
+    'content': content,
     'timestamp': timestamp.toIso8601String(),
-    'anonimo': anonimo,
-    'usuarioId': usuarioId,
-    'usuarioNombre': usuarioNombre,
-    'usuarioAvatar': usuarioAvatar,
+    'anonymous': anonymous,
+    'userId': userId,
+    'userName': userName,
+    'userAvatar': userAvatar,
     'likes': likes,
-    'comentarios': comentarios.map((c) => c.toJson()).toList(),
+    'comments': comments.map((c) => c.toJson()).toList(),
     'relatedItemId': relatedItemId,
     'relatedAchievementId': relatedAchievementId,
     'isUserPost': isUserPost,
@@ -1051,16 +1057,16 @@ class CommunityPost {
 
   factory CommunityPost.fromJson(Map<String, dynamic> json) => CommunityPost(
     id: json['id'],
-    tipo: json['tipo'],
-    contenido: json['contenido'],
+    type: json['type'] ?? json['tipo'],
+    content: json['content'] ?? json['contenido'],
     timestamp: DateTime.parse(json['timestamp']),
-    anonimo: json['anonimo'] ?? true,
-    usuarioId: json['usuarioId'],
-    usuarioNombre: json['usuarioNombre'],
-    usuarioAvatar: json['usuarioAvatar'],
+    anonymous: json['anonymous'] ?? json['anonimo'] ?? true,
+    userId: json['userId'] ?? json['usuarioId'],
+    userName: json['userName'] ?? json['usuarioNombre'],
+    userAvatar: json['userAvatar'] ?? json['usuarioAvatar'],
     likes: json['likes'] ?? 0,
-    comentarios:
-        (json['comentarios'] as List<dynamic>?)
+    comments:
+        (json['comments'] ?? json['comentarios'] as List<dynamic>?)
             ?.map((c) => Comment.fromJson(c))
             .toList() ??
         [],
@@ -1072,39 +1078,147 @@ class CommunityPost {
 
 class Comment {
   final String id;
-  final String usuarioId;
-  final String usuarioNombre;
-  final String contenido;
+  final String userId;
+  final String userName;
+  final String content;
   final DateTime timestamp;
 
   Comment({
     String? id,
-    required this.usuarioId,
-    required this.usuarioNombre,
-    required this.contenido,
+    required this.userId,
+    required this.userName,
+    required this.content,
     DateTime? timestamp,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
        timestamp = timestamp ?? DateTime.now();
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'usuarioId': usuarioId,
-    'usuarioNombre': usuarioNombre,
-    'contenido': contenido,
+    'userId': userId,
+    'userName': userName,
+    'content': content,
     'timestamp': timestamp.toIso8601String(),
   };
 
   factory Comment.fromJson(Map<String, dynamic> json) => Comment(
     id: json['id'],
-    usuarioId: json['usuarioId'],
-    usuarioNombre: json['usuarioNombre'],
-    contenido: json['contenido'],
-    timestamp: DateTime.parse(json['timestamp']),
+    userId: json['userId'],
+    userName: json['userName'],
+    content: json['content'],
+    timestamp: json['timestamp'] != null
+        ? DateTime.parse(json['timestamp'])
+        : DateTime.now(),
   );
 }
 
 // ============================================
-// NOTE MODEL - Enhanced Notes System
+// POLL MODEL (Community Polls)
+// ============================================
+
+class Poll {
+  final String id;
+  final String question;
+  final List<PollOption> options;
+  final DateTime createdAt;
+  final DateTime? expiresAt;
+  final bool isActive;
+  final int totalVotes;
+  final String? creatorId;
+
+  Poll({
+    String? id,
+    required this.question,
+    required this.options,
+    DateTime? createdAt,
+    this.expiresAt,
+    this.isActive = true,
+    this.totalVotes = 0,
+    this.creatorId,
+  }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+       createdAt = createdAt ?? DateTime.now();
+
+  Poll copyWith({
+    String? id,
+    String? question,
+    List<PollOption>? options,
+    DateTime? createdAt,
+    DateTime? expiresAt,
+    bool? isActive,
+    int? totalVotes,
+    String? creatorId,
+  }) {
+    return Poll(
+      id: id ?? this.id,
+      question: question ?? this.question,
+      options: options ?? this.options,
+      createdAt: createdAt ?? this.createdAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      isActive: isActive ?? this.isActive,
+      totalVotes: totalVotes ?? this.totalVotes,
+      creatorId: creatorId ?? this.creatorId,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'question': question,
+    'options': options.map((o) => o.toJson()).toList(),
+    'createdAt': createdAt.toIso8601String(),
+    'expiresAt': expiresAt?.toIso8601String(),
+    'isActive': isActive,
+    'totalVotes': totalVotes,
+    'creatorId': creatorId,
+  };
+
+  factory Poll.fromJson(Map<String, dynamic> json) => Poll(
+    id: json['id'],
+    question: json['question'],
+    options: (json['options'] as List<dynamic>)
+        .map((o) => PollOption.fromJson(o))
+        .toList(),
+    createdAt: json['createdAt'] != null
+        ? DateTime.parse(json['createdAt'])
+        : DateTime.now(),
+    expiresAt: json['expiresAt'] != null
+        ? DateTime.parse(json['expiresAt'])
+        : null,
+    isActive: json['isActive'] ?? true,
+    totalVotes: json['totalVotes'] ?? 0,
+    creatorId: json['creatorId'],
+  );
+
+  bool get isExpired => expiresAt != null && DateTime.now().isAfter(expiresAt!);
+}
+
+class PollOption {
+  final String id;
+  final String text;
+  final int votes;
+
+  PollOption({String? id, required this.text, this.votes = 0})
+    : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
+
+  PollOption copyWith({String? id, String? text, int? votes}) {
+    return PollOption(
+      id: id ?? this.id,
+      text: text ?? this.text,
+      votes: votes ?? this.votes,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'id': id, 'text': text, 'votes': votes};
+
+  factory PollOption.fromJson(Map<String, dynamic> json) =>
+      PollOption(id: json['id'], text: json['text'], votes: json['votes'] ?? 0);
+
+  double getPercentage(int totalVotes) {
+    if (totalVotes == 0) return 0;
+    return votes / totalVotes;
+  }
+}
+
+// ============================================
+// NOTE MODEL - Enhanced Notes System with Multimedia Support
 // ============================================
 
 class Note {
@@ -1116,6 +1230,9 @@ class Note {
   final bool isPinned;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final NoteType type;
+  final List<NoteAttachment> attachments;
+  final String? voiceNotePath;
 
   Note({
     String? id,
@@ -1126,8 +1243,12 @@ class Note {
     this.isPinned = false,
     DateTime? createdAt,
     DateTime? updatedAt,
+    this.type = NoteType.text,
+    List<NoteAttachment>? attachments,
+    this.voiceNotePath,
   }) : id = id ?? const Uuid().v4(),
        tags = tags ?? [],
+       attachments = attachments ?? [],
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -1140,6 +1261,9 @@ class Note {
     bool? isPinned,
     DateTime? createdAt,
     DateTime? updatedAt,
+    NoteType? type,
+    List<NoteAttachment>? attachments,
+    String? voiceNotePath,
   }) {
     return Note(
       id: id ?? this.id,
@@ -1150,6 +1274,9 @@ class Note {
       isPinned: isPinned ?? this.isPinned,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      type: type ?? this.type,
+      attachments: attachments ?? this.attachments,
+      voiceNotePath: voiceNotePath ?? this.voiceNotePath,
     );
   }
 
@@ -1162,6 +1289,9 @@ class Note {
     'isPinned': isPinned,
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
+    'type': type.name,
+    'attachments': attachments.map((a) => a.toJson()).toList(),
+    'voiceNotePath': voiceNotePath,
   };
 
   factory Note.fromJson(Map<String, dynamic> json) => Note(
@@ -1173,8 +1303,59 @@ class Note {
     isPinned: json['isPinned'] ?? false,
     createdAt: DateTime.parse(json['createdAt']),
     updatedAt: DateTime.parse(json['updatedAt']),
+    type: NoteType.values.firstWhere(
+      (t) => t.name == json['type'],
+      orElse: () => NoteType.text,
+    ),
+    attachments: json['attachments'] != null
+        ? (json['attachments'] as List<dynamic>)
+              .map((a) => NoteAttachment.fromJson(a))
+              .toList()
+        : [],
+    voiceNotePath: json['voiceNotePath'],
+  );
+
+  bool get hasAttachments => attachments.isNotEmpty;
+  bool get hasVoiceNote => voiceNotePath != null && voiceNotePath!.isNotEmpty;
+}
+
+enum NoteType { text, image, voice, mixed }
+
+class NoteAttachment {
+  final String id;
+  final String path;
+  final AttachmentType type;
+  final DateTime createdAt;
+
+  NoteAttachment({
+    String? id,
+    required this.path,
+    required this.type,
+    DateTime? createdAt,
+  }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+       createdAt = createdAt ?? DateTime.now();
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'path': path,
+    'type': type.name,
+    'createdAt': createdAt.toIso8601String(),
+  };
+
+  factory NoteAttachment.fromJson(Map<String, dynamic> json) => NoteAttachment(
+    id: json['id'],
+    path: json['path'],
+    type: AttachmentType.values.firstWhere(
+      (t) => t.name == json['type'],
+      orElse: () => AttachmentType.image,
+    ),
+    createdAt: json['createdAt'] != null
+        ? DateTime.parse(json['createdAt'])
+        : DateTime.now(),
   );
 }
+
+enum AttachmentType { image, file, link }
 
 // ============================================
 // RECOMMENDED RESOURCE MODEL

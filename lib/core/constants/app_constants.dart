@@ -93,17 +93,17 @@ class AppConstants {
   ];
 
   static const List<ContentStatus> statuses = [
-    ContentStatus(id: 'pending', name: 'Por empezar', color: 0xFF9E9E9E),
-    ContentStatus(id: 'in_progress', name: 'En progreso', color: 0xFFFF9800),
-    ContentStatus(id: 'completed', name: 'Completado', color: 0xFF4CAF50),
-    ContentStatus(id: 'paused', name: 'Pausado', color: 0xFF795548),
-    ContentStatus(id: 'archived', name: 'Archivado', color: 0xFF607D8B),
+    ContentStatus(id: 'pending', name: 'Pending', color: 0xFF9E9E9E),
+    ContentStatus(id: 'in_progress', name: 'In Progress', color: 0xFFFF9800),
+    ContentStatus(id: 'completed', name: 'Completed', color: 0xFF4CAF50),
+    ContentStatus(id: 'paused', name: 'Paused', color: 0xFF795548),
+    ContentStatus(id: 'archived', name: 'Archived', color: 0xFF607D8B),
   ];
 
   static const List<Priority> priorities = [
-    Priority(id: 'low', name: 'Baja', color: 0xFF4CAF50),
-    Priority(id: 'medium', name: 'Media', color: 0xFFFF9800),
-    Priority(id: 'high', name: 'Alta', color: 0xFFF44336),
+    Priority(id: 'low', name: 'Low', color: 0xFF4CAF50),
+    Priority(id: 'medium', name: 'Medium', color: 0xFFFF9800),
+    Priority(id: 'high', name: 'High', color: 0xFFF44336),
   ];
 
   static const List<OnboardingStep> onboardingSteps = [

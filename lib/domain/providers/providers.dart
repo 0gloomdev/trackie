@@ -139,9 +139,9 @@ class LearningItemsNotifier extends StateNotifier<List<LearningItem>> {
           .read(notificationsProvider.notifier)
           .addNotification(
             AppNotification(
-              titulo: 'Item Completed!',
-              mensaje: i.title,
-              tipo: 'item',
+              title: 'Item Completed!',
+              message: i.title,
+              type: 'item',
             ),
           );
     }
@@ -333,7 +333,7 @@ class AchievementsNotifier extends StateNotifier<List<Achievement>> {
     _load();
   }
 
-  int get unlockedCount => state.where((a) => a.desbloqueado).length;
+  int get unlockedCount => state.where((a) => a.unlocked).length;
 }
 
 final userProfileProvider =
@@ -592,20 +592,20 @@ class CommunityFeedNotifier extends StateNotifier<List<CommunityPost>> {
     final now = DateTime.now();
     return [
       CommunityPost(
-        tipo: 'item_completed',
-        contenido: 'completed "Flutter Complete Guide"',
+        type: 'item_completed',
+        content: 'completed "Flutter Complete Guide"',
         timestamp: now.subtract(const Duration(hours: 2)),
-        anonimo: false,
-        usuarioNombre: 'Maria G.',
+        anonymous: false,
+        userName: 'Maria G.',
         likes: 12,
         isUserPost: false,
       ),
       CommunityPost(
-        tipo: 'achievement_unlocked',
-        contenido: 'unlocked achievement "Master"',
+        type: 'achievement_unlocked',
+        content: 'unlocked achievement "Master"',
         timestamp: now.subtract(const Duration(hours: 5)),
-        anonimo: false,
-        usuarioNombre: 'Carlos R.',
+        anonymous: false,
+        userName: 'Carlos R.',
         likes: 8,
         isUserPost: false,
       ),
@@ -642,8 +642,8 @@ class CommunityFeedNotifier extends StateNotifier<List<CommunityPost>> {
 
   Future<void> shareItemCompleted(LearningItem item) async {
     final post = CommunityPost(
-      tipo: 'item_completed',
-      contenido: 'completed "${item.title}"',
+      type: 'item_completed',
+      content: 'completed "${item.title}"',
       relatedItemId: item.id,
       isUserPost: true,
     );
@@ -652,8 +652,8 @@ class CommunityFeedNotifier extends StateNotifier<List<CommunityPost>> {
 
   Future<void> shareAchievementUnlocked(Achievement achievement) async {
     final post = CommunityPost(
-      tipo: 'achievement_unlocked',
-      contenido: 'unlocked achievement "${achievement.titulo}"',
+      type: 'achievement_unlocked',
+      content: 'unlocked achievement "${achievement.title}"',
       relatedAchievementId: achievement.id,
       isUserPost: true,
     );
@@ -662,8 +662,8 @@ class CommunityFeedNotifier extends StateNotifier<List<CommunityPost>> {
 
   Future<void> shareStreakMilestone(int streak) async {
     final post = CommunityPost(
-      tipo: 'streak_milestone',
-      contenido: 'reached $streak day streak',
+      type: 'streak_milestone',
+      content: 'reached $streak day streak',
       isUserPost: true,
     );
     await addUserPost(post);
@@ -671,12 +671,90 @@ class CommunityFeedNotifier extends StateNotifier<List<CommunityPost>> {
 
   Future<void> shareLevelUp(int level) async {
     final post = CommunityPost(
-      tipo: 'level_up',
-      contenido: 'reached level $level',
+      type: 'level_up',
+      content: 'reached level $level',
       isUserPost: true,
     );
     await addUserPost(post);
   }
+}
+
+// ============================================
+// POLLS PROVIDER
+// ============================================
+
+final pollsProvider = StateNotifierProvider<PollsNotifier, List<Poll>>(
+  (ref) => PollsNotifier(),
+);
+
+class PollsNotifier extends StateNotifier<List<Poll>> {
+  PollsNotifier() : super(_generateDefaultPolls());
+
+  static List<Poll> _generateDefaultPolls() {
+    final now = DateTime.now();
+    return [
+      Poll(
+        id: 'poll_1',
+        question: 'What study technique works best for you?',
+        options: [
+          PollOption(id: 'opt_1', text: 'Pomodoro (25min)', votes: 45),
+          PollOption(id: 'opt_2', text: 'Deep Work (90min)', votes: 32),
+          PollOption(id: 'opt_3', text: 'Spaced Repetition', votes: 28),
+          PollOption(id: 'opt_4', text: 'Active Recall', votes: 35),
+        ],
+        createdAt: now.subtract(const Duration(days: 2)),
+        expiresAt: now.add(const Duration(days: 5)),
+        totalVotes: 140,
+      ),
+      Poll(
+        id: 'poll_2',
+        question: 'How many items do you aim to complete daily?',
+        options: [
+          PollOption(id: 'opt_5', text: '1-2 items', votes: 22),
+          PollOption(id: 'opt_6', text: '3-5 items', votes: 48),
+          PollOption(id: 'opt_7', text: '5-10 items', votes: 31),
+          PollOption(id: 'opt_8', text: 'As many as possible', votes: 15),
+        ],
+        createdAt: now.subtract(const Duration(days: 1)),
+        expiresAt: now.add(const Duration(days: 6)),
+        totalVotes: 116,
+      ),
+    ];
+  }
+
+  Future<void> vote(String pollId, String optionId) async {
+    state = state.map((poll) {
+      if (poll.id == pollId && poll.isActive && !poll.isExpired) {
+        final updatedOptions = poll.options.map((opt) {
+          if (opt.id == optionId) {
+            return opt.copyWith(votes: opt.votes + 1);
+          }
+          return opt;
+        }).toList();
+        return poll.copyWith(
+          options: updatedOptions,
+          totalVotes: poll.totalVotes + 1,
+        );
+      }
+      return poll;
+    }).toList();
+  }
+
+  Future<void> addPoll(Poll poll) async {
+    state = [poll, ...state];
+  }
+
+  Future<void> closePoll(String pollId) async {
+    state = state.map((poll) {
+      if (poll.id == pollId) {
+        return poll.copyWith(isActive: false);
+      }
+      return poll;
+    }).toList();
+  }
+
+  List<Poll> get activePolls =>
+      state.where((p) => p.isActive && !p.isExpired).toList();
 }
 
 // ============================================
@@ -746,19 +824,19 @@ final notificationsProvider =
 
 class AppNotification {
   final String id;
-  final String titulo;
-  final String mensaje;
-  final String tipo;
+  final String title;
+  final String message;
+  final String type;
   final DateTime timestamp;
-  final bool leida;
+  final bool read;
 
   AppNotification({
     String? id,
-    required this.titulo,
-    required this.mensaje,
-    required this.tipo,
+    required this.title,
+    required this.message,
+    required this.type,
     DateTime? timestamp,
-    this.leida = false,
+    this.read = false,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
        timestamp = timestamp ?? DateTime.now();
 }
@@ -775,11 +853,11 @@ class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
       if (n.id == id) {
         return AppNotification(
           id: n.id,
-          titulo: n.titulo,
-          mensaje: n.mensaje,
-          tipo: n.tipo,
+          title: n.title,
+          message: n.message,
+          type: n.type,
           timestamp: n.timestamp,
-          leida: true,
+          read: true,
         );
       }
       return n;
@@ -791,11 +869,11 @@ class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
         .map(
           (n) => AppNotification(
             id: n.id,
-            titulo: n.titulo,
-            mensaje: n.mensaje,
-            tipo: n.tipo,
+            title: n.title,
+            message: n.message,
+            type: n.type,
             timestamp: n.timestamp,
-            leida: true,
+            read: true,
           ),
         )
         .toList();
@@ -805,7 +883,7 @@ class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
     state = [];
   }
 
-  int get unreadCount => state.where((n) => !n.leida).length;
+  int get unreadCount => state.where((n) => !n.read).length;
 }
 
 // ============================================
@@ -894,21 +972,21 @@ class AchievementChecker {
 
   Future<void> _addXpForUnlock(String achievementId) async {
     final achievements = ref.read(achievementsProvider);
-    final achievement = achievements.firstWhere(
-      (a) => a.id == achievementId,
-      orElse: () =>
-          Achievement(id: '', titulo: '', descripcion: '', icono: '', tipo: ''),
-    );
-    if (achievement.id.isNotEmpty && achievement.xpRecompensa > 0) {
-      ref.read(userProfileProvider.notifier).addXp(achievement.xpRecompensa);
+    Achievement? achievement;
+    try {
+      achievement = achievements.firstWhere((a) => a.id == achievementId);
+    } catch (_) {
+      return;
+    }
+    if (achievement.id.isNotEmpty && achievement.xpReward > 0) {
+      ref.read(userProfileProvider.notifier).addXp(achievement.xpReward);
       ref
           .read(notificationsProvider.notifier)
           .addNotification(
             AppNotification(
-              titulo: 'Achievement Unlocked!',
-              mensaje:
-                  '${achievement.titulo} (+${achievement.xpRecompensa} XP)',
-              tipo: 'achievement',
+              title: 'Achievement Unlocked!',
+              message: '${achievement.title} (+${achievement.xpReward} XP)',
+              type: 'achievement',
             ),
           );
     }
@@ -999,9 +1077,9 @@ class DailyGoalsNotifier extends StateNotifier<List<DailyGoal>> {
           .read(notificationsProvider.notifier)
           .addNotification(
             AppNotification(
-              titulo: 'Daily Goal Reached!',
-              mensaje: 'You have completed your goal for today',
-              tipo: 'goal',
+              title: 'Daily Goal Reached!',
+              message: 'You have completed your goal for today',
+              type: 'goal',
             ),
           );
     }
@@ -1023,9 +1101,9 @@ class DailyGoalsNotifier extends StateNotifier<List<DailyGoal>> {
           .read(notificationsProvider.notifier)
           .addNotification(
             AppNotification(
-              titulo: 'Daily Goal Reached!',
-              mensaje: 'You have completed your goal for today',
-              tipo: 'goal',
+              title: 'Daily Goal Reached!',
+              message: 'You have completed your goal for today',
+              type: 'goal',
             ),
           );
     }
@@ -1145,8 +1223,184 @@ final analyticsProvider = Provider<Analytics>((ref) {
     completionRate: items.isEmpty
         ? 0.0
         : items.where((i) => i.status == 'completed').length / items.length,
+    totalSessionsMinutes: _calculateTotalSessionsMinutes(completedPomodoro),
+    averageSessionMinutes: _calculateAverageSessionMinutes(completedPomodoro),
+    peakHour: _calculatePeakHour(completedPomodoro),
+    productivityByHour: _calculateProductivityByHour(completedPomodoro),
+    completionsByDayOfWeek: _calculateCompletionsByDayOfWeek(items),
+    weekOverWeekGrowth: _calculateWeekOverWeekGrowth(items),
+    monthOverMonthGrowth: _calculateMonthOverMonthGrowth(items),
+    activeDaysStreak: _calculateActiveDaysStreak(items),
+    focusScore: _calculateFocusScore(todayMinutes, weekMinutes),
+    consistencyScore: _calculateConsistencyScore(items),
   );
 });
+
+int _calculateTotalSessionsMinutes(List<PomodoroSession> sessions) {
+  return sessions.fold(0, (sum, s) => sum + s.durationMinutes);
+}
+
+double _calculateAverageSessionMinutes(List<PomodoroSession> sessions) {
+  if (sessions.isEmpty) return 0;
+  return sessions.fold(0, (sum, s) => sum + s.durationMinutes) /
+      sessions.length;
+}
+
+int _calculatePeakHour(List<PomodoroSession> sessions) {
+  if (sessions.isEmpty) return 12;
+  final hourCounts = <int, int>{};
+  for (final s in sessions) {
+    final hour = s.startTime.hour;
+    hourCounts[hour] = (hourCounts[hour] ?? 0) + 1;
+  }
+  return hourCounts.entries
+      .fold<MapEntry<int, int>>(
+        MapEntry(0, 0),
+        (max, e) => e.value > max.value ? e : max,
+      )
+      .key;
+}
+
+Map<String, double> _calculateProductivityByHour(
+  List<PomodoroSession> sessions,
+) {
+  final hourMinutes = <int, List<int>>{};
+  for (final s in sessions) {
+    final hour = s.startTime.hour;
+    hourMinutes.putIfAbsent(hour, () => []).add(s.durationMinutes);
+  }
+  final result = <String, double>{};
+  final hourLabels = [
+    '6AM',
+    '7AM',
+    '8AM',
+    '9AM',
+    '10AM',
+    '11AM',
+    '12PM',
+    '1PM',
+    '2PM',
+    '3PM',
+    '4PM',
+    '5PM',
+    '6PM',
+    '7PM',
+    '8PM',
+    '9PM',
+    '10PM',
+    '11PM',
+  ];
+  for (int i = 6; i <= 23; i++) {
+    final hours = hourMinutes[i] ?? [];
+    final avg = hours.isEmpty
+        ? 0.0
+        : hours.reduce((a, b) => a + b) / hours.length;
+    final label = i - 6 < hourLabels.length ? hourLabels[i - 6] : '$i';
+    result[label] = avg;
+  }
+  return result;
+}
+
+Map<String, int> _calculateCompletionsByDayOfWeek(List<LearningItem> items) {
+  final dayCounts = <int, int>{};
+  final dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  for (final item in items) {
+    final day = item.updatedAt.weekday - 1;
+    dayCounts[day] = (dayCounts[day] ?? 0) + 1;
+  }
+  return {for (int i = 0; i < 7; i++) dayLabels[i]: dayCounts[i] ?? 0};
+}
+
+double _calculateWeekOverWeekGrowth(List<LearningItem> items) {
+  final now = DateTime.now();
+  final weekStart = now.subtract(const Duration(days: 7));
+  final twoWeeksAgo = now.subtract(const Duration(days: 14));
+  final thisWeek = items
+      .where((i) => i.status == 'completed' && i.updatedAt.isAfter(weekStart))
+      .length;
+  final lastWeek = items
+      .where(
+        (i) =>
+            i.status == 'completed' &&
+            i.updatedAt.isAfter(twoWeeksAgo) &&
+            i.updatedAt.isBefore(weekStart),
+      )
+      .length;
+  if (lastWeek == 0) return thisWeek > 0 ? 100.0 : 0.0;
+  return ((thisWeek - lastWeek) / lastWeek) * 100;
+}
+
+double _calculateMonthOverMonthGrowth(List<LearningItem> items) {
+  final now = DateTime.now();
+  final monthStart = DateTime(now.year, now.month - 1, now.day);
+  final twoMonthsAgo = DateTime(now.year, now.month - 2, now.day);
+  final thisMonth = items
+      .where((i) => i.status == 'completed' && i.updatedAt.isAfter(monthStart))
+      .length;
+  final lastMonth = items
+      .where(
+        (i) =>
+            i.status == 'completed' &&
+            i.updatedAt.isAfter(twoMonthsAgo) &&
+            i.updatedAt.isBefore(monthStart),
+      )
+      .length;
+  if (lastMonth == 0) return thisMonth > 0 ? 100.0 : 0.0;
+  return ((thisMonth - lastMonth) / lastMonth) * 100;
+}
+
+int _calculateActiveDaysStreak(List<LearningItem> items) {
+  final completedItems = items.where((i) => i.status == 'completed').toList()
+    ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+  if (completedItems.isEmpty) return 0;
+
+  int streak = 0;
+  DateTime? lastDate;
+  for (final item in completedItems) {
+    final itemDate = DateTime(
+      item.updatedAt.year,
+      item.updatedAt.month,
+      item.updatedAt.day,
+    );
+    if (lastDate == null) {
+      streak = 1;
+      lastDate = itemDate;
+    } else {
+      final diff = lastDate.difference(itemDate).inDays;
+      if (diff == 1) {
+        streak++;
+        lastDate = itemDate;
+      } else if (diff > 1) {
+        break;
+      }
+    }
+  }
+  return streak;
+}
+
+double _calculateFocusScore(int todayMinutes, int weekMinutes) {
+  if (weekMinutes == 0) return 0;
+  final dailyAvg = weekMinutes / 7;
+  if (dailyAvg >= 60) return 1.0;
+  if (dailyAvg >= 45) return 0.8;
+  if (dailyAvg >= 30) return 0.6;
+  if (dailyAvg >= 15) return 0.4;
+  return 0.2;
+}
+
+double _calculateConsistencyScore(List<LearningItem> items) {
+  final now = DateTime.now();
+  final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+  final activeDays = <DateTime>{};
+  for (final item in items.where((i) => i.updatedAt.isAfter(thirtyDaysAgo))) {
+    activeDays.add(
+      DateTime(item.updatedAt.year, item.updatedAt.month, item.updatedAt.day),
+    );
+  }
+  if (activeDays.isEmpty) return 0;
+  final score = activeDays.length / 30;
+  return score.clamp(0.0, 1.0);
+}
 
 List<DailyActivity> _generateWeeklyActivity(List<LearningItem> items) {
   final now = DateTime.now();
@@ -1204,6 +1458,16 @@ class Analytics {
   final List<DailyActivity> monthlyActivity;
   final Map<String, int> itemsByType;
   final double completionRate;
+  final int totalSessionsMinutes;
+  final double averageSessionMinutes;
+  final int peakHour;
+  final Map<String, double> productivityByHour;
+  final Map<String, int> completionsByDayOfWeek;
+  final double weekOverWeekGrowth;
+  final double monthOverMonthGrowth;
+  final int activeDaysStreak;
+  final double focusScore;
+  final double consistencyScore;
 
   Analytics({
     required this.totalItems,
@@ -1221,6 +1485,16 @@ class Analytics {
     required this.monthlyActivity,
     required this.itemsByType,
     required this.completionRate,
+    this.totalSessionsMinutes = 0,
+    this.averageSessionMinutes = 0,
+    this.peakHour = 0,
+    this.productivityByHour = const {},
+    this.completionsByDayOfWeek = const {},
+    this.weekOverWeekGrowth = 0,
+    this.monthOverMonthGrowth = 0,
+    this.activeDaysStreak = 0,
+    this.focusScore = 0,
+    this.consistencyScore = 0,
   });
 }
 
@@ -1309,6 +1583,13 @@ class NotesNotifier extends StateNotifier<List<Note>> {
     }
   }
 
+  Future<void> deleteAll() async {
+    for (final note in state) {
+      await _repo.delete(note.id);
+    }
+    _load();
+  }
+
   List<Note> getByItemId(String itemId) {
     return state.where((n) => n.itemId == itemId).toList();
   }
@@ -1368,6 +1649,13 @@ class RemindersNotifier extends StateNotifier<List<Reminder>> {
 
   List<Reminder> getDue() {
     return state.where((r) => r.isDue).toList();
+  }
+
+  Future<void> deleteAll() async {
+    for (final reminder in state) {
+      await _repo.delete(reminder.id);
+    }
+    _load();
   }
 }
 

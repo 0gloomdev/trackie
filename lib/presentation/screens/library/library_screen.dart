@@ -1,736 +1,748 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:file_picker/file_picker.dart';
-import '../../../core/constants/app_constants.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/shadcn_widgets.dart';
 import '../../../data/models/models.dart';
 import '../../../domain/providers/providers.dart';
-import '../viewer/content_viewer.dart';
+import '../../../domain/providers/customization_provider.dart';
+import '../editor/editor_screen.dart';
 import '../detail/item_detail_screen.dart';
 
-class LibraryTab extends ConsumerWidget {
+class LibraryTab extends ConsumerStatefulWidget {
   const LibraryTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LibraryTab> createState() => _LibraryTabState();
+}
+
+class _LibraryTabState extends ConsumerState<LibraryTab> {
+  String _activeFilter = 'All';
+
+  @override
+  Widget build(BuildContext context) {
     final items = ref.watch(filteredItemsProvider);
-    final filter = ref.watch(filterProvider);
-    final categories = ref.watch(categoriesProvider);
-    final settings = ref.watch(settingsProvider);
+    final customization = ref.watch(customizationProvider);
+    final courses = items.where((i) => i.type == 'course').toList();
+    final books = items.where((i) => i.type == 'book').toList();
+    final videos = items.where((i) => i.type == 'video').toList();
+    final articles = items.where((i) => i.type == 'article').toList();
+    final pdfs = items.where((i) => i.type == 'pdf').toList();
+
+    List<LearningItem> filteredItems;
+    switch (_activeFilter) {
+      case 'Books':
+        filteredItems = books;
+        break;
+      case 'Videos':
+        filteredItems = videos;
+        break;
+      case 'Articles':
+        filteredItems = articles;
+        break;
+      case 'PDFs':
+        filteredItems = pdfs;
+        break;
+      case 'Courses':
+        filteredItems = courses;
+        break;
+      default:
+        filteredItems = items;
+    }
+
+    final effectivePadding = customization.compactMode ? 16.0 : 48.0;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar.large(
-            title: const Text('Biblioteca'),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  settings.defaultView == 'grid'
-                      ? Icons.view_list
-                      : Icons.grid_view,
-                ),
-                onPressed: () =>
-                    ref.read(settingsProvider.notifier).toggleViewMode(),
-              ),
-              IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: () => _showSearch(context, ref),
-              ),
-            ],
-          ),
-
-          // Categories filter
-          if (categories.isNotEmpty)
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 50,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    _CategoryChip(
-                      label: 'Todos',
-                      selected: filter.categoryId == null,
-                      color: null,
-                      onTap: () => ref.read(filterProvider.notifier).state =
-                          filter.copyWith(clearCategoryId: true),
-                    ),
-                    const SizedBox(width: 8),
-                    ...categories.map(
-                      (c) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: _CategoryChip(
-                          label: c.name,
-                          selected: filter.categoryId == c.id,
-                          color: Color(c.color),
-                          onTap: () => ref.read(filterProvider.notifier).state =
-                              filter.copyWith(categoryId: c.id),
+      backgroundColor: AppColors.surfaceContainerLowest,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(effectivePadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Universe Library',
+                        style: AppTypography.heroTitle.copyWith(
+                          color: AppColors.primary,
+                          fontSize: 64,
                         ),
+                      ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 12,
+                        children: [
+                          _FilterChip(
+                            label: 'All',
+                            isActive: _activeFilter == 'All',
+                            onTap: () => setState(() => _activeFilter = 'All'),
+                          ),
+                          _FilterChip(
+                            label: 'Books',
+                            isActive: _activeFilter == 'Books',
+                            onTap: () =>
+                                setState(() => _activeFilter = 'Books'),
+                          ),
+                          _FilterChip(
+                            label: 'Videos',
+                            isActive: _activeFilter == 'Videos',
+                            onTap: () =>
+                                setState(() => _activeFilter = 'Videos'),
+                          ),
+                          _FilterChip(
+                            label: 'Articles',
+                            isActive: _activeFilter == 'Articles',
+                            onTap: () =>
+                                setState(() => _activeFilter = 'Articles'),
+                          ),
+                          _FilterChip(
+                            label: 'PDFs',
+                            isActive: _activeFilter == 'PDFs',
+                            onTap: () => setState(() => _activeFilter = 'PDFs'),
+                          ),
+                          _FilterChip(
+                            label: 'Courses',
+                            isActive: _activeFilter == 'Courses',
+                            onTap: () =>
+                                setState(() => _activeFilter = 'Courses'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    const Icon(Icons.search, color: AppColors.onSurfaceVariant),
+                    const SizedBox(width: 24),
+                    ShadcnCard(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      borderRadius: 16,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: AppColors.brandGradient,
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'U',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: AppColors.onSurfaceVariant,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 64),
+            // Bento Grid Layout
+            if (filteredItems.isNotEmpty) ...[
+              SizedBox(
+                height: 700,
+                child: Row(
+                  children: [
+                    // Large Hero Card (8 cols)
+                    Expanded(
+                      flex: 8,
+                      child: _HeroCard(item: filteredItems.first),
+                    ),
+                    const SizedBox(width: 32),
+                    // Right Column (4 cols)
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        children: [
+                          // Medium Video Card
+                          Expanded(
+                            child: _VideoCard(
+                              item: filteredItems.length > 1
+                                  ? filteredItems[1]
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          // Small Cards Cluster
+                          Expanded(
+                            child: _SmallCardsGrid(
+                              items: filteredItems.length > 2
+                                  ? filteredItems.sublist(2)
+                                  : [],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-
-          // Type filters
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 50,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _TypeChip(
-                    label: 'Todos',
-                    selected: filter.type == null,
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.copyWith(clearType: true),
-                  ),
-                  const SizedBox(width: 8),
-                  ...['course', 'book', 'pdf', 'video', 'audio', 'article'].map(
-                    (type) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _TypeChip(
-                        label: _getTypeLabel(type),
-                        selected: filter.type == type,
-                        onTap: () => ref.read(filterProvider.notifier).state =
-                            filter.copyWith(type: type),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Status filters
-          SliverToBoxAdapter(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  _StatusChip(
-                    label: 'Todos',
-                    selected: filter.status == null,
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.copyWith(clearStatus: true),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'Pendiente',
-                    selected: filter.status == 'pending',
-                    color: Colors.grey,
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.copyWith(status: 'pending'),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'En progreso',
-                    selected: filter.status == 'in_progress',
-                    color: Colors.orange,
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.copyWith(status: 'in_progress'),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'Completado',
-                    selected: filter.status == 'completed',
-                    color: Colors.green,
-                    onTap: () => ref.read(filterProvider.notifier).state =
-                        filter.copyWith(status: 'completed'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-          // Items count
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                '${items.length} elementos',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
-          // Items
-          items.isEmpty
-              ? SliverFillRemaining(child: _EmptyLibrary())
-              : settings.defaultView == 'grid'
-              ? _buildGridView(items)
-              : _buildListView(items),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddDialog(context, ref),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  Widget _buildGridView(List<LearningItem> items) {
-    return SliverPadding(
-      padding: const EdgeInsets.all(16),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.85,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => _GridItem(item: items[index]),
-          childCount: items.length,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildListView(List<LearningItem> items) {
-    return SliverPadding(
-      padding: const EdgeInsets.all(16),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => _ListItem(item: items[index]),
-          childCount: items.length,
-        ),
-      ),
-    );
-  }
-
-  String _getTypeLabel(String type) {
-    switch (type) {
-      case 'course':
-        return 'Cursos';
-      case 'book':
-        return 'Libros';
-      case 'pdf':
-        return 'PDFs';
-      case 'video':
-        return 'Videos';
-      case 'audio':
-        return 'Audio';
-      case 'article':
-        return 'Artículos';
-      default:
-        return type;
-    }
-  }
-
-  void _showSearch(BuildContext context, WidgetRef ref) {
-    showSearch(
-      context: context,
-      delegate: _ItemSearch(ref: ref),
-    );
-  }
-
-  void _showAddDialog(BuildContext context, WidgetRef ref) {
-    final titleController = TextEditingController();
-    String selectedType = 'course';
-    String? selectedPath;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: StatefulBuilder(
-          builder: (ctx, setState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Nuevo elemento',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              GestureDetector(
-                onTap: () async {
-                  final result = await FilePicker.platform.pickFiles(
-                    type: FileType.custom,
-                    allowedExtensions: [
-                      'pdf',
-                      'mp4',
-                      'mp3',
-                      'wav',
-                      'epub',
-                      'mobi',
-                    ],
-                  );
-                  if (result != null && result.files.single.path != null) {
-                    setState(() => selectedPath = result.files.single.path!);
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.folder_open,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          selectedPath ?? 'Seleccionar archivo local',
-                          style: TextStyle(
-                            color: selectedPath == null
-                                ? Theme.of(context).colorScheme.onSurfaceVariant
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Título',
-                  hintText: 'Nombre del recurso',
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              Text('Tipo', style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 8),
-
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _TypeButton(
-                    type: 'course',
-                    label: 'Curso',
-                    icon: Icons.play_circle,
-                    selected: selectedType,
-                    onTap: () => setState(() => selectedType = 'course'),
-                  ),
-                  _TypeButton(
-                    type: 'book',
-                    label: 'Libro',
-                    icon: Icons.menu_book,
-                    selected: selectedType,
-                    onTap: () => setState(() => selectedType = 'book'),
-                  ),
-                  _TypeButton(
-                    type: 'pdf',
-                    label: 'PDF',
-                    icon: Icons.picture_as_pdf,
-                    selected: selectedType,
-                    onTap: () => setState(() => selectedType = 'pdf'),
-                  ),
-                  _TypeButton(
-                    type: 'video',
-                    label: 'Video',
-                    icon: Icons.video_library,
-                    selected: selectedType,
-                    onTap: () => setState(() => selectedType = 'video'),
-                  ),
-                  _TypeButton(
-                    type: 'audio',
-                    label: 'Audio',
-                    icon: Icons.headphones,
-                    selected: selectedType,
-                    onTap: () => setState(() => selectedType = 'audio'),
-                  ),
-                  _TypeButton(
-                    type: 'article',
-                    label: 'Artículo',
-                    icon: Icons.article,
-                    selected: selectedType,
-                    onTap: () => setState(() => selectedType = 'article'),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    if (titleController.text.trim().isEmpty) return;
-
-                    String finalType = selectedType;
-                    if (selectedPath != null) {
-                      final ext = selectedPath!.split('.').last.toLowerCase();
-                      if (ext == 'pdf')
-                        finalType = 'pdf';
-                      else if (['mp4', 'mov', 'avi', 'mkv'].contains(ext))
-                        finalType = 'video';
-                      else if (['mp3', 'wav', 'aac', 'm4a'].contains(ext))
-                        finalType = 'audio';
-                      else if (['epub', 'mobi'].contains(ext))
-                        finalType = 'book';
-                    }
-
-                    ref
-                        .read(learningItemsProvider.notifier)
-                        .add(
-                          LearningItem(
-                            title: titleController.text.trim(),
-                            type: finalType,
-                            localPath: selectedPath,
-                          ),
-                        );
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Agregar'),
-                ),
-              ),
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final Color? color;
-  final VoidCallback onTap;
-
-  const _CategoryChip({
-    required this.label,
-    required this.selected,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected
-              ? (color ?? Theme.of(context).colorScheme.primary)
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (color != null) ...[
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                color: selected
-                    ? Colors.white
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
-              ),
-            ),
+            ] else
+              const _EmptyState(),
+            const SizedBox(height: 100),
           ],
         ),
       ),
+      floatingActionButton: _Fab(),
     );
   }
 }
 
-class _TypeChip extends StatelessWidget {
+class _FilterChip extends StatelessWidget {
   final String label;
-  final bool selected;
+  final bool isActive;
   final VoidCallback onTap;
 
-  const _TypeChip({
+  const _FilterChip({
     required this.label,
-    required this.selected,
+    required this.isActive,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected
-                ? Colors.white
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final Color? color;
-  final VoidCallback onTap;
-
-  const _StatusChip({
-    required this.label,
-    required this.selected,
-    this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = color ?? Theme.of(context).colorScheme.primary;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? c.withValues(alpha: 0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: selected
-                ? c
-                : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected
-                ? c
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-            fontSize: 12,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TypeButton extends StatelessWidget {
-  final String type;
-  final String label;
-  final IconData icon;
-  final String selected;
-  final VoidCallback onTap;
-
-  const _TypeButton({
-    required this.type,
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = type == selected;
-    final typeData = AppConstants.contentTypes.firstWhere(
-      (t) => t.id == type,
-      orElse: () => AppConstants.contentTypes.first,
-    );
-    final color = Color(typeData.color);
-
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? color.withValues(alpha: 0.2)
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-          border: isSelected ? Border.all(color: color, width: 2) : null,
+          color: isActive
+              ? AppColors.secondaryContainer
+              : AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(999),
+          border: isActive
+              ? null
+              : Border.all(color: Colors.white.withAlpha(13)),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppColors.secondary.withAlpha(102),
+                    blurRadius: 25,
+                    offset: const Offset(0, -5),
+                  ),
+                ]
+              : null,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isSelected
-                  ? color
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected
-                    ? color
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
-              ),
-            ),
-          ],
+        child: Text(
+          label,
+          style: AppTypography.label.copyWith(
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            color: isActive
+                ? AppColors.onSecondaryContainer
+                : AppColors.onSurfaceVariant,
+          ),
         ),
       ),
     );
   }
 }
 
-class _EmptyLibrary extends StatelessWidget {
+class _HeroCard extends StatelessWidget {
+  final LearningItem item;
+
+  const _HeroCard({required this.item});
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return ShadcnCard(
+      padding: const EdgeInsets.all(40),
+      borderRadius: 40,
+      hoverEffect: true,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Icon(
-            Icons.library_books_outlined,
-            size: 80,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Biblioteca vacía',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Agrega tu primer contenido',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+          // Background decoration
+          Positioned(
+            top: 32,
+            right: 32,
+            child: Transform.rotate(
+              angle: 0.2,
+              child: Icon(
+                Icons.auto_stories,
+                size: 64,
+                color: AppColors.primary.withAlpha(102),
+              ),
             ),
+          ),
+          Positioned(
+            bottom: -80,
+            right: -80,
+            child: Container(
+              width: 320,
+              height: 320,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withAlpha(26),
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withAlpha(26),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: AppColors.primary.withAlpha(51),
+                      ),
+                    ),
+                    child: Text(
+                      'Active Journey',
+                      style: AppTypography.typeBadge.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    item.title,
+                    style: AppTypography.pageTitle.copyWith(fontSize: 36),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    item.description?.isNotEmpty == true
+                        ? item.description!
+                        : 'Master the principles and advance your knowledge.',
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Progress: Orbital Insertion',
+                        style: AppTypography.typeBadge.copyWith(
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                      Text(
+                        '${item.progress}%',
+                        style: AppTypography.typeBadge.copyWith(
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Container(
+                            width: constraints.maxWidth * (item.progress / 100),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary,
+                              borderRadius: BorderRadius.circular(999),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.secondary.withAlpha(102),
+                                  blurRadius: 25,
+                                  offset: const Offset(0, -5),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ItemDetailScreen(itemId: item.id),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.onPrimaryContainer,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Resume Journey',
+                          style: AppTypography.label.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ItemDetailScreen(itemId: item.id),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Review Logbook',
+                              style: AppTypography.label.copyWith(
+                                color: AppColors.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_forward,
+                              size: 16,
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
+    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1);
+  }
+}
+
+class _VideoCard extends StatelessWidget {
+  final LearningItem? item;
+
+  const _VideoCard({this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return ShadcnCard(
+      padding: const EdgeInsets.all(32),
+      borderRadius: 40,
+      hoverEffect: true,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Background image area
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.secondary.withAlpha(26),
+                    AppColors.surfaceContainer.withAlpha(153),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.play_circle,
+                  size: 64,
+                  color: Colors.white.withAlpha(153),
+                ),
+              ),
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(26),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.play_circle,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(26),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '24:12',
+                      style: AppTypography.typeBadge.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item?.title ?? 'Neural Networks in Zero Gravity',
+                    style: AppTypography.cardTitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Lecture by Dr. Aris Thorne',
+                    style: AppTypography.caption,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.1);
+  }
+}
+
+class _SmallCardsGrid extends StatelessWidget {
+  final List<LearningItem> items;
+
+  const _SmallCardsGrid({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 2,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        _SmallCard(
+          icon: Icons.picture_as_pdf,
+          iconColor: AppColors.tertiary,
+          title: items.isNotEmpty ? items[0].title : 'Deep Learning PDF',
+          subtitle: 'Unread',
+          showDot: true,
+        ),
+        _SmallCard(
+          icon: Icons.history_edu,
+          iconColor: AppColors.secondary,
+          title: items.length > 1 ? items[1].title : 'The Martian Logbook',
+          subtitle: '88%',
+          showProgress: true,
+          progress: 0.88,
+        ),
+        _SmallCard(
+          icon: Icons.inventory_2,
+          iconColor: AppColors.onSurfaceVariant,
+          title: items.length > 2 ? items[2].title : 'Ether Protocols',
+          subtitle: 'Archived',
+          opacity: 0.6,
+        ),
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const EditorScreen(),
+              fullscreenDialog: true,
+            ),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.white.withAlpha(13),
+                width: 2,
+                style: BorderStyle.solid,
+              ),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add_circle,
+                  color: AppColors.onSurfaceVariant.withAlpha(153),
+                  size: 24,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Import Data',
+                  style: AppTypography.typeBadge.copyWith(
+                    color: AppColors.onSurfaceVariant.withAlpha(153),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _GridItem extends StatelessWidget {
-  final LearningItem item;
-  const _GridItem({required this.item});
+class _SmallCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final bool showDot;
+  final bool showProgress;
+  final double progress;
+  final double opacity;
+
+  const _SmallCard({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    this.showDot = false,
+    this.showProgress = false,
+    this.progress = 0,
+    this.opacity = 1.0,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final typeData = AppConstants.contentTypes.firstWhere(
-      (t) => t.id == item.type,
-      orElse: () => AppConstants.contentTypes.first,
-    );
-    final color = Color(typeData.color);
-
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ItemDetailScreen(itemId: item.id)),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(
-            context,
-          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(20),
-        ),
+    return ShadcnCard(
+      padding: const EdgeInsets.all(20),
+      borderRadius: 24,
+      hoverEffect: true,
+      child: Opacity(
+        opacity: opacity,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(_getIcon(item.type), color: color),
-            ),
-            const Spacer(),
-            Text(
-              item.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: item.progress / 100,
-                minHeight: 4,
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '${item.progress}%',
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                Icon(icon, color: iconColor, size: 20),
+                if (showDot)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.secondary,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.secondary.withAlpha(102),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
                   ),
+                if (showProgress)
+                  Text(
+                    subtitle,
+                    style: AppTypography.typeBadge.copyWith(
+                      color: AppColors.secondary,
+                      fontSize: 9,
+                    ),
+                  ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                if (item.isFavorite)
-                  Icon(Icons.favorite, size: 16, color: Colors.red),
+                if (showProgress) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(26),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        width: double.infinity * progress,
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else
+                  Text(
+                    subtitle,
+                    style: AppTypography.typeBadge.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 9,
+                    ),
+                  ),
               ],
             ),
           ],
@@ -738,176 +750,70 @@ class _GridItem extends StatelessWidget {
       ),
     );
   }
-
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'course':
-        return Icons.play_circle;
-      case 'book':
-        return Icons.menu_book;
-      case 'pdf':
-        return Icons.picture_as_pdf;
-      case 'video':
-        return Icons.video_library;
-      case 'audio':
-        return Icons.headphones;
-      case 'article':
-        return Icons.article;
-      default:
-        return Icons.library_books;
-    }
-  }
 }
 
-class _ListItem extends StatelessWidget {
-  final LearningItem item;
-  const _ListItem({required this.item});
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
 
   @override
   Widget build(BuildContext context) {
-    final typeData = AppConstants.contentTypes.firstWhere(
-      (t) => t.id == item.type,
-      orElse: () => AppConstants.contentTypes.first,
-    );
-    final color = Color(typeData.color);
-
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ItemDetailScreen(itemId: item.id)),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(26),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.local_library,
+              size: 40,
+              color: AppColors.primary.withAlpha(128),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text('No items found', style: AppTypography.sectionTitle),
+          const SizedBox(height: 8),
+          Text('Start by adding your first link', style: AppTypography.body),
+        ],
       ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(
-            context,
-          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(_getIcon(item.type), color: color),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                      if (item.isFavorite)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 8),
-                          child: Icon(
-                            Icons.favorite,
-                            size: 16,
-                            color: Colors.red,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: item.progress / 100,
-                      minHeight: 6,
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      color: color,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              '${item.progress}%',
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'course':
-        return Icons.play_circle;
-      case 'book':
-        return Icons.menu_book;
-      case 'pdf':
-        return Icons.picture_as_pdf;
-      case 'video':
-        return Icons.video_library;
-      case 'audio':
-        return Icons.headphones;
-      case 'article':
-        return Icons.article;
-      default:
-        return Icons.library_books;
-    }
+    ).animate().fadeIn();
   }
 }
 
-class _ItemSearch extends SearchDelegate<LearningItem?> {
-  final WidgetRef ref;
-
-  _ItemSearch({required this.ref});
-
+class _Fab extends StatelessWidget {
   @override
-  List<Widget>? buildActions(BuildContext context) => [
-    IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
-  ];
-
-  @override
-  Widget? buildLeading(BuildContext context) => IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () => close(context, null),
-  );
-
-  @override
-  Widget buildResults(BuildContext context) => _buildSearchResults();
-
-  @override
-  Widget buildSuggestions(BuildContext context) => _buildSearchResults();
-
-  Widget _buildSearchResults() {
-    final items = ref.watch(learningItemsProvider);
-    final results = items
-        .where((i) => i.title.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-
-    if (results.isEmpty) {
-      return Center(child: Text('No se encontraron resultados'));
-    }
-
-    return ListView.builder(
-      itemCount: results.length,
-      itemBuilder: (context, index) => ListTile(
-        leading: CircleAvatar(
-          child: Text(results[index].type[0].toUpperCase()),
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const EditorScreen(),
+          fullscreenDialog: true,
         ),
-        title: Text(results[index].title),
-        subtitle: Text('${results[index].progress}%'),
-        onTap: () => close(context, results[index]),
+      ),
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withAlpha(51),
+              blurRadius: 30,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.add,
+          color: AppColors.onPrimaryContainer,
+          size: 32,
+        ),
       ),
     );
   }

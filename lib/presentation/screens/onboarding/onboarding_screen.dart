@@ -70,7 +70,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         icon: Icons.emoji_events,
                         title: 'Earn achievements',
                         description:
-                            'Completa tareas y desbloquea logros mientras aprendes.',
+                            'Complete tasks and unlock achievements as you learn.',
                         color: Colors.amber,
                       ),
                     ],

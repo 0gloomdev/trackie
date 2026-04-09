@@ -2,279 +2,215 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // ============================================
-  // LIQUID NEBULA DESIGN SYSTEM
-  // FASE 1: Glass Components & Neon Glows
+  // LIQUID NEBULA DESIGN SYSTEM - HTML SPEC
   // ============================================
 
   // ============================================
-  // SHADCN DESIGN TOKENS (New UI) - Updated to HTML Specs
+  // CORE SURFACE COLORS (HTML Spec)
   // ============================================
 
-  // Background
+  static const Color surface = Color(0xFF0b1325);
+  static const Color surfaceDim = Color(0xFF0b1325);
+  static const Color surfaceBright = Color(0xFF31394d);
+  static const Color surfaceContainer = Color(0xFF171f32);
+  static const Color surfaceContainerLow = Color(0xFF131b2e);
+  static const Color surfaceContainerHigh = Color(0xFF222a3d);
+  static const Color surfaceContainerHighest = Color(0xFF2d3448);
+  static const Color surfaceContainerLowest = Color(0xFF060e20);
+  static const Color surfaceVariant = Color(0xFF2d3448);
+  static const Color surfaceTint = Color(0xFFd0bcff);
+
+  // ============================================
+  // PRIMARY PALETTE (HTML Spec: #d3bfff)
+  // ============================================
+
+  static const Color primary = Color(0xFFd3bfff);
+  static const Color primaryDim = Color(0xFFc4abff);
+  static const Color primaryContainer = Color(0xFFba9eff);
+  static const Color onPrimary = Color(0xFF391b77);
+  static const Color onPrimaryContainer = Color(0xFF4b2f89);
+  static const Color primaryFixed = Color(0xFFe9ddff);
+  static const Color primaryFixedDim = Color(0xFFd0bcff);
+  static const Color onPrimaryFixed = Color(0xFF23005c);
+  static const Color onPrimaryFixedVariant = Color(0xFF50358f);
+
+  // ============================================
+  // SECONDARY PALETTE (HTML Spec: #5ce6ff)
+  // ============================================
+
+  static const Color secondary = Color(0xFF5ce6ff);
+  static const Color secondaryDim = Color(0xFF2fd9f4);
+  static const Color secondaryContainer = Color(0xFF00cbe5);
+  static const Color onSecondary = Color(0xFF00363e);
+  static const Color onSecondaryContainer = Color(0xFF00515d);
+  static const Color secondaryFixed = Color(0xFFa2eeff);
+  static const Color secondaryFixedDim = Color(0xFF2fd9f4);
+  static const Color onSecondaryFixed = Color(0xFF001f25);
+  static const Color onSecondaryFixedVariant = Color(0xFF004e5a);
+
+  // ============================================
+  // TERTIARY PALETTE (HTML Spec: #ffb5c8)
+  // ============================================
+
+  static const Color tertiary = Color(0xFFffb5c8);
+  static const Color tertiaryDim = Color(0xFFf0779d);
+  static const Color tertiaryContainer = Color(0xFFf58fad);
+  static const Color onTertiary = Color(0xFF5c1330);
+  static const Color onTertiaryContainer = Color(0xFF722541);
+  static const Color tertiaryFixed = Color(0xFFffd9e1);
+  static const Color tertiaryFixedDim = Color(0xFFffb1c5);
+  static const Color onTertiaryFixed = Color(0xFF3f001b);
+  static const Color onTertiaryFixedVariant = Color(0xFF792b46);
+
+  // ============================================
+  // NEUTRAL / TEXT
+  // ============================================
+
+  static const Color onSurface = Color(0xFFdae2fc);
+  static const Color onSurfaceVariant = Color(0xFFcbc4d3);
+  static const Color onBackground = Color(0xFFdae2fc);
+  static const Color inverseSurface = Color(0xFFdae2fc);
+  static const Color inverseOnSurface = Color(0xFF283044);
+  static const Color inversePrimary = Color(0xFF684ea8);
+
+  // ============================================
+  // OUTLINE
+  // ============================================
+
+  static const Color outline = Color(0xFF948e9c);
+  static const Color outlineVariant = Color(0xFF494551);
+
+  // ============================================
+  // ERROR (HTML Spec)
+  // ============================================
+
+  static const Color error = Color(0xFFffb4ab);
+  static const Color errorContainer = Color(0xFF93000a);
+  static const Color onError = Color(0xFF690005);
+  static const Color onErrorContainer = Color(0xFFffdad6);
+
+  // ============================================
+  // SUCCESS
+  // ============================================
+
+  static const Color success = Color(0xFF22C55E);
+  static const Color successDim = Color(0xFF16A34A);
+
+  // ============================================
+  // SHADCN TOKENS (HTML Aligned)
+  // ============================================
+
   static const Color shadcnBackground = Color(0xFF060E20);
   static const Color shadcnForeground = Color(0xFFE2E8F0);
-  static const Color shadcnCard = Color(0xFF0F1930);
+  static const Color shadcnCard = Color(0xFF171F32);
   static const Color shadcnCardForeground = Color(0xFFE2E8F0);
 
-  // Primary (Violet) - Updated to #ba9eff per HTML spec
-  static const Color shadcnPrimary = Color(0xFFba9eff);
+  static const Color shadcnPrimary = Color(0xFFd3bfff);
   static const Color shadcnPrimaryForeground = Color(0xFF000000);
 
-  // Secondary (Cyan) - Updated to #3adffa per HTML spec
-  static const Color shadcnSecondary = Color(0xFF3adffa);
+  static const Color shadcnSecondary = Color(0xFF5ce6ff);
   static const Color shadcnSecondaryForeground = Color(0xFF003a43);
 
-  // Tertiary (Rose) - NEW per HTML spec
-  static const Color shadcnTertiary = Color(0xFFff97b5);
+  static const Color shadcnTertiary = Color(0xFFffb5c8);
   static const Color shadcnTertiaryForeground = Color(0xFF380018);
 
-  // Accent colors
-  static const Color shadcnAccent = Color(0xFFba9eff);
+  static const Color shadcnAccent = Color(0xFFd3bfff);
   static const Color shadcnAccentForeground = Color(0xFF000000);
 
-  // Muted
   static const Color shadcnMuted = Color(0xFF1F2B49);
   static const Color shadcnMutedForeground = Color(0xFF94A3B8);
 
-  // Borders
   static const Color shadcnBorder = Color(0xFF1F2B49);
   static const Color shadcnInput = Color(0xFF1F2B49);
-  static const Color shadcnRing = Color(0xFFba9eff);
+  static const Color shadcnRing = Color(0xFFd3bfff);
 
-  // Destructive (Error) - Updated to #ff6e84 per HTML spec
-  static const Color shadcnDestructive = Color(0xFFff6e84);
-  static const Color shadcnDestructiveForeground = Color(0xFF490013);
+  static const Color shadcnDestructive = Color(0xFFffb4ab);
+  static const Color shadcnDestructiveForeground = Color(0xFF690005);
 
-  // Success
   static const Color shadcnSuccess = Color(0xFF22C55E);
 
-  // Glows - Updated to new primary
-  static const Color shadcnGlowPurple = Color(0xFFba9eff);
-  static const Color shadcnGlowCyan = Color(0xFF3adffa);
-
   // ============================================
-  // LIQUID NEBULA: GLASS EFFECT COLORS
-  // Simulated glassmorphism with gradient overlays
+  // GLASS EFFECT (HTML Spec)
+  // rgba(23,31,50,0.7) = 0xB3171F32
   // ============================================
 
-  // Glass backgrounds (15%, 10%, 5% white)
-  static const Color glassHigh = Color(0x26FFFFFF); // 15% white
-  static const Color glassMedium = Color(0x1AFFFFFF); // 10% white
-  static const Color glassLow = Color(0x0DFFFFFF); // 5% white
-
-  // Glass borders (20%, 10% white)
-  static const Color glassBorder = Color(0x33FFFFFF); // 20% white
-  static const Color glassBorderLight = Color(0x1AFFFFFF); // 10% white
-
-  // ============================================
-  // LIQUID NEBULA: NEON GLOW COLORS - Updated
-  // ============================================
-
-  // Neon purple glow (30% opacity) - Updated to #ba9eff
-  static const Color neonPurple = Color(0x4Dba9eff);
-
-  // Neon cyan glow (30% opacity) - Updated to #3adffa
-  static const Color neonCyan = Color(0x4D3adffa);
-
-  // Strong neon glow (50% opacity) - Updated
-  static const Color neonPurpleStrong = Color(0x80ba9eff);
-  static const Color neonCyanStrong = Color(0x803adffa);
-
-  // Inset glow for active states (10% opacity) - Updated
-  static const Color insetPurple = Color(0x1Aba9eff);
-  static const Color insetCyan = Color(0x1A3adffa);
-
-  // Neon tertiary glow (30% opacity) - NEW
-  static const Color neonTertiary = Color(0x4Dff97b5);
-
-  // Neon tertiary strong (50% opacity) - NEW
-  static const Color neonTertiaryStrong = Color(0x80ff97b5);
+  static const Color glassBackground = Color(0xB3171F32);
+  static const Color glassHigh = Color(0x26FFFFFF);
+  static const Color glassMedium = Color(0x1AFFFFFF);
+  static const Color glassLow = Color(0x0DFFFFFF);
+  static const Color glassBorderTopLeft = Color(0x1AFFFFFF);
+  static const Color glassBorderAll = Color(0x33FFFFFF);
+  static const Color glassBorderLight = Color(0x1AFFFFFF);
 
   // ============================================
-  // DARK MODE COLORS (Primary Theme) - Updated to HTML Specs
+  // NEON GLOWS (HTML Derived)
   // ============================================
 
-  // Primary palette - Updated to #ba9eff family
-  static const Color darkPrimary = Color(0xFFba9eff);
-  static const Color darkPrimaryDim = Color(0xFFae8dff);
-  static const Color darkPrimaryContainer = Color(0xFFae8dff);
-  static const Color darkOnPrimary = Color(0xFF39008c);
-  static const Color darkOnPrimaryFixed = Color(0xFF000000);
-  static const Color darkOnPrimaryFixedVariant = Color(0xFF370086);
-  static const Color darkOnPrimaryContainer = Color(0xFF2b006e);
-  static const Color darkPrimaryFixed = Color(0xFFae8dff);
-  static const Color darkPrimaryFixedDim = Color(0xFFa27cff);
-
-  // Secondary palette - Updated to #3adffa family
-  static const Color darkSecondary = Color(0xFF3adffa);
-  static const Color darkSecondaryDim = Color(0xFF1ad0eb);
-  static const Color darkSecondaryContainer = Color(0xFF006877);
-  static const Color darkOnSecondary = Color(0xFF004b56);
-  static const Color darkOnSecondaryContainer = Color(0xFFeafbff);
-  static const Color darkSecondaryFixed = Color(0xFF48e4ff);
-  static const Color darkSecondaryFixedDim = Color(0xFF29d6f1);
-  static const Color darkOnSecondaryFixed = Color(0xFF003a43);
-  static const Color darkOnSecondaryFixedVariant = Color(0xFF005966);
-
-  // Tertiary palette - Updated to #ff97b5 family per HTML spec
-  static const Color darkTertiary = Color(0xFFff97b5);
-  static const Color darkTertiaryDim = Color(0xFFf0779d);
-  static const Color darkTertiaryContainer = Color(0xFFfd81a8);
-  static const Color darkOnTertiary = Color(0xFF6a0934);
-  static const Color darkOnTertiaryContainer = Color(0xFF59002a);
-  static const Color darkTertiaryFixed = Color(0xFFff8eb0);
-  static const Color darkTertiaryFixedDim = Color(0xFFf67ca3);
-  static const Color darkOnTertiaryFixed = Color(0xFF380018);
-  static const Color darkOnTertiaryFixedVariant = Color(0xFF701039);
-
-  // Surface palette
-  static const Color darkSurface = Color(0xFF060E20);
-  static const Color darkSurfaceDim = Color(0xFF060E20);
-  static const Color darkSurfaceBright = Color(0xFF1F2B49);
-  static const Color darkSurfaceContainer = Color(0xFF0F1930);
-  static const Color darkSurfaceContainerLow = Color(0xFF091328);
-  static const Color darkSurfaceContainerHigh = Color(0xFF141F38);
-  static const Color darkSurfaceContainerHighest = Color(0xFF192540);
-  static const Color darkSurfaceContainerLowest = Color(0xFF000000);
-  static const Color darkSurfaceTint = Color(0xFFB79FFF);
-
-  // Background
-  static const Color darkBackground = Color(0xFF060E20);
-  static const Color darkOnBackground = Color(0xFFDEE5FF);
-
-  // On Surface
-  static const Color darkOnSurface = Color(0xFFDEE5FF);
-  static const Color darkOnSurfaceVariant = Color(0xFFA3AAC4);
-
-  // Error palette - Updated to #ff6e84 per HTML spec
-  static const Color darkError = Color(0xFFff6e84);
-  static const Color darkErrorDim = Color(0xFFd73357);
-  static const Color darkErrorContainer = Color(0xFFa70138);
-  static const Color darkOnError = Color(0xFF490013);
-  static const Color darkOnErrorContainer = Color(0xFFffb2b9);
-
-  // Outline
-  static const Color darkOutline = Color(0xFF6D758C);
-  static const Color darkOutlineVariant = Color(0xFF40485D);
-
-  // Inverse
-  static const Color darkInverseSurface = Color(0xFFFAF8FF);
-  static const Color darkInverseOnSurface = Color(0xFF4D556B);
-  static const Color darkInversePrimary = Color(0xFF684CB6);
-
-  // ============================================
-  // LIGHT MODE COLORS
-  // ============================================
-
-  // Primary palette
-  static const Color lightPrimary = Color(0xFF6200EE);
-  static const Color lightPrimaryDim = Color(0xFF7C4DFF);
-  static const Color lightPrimaryContainer = Color(0xFFE8DEF8);
-  static const Color lightOnPrimary = Color(0xFFFFFFFF);
-  static const Color lightOnPrimaryContainer = Color(0xFF21005D);
-
-  // Secondary palette
-  static const Color lightSecondary = Color(0xFF03DAC6);
-  static const Color lightSecondaryDim = Color(0xFF4DB6AC);
-  static const Color lightSecondaryContainer = Color(0xFFCEFAF8);
-  static const Color lightOnSecondary = Color(0xFF003731);
-  static const Color lightOnSecondaryContainer = Color(0xFF00201C);
-
-  // Tertiary palette
-  static const Color lightTertiary = Color(0xFF7C4DFF);
-  static const Color lightTertiaryContainer = Color(0xFFE8DEF8);
-  static const Color lightOnTertiary = Color(0xFFFFFFFF);
-  static const Color lightOnTertiaryContainer = Color(0xFF22005D);
-
-  // Surface palette
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceDim = Color(0xFFF5F5F7);
-  static const Color lightSurfaceBright = Color(0xFFFFFFFF);
-  static const Color lightSurfaceContainer = Color(0xFFF3EDF7);
-  static const Color lightSurfaceContainerLow = Color(0xFFFCFCFF);
-  static const Color lightSurfaceContainerHigh = Color(0xFFECE6F0);
-  static const Color lightSurfaceContainerHighest = Color(0xFFE6E0E9);
-  static const Color lightSurfaceContainerLowest = Color(0xFFFFFFFF);
-  static const Color lightSurfaceTint = Color(0xFF6200EE);
-
-  // Background
-  static const Color lightBackground = Color(0xFFF5F5F7);
-  static const Color lightOnBackground = Color(0xFF1C1B1F);
-
-  // On Surface
-  static const Color lightOnSurface = Color(0xFF1C1B1F);
-  static const Color lightOnSurfaceVariant = Color(0xFF49454F);
-
-  // Error palette
-  static const Color lightError = Color(0xFFB00020);
-  static const Color lightErrorContainer = Color(0xFFF9DEDC);
-  static const Color lightOnError = Color(0xFFFFFFFF);
-  static const Color lightOnErrorContainer = Color(0xFF410E0B);
-
-  // Outline
-  static const Color lightOutline = Color(0xFF79747E);
-  static const Color lightOutlineVariant = Color(0xFFCAC4D0);
-
-  // Inverse
-  static const Color lightInverseSurface = Color(0xFF313033);
-  static const Color lightInverseOnSurface = Color(0xFFF4EFF4);
-  static const Color lightInversePrimary = Color(0xFFBB86FC);
+  static const Color neonPurple = Color(0x4Dd3bfff);
+  static const Color neonCyan = Color(0x4D5ce6ff);
+  static const Color neonPurpleStrong = Color(0x80d3bfff);
+  static const Color neonCyanStrong = Color(0x805ce6ff);
+  static const Color neonTertiary = Color(0x4Dffb5c8);
+  static const Color neonTertiaryStrong = Color(0x80ffb5c8);
+  static const Color insetPurple = Color(0x1Ad3bfff);
+  static const Color insetCyan = Color(0x1A5ce6ff);
 
   // ============================================
   // GRADIENTS
   // ============================================
 
-  static const LinearGradient liquidGradient = LinearGradient(
+  static const LinearGradient brandGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [darkPrimary, darkPrimaryContainer],
+    colors: [primary, secondary],
   );
 
-  static const LinearGradient liquidGradientReverse = LinearGradient(
+  static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [darkPrimaryContainer, darkPrimary],
+    colors: [primary, primaryContainer],
   );
 
-  // ============================================
-  // LIQUID NEBULA: GRADIENT HELPERS
-  // ============================================
+  static const LinearGradient secondaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [secondary, secondaryContainer],
+  );
 
-  // Glass gradient for cards
-  static LinearGradient get glassGradient => const LinearGradient(
+  static const LinearGradient tertiaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [tertiary, tertiaryDim],
+  );
+
+  static const LinearGradient successGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [success, successDim],
+  );
+
+  static const LinearGradient errorGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [error, Color(0xFFd73357)],
+  );
+
+  static const LinearGradient glassGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [glassHigh, glassLow],
   );
 
-  // Brand gradient (violet to cyan)
-  static LinearGradient get brandGradient => const LinearGradient(
+  static const LinearGradient glassGradientElevated = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [shadcnPrimary, shadcnSecondary],
-  );
-
-  // Purple to transparent gradient
-  static LinearGradient purpleGlowGradient(double opacity) => LinearGradient(
-    colors: [
-      shadcnPrimary.withAlpha((opacity * 255).toInt()),
-      Colors.transparent,
-    ],
-  );
-
-  // Cyan to transparent gradient
-  static LinearGradient cyanGlowGradient(double opacity) => LinearGradient(
-    colors: [
-      shadcnSecondary.withAlpha((opacity * 255).toInt()),
-      Colors.transparent,
-    ],
+    colors: [Color(0x33FFFFFF), Color(0x1AFFFFFF)],
   );
 
   // ============================================
-  // LIQUID NEBULA: BOX SHADOW HELPERS
+  // BOX SHADOWS
   // ============================================
 
-  // Purple neon glow (default)
   static List<BoxShadow> get purpleGlow => [
     BoxShadow(
       color: neonPurple,
@@ -284,7 +220,6 @@ class AppColors {
     ),
   ];
 
-  // Purple neon glow (strong)
   static List<BoxShadow> get purpleGlowStrong => [
     BoxShadow(
       color: neonPurpleStrong,
@@ -292,14 +227,9 @@ class AppColors {
       spreadRadius: 0,
       offset: const Offset(0, 4),
     ),
-    BoxShadow(
-      color: shadcnPrimary.withAlpha(77),
-      blurRadius: 30,
-      spreadRadius: 0,
-    ),
+    BoxShadow(color: primary.withAlpha(77), blurRadius: 30, spreadRadius: 0),
   ];
 
-  // Cyan neon glow (default)
   static List<BoxShadow> get cyanGlow => [
     BoxShadow(
       color: neonCyan,
@@ -309,7 +239,6 @@ class AppColors {
     ),
   ];
 
-  // Cyan neon glow (strong)
   static List<BoxShadow> get cyanGlowStrong => [
     BoxShadow(
       color: neonCyanStrong,
@@ -317,167 +246,232 @@ class AppColors {
       spreadRadius: 0,
       offset: const Offset(0, 4),
     ),
-    BoxShadow(
-      color: shadcnSecondary.withAlpha(77),
-      blurRadius: 30,
-      spreadRadius: 0,
-    ),
+    BoxShadow(color: secondary.withAlpha(77), blurRadius: 30, spreadRadius: 0),
   ];
 
   // ============================================
-  // LEGACY GLASS EFFECT COLORS (Backward compatibility)
+  // BACKWARD COMPAT (dark/light unified)
   // ============================================
 
-  // Legacy dark glass (for backward compatibility)
+  static Color get darkPrimary => primary;
+  static Color get darkPrimaryDim => primaryDim;
+  static Color get darkPrimaryContainer => primaryContainer;
+  static Color get darkOnPrimary => onPrimary;
+  static Color get darkOnPrimaryFixed => onPrimaryFixed;
+  static Color get darkOnPrimaryFixedVariant => onPrimaryFixedVariant;
+  static Color get darkOnPrimaryContainer => onPrimaryContainer;
+  static Color get darkPrimaryFixed => primaryFixed;
+  static Color get darkPrimaryFixedDim => primaryFixedDim;
+
+  static Color get darkSecondary => secondary;
+  static Color get darkSecondaryDim => secondaryDim;
+  static Color get darkSecondaryContainer => secondaryContainer;
+  static Color get darkOnSecondary => onSecondary;
+  static Color get darkOnSecondaryContainer => onSecondaryContainer;
+  static Color get darkSecondaryFixed => secondaryFixed;
+  static Color get darkSecondaryFixedDim => secondaryFixedDim;
+  static Color get darkOnSecondaryFixed => onSecondaryFixed;
+  static Color get darkOnSecondaryFixedVariant => onSecondaryFixedVariant;
+
+  static Color get darkTertiary => tertiary;
+  static Color get darkTertiaryDim => tertiaryDim;
+  static Color get darkTertiaryContainer => tertiaryContainer;
+  static Color get darkOnTertiary => onTertiary;
+  static Color get darkOnTertiaryContainer => onTertiaryContainer;
+  static Color get darkTertiaryFixed => tertiaryFixed;
+  static Color get darkTertiaryFixedDim => tertiaryFixedDim;
+  static Color get darkOnTertiaryFixed => onTertiaryFixed;
+  static Color get darkOnTertiaryFixedVariant => onTertiaryFixedVariant;
+
+  static Color get darkSurface => surface;
+  static Color get darkSurfaceDim => surfaceDim;
+  static Color get darkSurfaceBright => surfaceBright;
+  static Color get darkSurfaceContainer => surfaceContainer;
+  static Color get darkSurfaceContainerLow => surfaceContainerLow;
+  static Color get darkSurfaceContainerHigh => surfaceContainerHigh;
+  static Color get darkSurfaceContainerHighest => surfaceContainerHighest;
+  static Color get darkSurfaceContainerLowest => surfaceContainerLowest;
+  static Color get darkSurfaceTint => surfaceTint;
+
+  static Color get darkBackground => surface;
+  static Color get darkOnBackground => onBackground;
+  static Color get darkOnSurface => onSurface;
+  static Color get darkOnSurfaceVariant => onSurfaceVariant;
+
+  static Color get darkError => error;
+  static Color get darkErrorDim => Color(0xFFd73357);
+  static Color get darkErrorContainer => errorContainer;
+  static Color get darkOnError => onError;
+  static Color get darkOnErrorContainer => onErrorContainer;
+
+  static Color get darkOutline => outline;
+  static Color get darkOutlineVariant => outlineVariant;
+
+  static Color get darkInverseSurface => inverseSurface;
+  static Color get darkInverseOnSurface => inverseOnSurface;
+  static Color get darkInversePrimary => inversePrimary;
+
+  // Light mode aliases
+  static Color get lightPrimary => primary;
+  static Color get lightPrimaryDim => primaryDim;
+  static Color get lightPrimaryContainer => primaryContainer;
+  static Color get lightOnPrimary => onPrimary;
+  static Color get lightOnPrimaryContainer => onPrimaryContainer;
+
+  static Color get lightSecondary => secondary;
+  static Color get lightSecondaryDim => secondaryDim;
+  static Color get lightSecondaryContainer => secondaryContainer;
+  static Color get lightOnSecondary => onSecondary;
+  static Color get lightOnSecondaryContainer => onSecondaryContainer;
+
+  static Color get lightTertiary => tertiary;
+  static Color get lightTertiaryContainer => tertiaryContainer;
+  static Color get lightOnTertiary => onTertiary;
+  static Color get lightOnTertiaryContainer => onTertiaryContainer;
+
+  static Color get lightSurface => surface;
+  static Color get lightSurfaceDim => surfaceDim;
+  static Color get lightSurfaceBright => surfaceBright;
+  static Color get lightSurfaceContainer => surfaceContainer;
+  static Color get lightSurfaceContainerLow => surfaceContainerLow;
+  static Color get lightSurfaceContainerHigh => surfaceContainerHigh;
+  static Color get lightSurfaceContainerHighest => surfaceContainerHighest;
+  static Color get lightSurfaceContainerLowest => surfaceContainerLowest;
+  static Color get lightSurfaceTint => surfaceTint;
+
+  static Color get lightBackground => surface;
+  static Color get lightOnBackground => onBackground;
+  static Color get lightOnSurface => onSurface;
+  static Color get lightOnSurfaceVariant => onSurfaceVariant;
+
+  static Color get lightError => error;
+  static Color get lightErrorContainer => errorContainer;
+  static Color get lightOnError => onError;
+  static Color get lightOnErrorContainer => onErrorContainer;
+
+  static Color get lightOutline => outline;
+  static Color get lightOutlineVariant => outlineVariant;
+
+  static Color get lightInverseSurface => inverseSurface;
+  static Color get lightInverseOnSurface => inverseOnSurface;
+  static Color get lightInversePrimary => inversePrimary;
+
+  // Legacy gradient
+  static const LinearGradient liquidGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primary, primaryContainer],
+  );
+
+  static const LinearGradient liquidGradientReverse = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryContainer, primary],
+  );
+
+  // Legacy setters
+  static set primary(Color c) {}
+  static set secondary(Color c) {}
+  static set tertiary(Color c) {}
+  static set surface(Color c) {}
+  static set background(Color c) {}
+  static set onPrimary(Color c) {}
+  static set onSecondary(Color c) {}
+  static set onSurface(Color c) {}
+  static set onBackground(Color c) {}
+  static set error(Color c) {}
+
+  // Legacy compat
   static Color get glassDark => const Color(0x66091E28);
   static Color get glassBorderDark => const Color(0x2640485D);
   static Color get glassHighlightDark => const Color(0x1AFFFFFF);
-
-  // Legacy light glass (for backward compatibility)
   static Color get glassLight => const Color(0x80FFFFFF);
-  static Color get legacyGlassBorderLight => const Color(0x14000000);
-  static Color get legacyGlassHighlightLight => const Color(0x1A000000);
+  static Color get glassSurfaceLight => surfaceContainer.withAlpha(102);
+  static Color get glassSurfaceDark => surfaceContainer.withAlpha(102);
+  static Color get legacyGlassBorder => outlineVariant;
+
+  // Legacy getters
+  static Color get primaryColor => primary;
+  static Color get secondaryColor => secondary;
+  static Color get tertiaryColor => tertiary;
+  static Color get surfaceColor => surface;
+  static Color get backgroundColor => surface;
+  static Color get onPrimaryColor => onPrimary;
+  static Color get onSecondaryColor => onSecondary;
+  static Color get onSurfaceColor => onSurface;
+  static Color get onBackgroundColor => onBackground;
+  static Color get errorColor => error;
+  static Color get primaryContainerColor => primaryContainer;
+  static Color get onSurfaceVariantColor => onSurfaceVariant;
+  static Color get surfaceContainerHighestColor => surfaceContainerHighest;
+  static Color get outlineVariantColor => outlineVariant;
+  static Color get onPrimaryContainerColor => onPrimaryContainer;
+  static Color get onSecondaryContainerColor => onSecondaryContainer;
+  static Color get onTertiaryContainerColor => onTertiaryContainer;
+  static Color get errorContainerColor => errorContainer;
+  static Color get onErrorContainerColor => onErrorContainer;
+  static Color get surfaceContainerColor => surfaceContainer;
+  static Color get surfaceContainerLowColor => surfaceContainerLow;
+  static Color get surfaceContainerHighColor => surfaceContainerHigh;
+  static Color get surfaceBrightColor => surfaceBright;
+  static Color get surfaceDimColor => surfaceDim;
+  static Color get surfaceTintColor => surfaceTint;
+  static Color get inverseSurfaceColor => inverseSurface;
+  static Color get inverseOnSurfaceColor => inverseOnSurface;
+  static Color get inversePrimaryColor => inversePrimary;
+  static Color get onErrorColor => onError;
+  static Color get outlineColor => outline;
 
   // ============================================
-  // BACKWARD COMPATIBILITY SHORTCUTS
-  // These default to dark theme values
+  // GLASS CARD CONFIG
   // ============================================
 
-  // Primary colors
-  static Color primary = darkPrimary;
-  static Color secondary = darkSecondary;
-  static Color tertiary = darkTertiary;
-  static Color surface = darkSurface;
-  static Color background = darkBackground;
-  static Color onPrimary = darkOnPrimary;
-  static Color onSecondary = darkOnSecondary;
-  static Color onSurface = darkOnSurface;
-  static Color onBackground = darkOnBackground;
-  static Color error = darkError;
-
-  // Material 3 tokens
-  static Color primaryContainer = darkPrimaryContainer;
-  static Color onSurfaceVariant = darkOnSurfaceVariant;
-  static Color surfaceContainerHighest = darkSurfaceContainerHighest;
-  static Color outlineVariant = darkOutlineVariant;
-  static Color onPrimaryContainer = darkOnPrimaryContainer;
-  static Color onSecondaryContainer = darkOnSecondaryContainer;
-  static Color onTertiaryContainer = darkTertiaryContainer;
-  static Color errorContainer = darkErrorContainer;
-  static Color onErrorContainer = darkOnErrorContainer;
-
-  // Surface containers
-  static Color surfaceContainer = darkSurfaceContainer;
-  static Color surfaceContainerLow = darkSurfaceContainerLow;
-  static Color surfaceContainerHigh = darkSurfaceContainerHigh;
-  static Color surfaceBright = darkSurfaceBright;
-  static Color surfaceDim = darkSurfaceDim;
-
-  // Surface tints
-  static Color surfaceTint = darkSurfaceTint;
-
-  // Inverse
-  static Color inverseSurface = darkInverseSurface;
-  static Color inverseOnSurface = darkInverseOnSurface;
-  static Color inversePrimary = darkInversePrimary;
-
-  // On error
-  static Color onError = darkOnError;
-
-  // Outline
-  static Color outline = darkOutline;
-
-  // Legacy glass colors (for backward compatibility)
-  static Color get glassSurfaceLight =>
-      darkSurfaceContainer.withValues(alpha: 0.4);
-  static Color get glassSurfaceDark =>
-      darkSurfaceContainer.withValues(alpha: 0.4);
-  static Color get legacyGlassBorder => darkOutlineVariant;
-
-  // ============================================
-  // LIQUID NEBULA: GLASS CARD CONFIG
-  // Glass effect configuration matching HTML specs
-  // ============================================
-
-  /// Configuration class for Glass Card effects
-  /// Matches the CSS glass-card class from HTML designs:
-  /// background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))
-  /// backdrop-filter: blur(25px)
-  /// border: 1.5px solid rgba(255,255,255,0.1)
   static const GlassCardConfig glassCard = GlassCardConfig();
 }
 
-/// Glass Card effect configuration matching HTML design specs
 class GlassCardConfig {
   const GlassCardConfig();
 
-  /// Blur sigma for simulated backdrop-filter
   static const double blurSigma = 25.0;
-
-  /// Border radius (xl = 0.75rem = 12px)
   static const double borderRadius = 12.0;
-
-  /// Border radius large (1rem = 16px)
-  static const double borderRadiusLarge = 16.0;
-
-  /// Border width (1.5px)
+  static const double borderRadiusLarge = 20.0;
+  static const double borderRadiusHero = 32.0;
   static const double borderWidth = 1.5;
 
-  /// Glass gradient colors
-  /// Glass light (15% white)
   static const Color glassLight = Color(0x26FFFFFF);
-
-  /// Glass medium (10% white)
   static const Color glassMedium = Color(0x1AFFFFFF);
-
-  /// Glass dark (5% white)
   static const Color glassDark = Color(0x0DFFFFFF);
-
-  /// Glass border (20% white)
-  static const Color glassBorder = Color(0x33FFFFFF);
-
-  /// Glass border subtle (10% white)
+  static const Color glassBorder = Color(0x1AFFFFFF);
   static const Color glassBorderSubtle = Color(0x1AFFFFFF);
 
-  /// Primary glow color (30% primary)
-  static const Color glowPrimary = Color(0x4Dba9eff);
+  static const Color glowPrimary = Color(0x4Dd3bfff);
+  static const Color glowSecondary = Color(0x4D5ce6ff);
+  static const Color glowTertiary = Color(0x4Dffb5c8);
+  static const Color glowError = Color(0x4Dffb4ab);
 
-  /// Secondary glow color (30% secondary)
-  static const Color glowSecondary = Color(0x4D3adffa);
-
-  /// Tertiary glow color (30% tertiary)
-  static const Color glowTertiary = Color(0x4Dff97b5);
-
-  /// Error glow color (30% error)
-  static const Color glowError = Color(0x4Dff6e84);
-
-  /// Standard glass gradient (15% -> 5% white)
   static LinearGradient get glassGradient => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [glassLight, glassDark],
   );
 
-  /// Elevated glass gradient (20% -> 10% white)
   static LinearGradient get glassGradientElevated => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [Color(0x33FFFFFF), Color(0x1AFFFFFF)],
   );
 
-  /// Glass gradient with subtle primary tint
   static LinearGradient get glassGradientPrimary => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
       const Color(0x26FFFFFF),
       const Color(0x1AFFFFFF),
-      const Color(0x0Dba9eff).withAlpha(26),
+      const Color(0x0Dd3bfff).withAlpha(26),
     ],
     stops: const [0.0, 0.7, 1.0],
   );
 
-  /// Get glow shadow list for primary color
   static List<BoxShadow> glowPrimaryShadow({double intensity = 1.0}) => [
     BoxShadow(
       color: glowPrimary.withAlpha((0x4D * intensity).toInt()),
@@ -487,7 +481,6 @@ class GlassCardConfig {
     ),
   ];
 
-  /// Get glow shadow list for secondary color
   static List<BoxShadow> glowSecondaryShadow({double intensity = 1.0}) => [
     BoxShadow(
       color: glowSecondary.withAlpha((0x4D * intensity).toInt()),
@@ -497,72 +490,64 @@ class GlassCardConfig {
     ),
   ];
 
-  /// Get strong glow shadow list (dual layer)
   static List<BoxShadow> glowPrimaryStrong({double intensity = 1.0}) => [
     BoxShadow(
-      color: const Color(0x80ba9eff).withAlpha((0x80 * intensity).toInt()),
+      color: const Color(0x80d3bfff).withAlpha((0x80 * intensity).toInt()),
       blurRadius: 20 * intensity,
       spreadRadius: 0,
       offset: const Offset(0, 4),
     ),
     BoxShadow(
-      color: const Color(0x33ba9eff).withAlpha((0x33 * intensity).toInt()),
+      color: const Color(0x33d3bfff).withAlpha((0x33 * intensity).toInt()),
       blurRadius: 40 * intensity,
       spreadRadius: 0,
     ),
   ];
 
-  /// Get strong glow shadow list for secondary (cyan)
   static List<BoxShadow> glowSecondaryStrong({double intensity = 1.0}) => [
     BoxShadow(
-      color: const Color(0x803adffa).withAlpha((0x80 * intensity).toInt()),
+      color: const Color(0x805ce6ff).withAlpha((0x80 * intensity).toInt()),
       blurRadius: 20 * intensity,
       spreadRadius: 0,
       offset: const Offset(0, 4),
     ),
     BoxShadow(
-      color: const Color(0x333adffa).withAlpha((0x33 * intensity).toInt()),
+      color: const Color(0x335ce6ff).withAlpha((0x33 * intensity).toInt()),
       blurRadius: 40 * intensity,
       spreadRadius: 0,
     ),
   ];
 
-  /// Brand gradient (primary to secondary)
   static LinearGradient get brandGradient => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFFba9eff), Color(0xFF3adffa)],
+    colors: [Color(0xFFd3bfff), Color(0xFF5ce6ff)],
   );
 
-  /// Primary gradient (primary to primary-dim)
   static LinearGradient get primaryGradient => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFFba9eff), Color(0xFFae8dff)],
+    colors: [Color(0xFFd3bfff), Color(0xFFba9eff)],
   );
 
-  /// Secondary gradient (secondary to secondary-dim)
   static LinearGradient get secondaryGradient => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF3adffa), Color(0xFF1ad0eb)],
+    colors: [Color(0xFF5ce6ff), Color(0xFF2fd9f4)],
   );
 
-  /// Tertiary gradient (tertiary to tertiary-dim)
   static LinearGradient get tertiaryGradient => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFFff97b5), Color(0xFFf0779d)],
+    colors: [Color(0xFFffb5c8), Color(0xFFf0779d)],
   );
 
-  /// Error gradient
   static LinearGradient get errorGradient => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFFff6e84), Color(0xFFd73357)],
+    colors: [Color(0xFFffb4ab), Color(0xFFd73357)],
   );
 
-  /// Success gradient
   static LinearGradient get successGradient => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,

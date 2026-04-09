@@ -50,28 +50,34 @@ class DataExportService {
   }
 
   Future<void> importFromJson(Map<String, dynamic> data) async {
-    if (data['items'] != null) {
-      await learningRepo.importFromJson(List<dynamic>.from(data['items']));
+    final items = data['items'];
+    if (items != null) {
+      await learningRepo.importFromJson((items as List).cast<dynamic>());
     }
-    if (data['categories'] != null) {
-      await categoryRepo.importFromJson(List<dynamic>.from(data['categories']));
+    final categories = data['categories'];
+    if (categories != null) {
+      await categoryRepo.importFromJson((categories as List).cast<dynamic>());
     }
-    if (data['tags'] != null) {
-      await tagRepo.importFromJson(List<dynamic>.from(data['tags']));
+    final tags = data['tags'];
+    if (tags != null) {
+      await tagRepo.importFromJson((tags as List).cast<dynamic>());
     }
-    if (data['settings'] != null) {
+    final settings = data['settings'];
+    if (settings != null) {
       await settingsRepo.importFromJson(
-        Map<String, dynamic>.from(data['settings']),
+        (settings as Map).cast<String, dynamic>(),
       );
     }
-    if (data['achievements'] != null) {
+    final achievements = data['achievements'];
+    if (achievements != null) {
       await achievementsRepo.importFromJson(
-        List<dynamic>.from(data['achievements']),
+        (achievements as List).cast<dynamic>(),
       );
     }
-    if (data['profile'] != null) {
+    final profile = data['profile'];
+    if (profile != null) {
       await profileRepo.importFromJson(
-        Map<String, dynamic>.from(data['profile']),
+        (profile as Map).cast<String, dynamic>(),
       );
     }
   }

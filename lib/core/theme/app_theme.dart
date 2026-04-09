@@ -11,7 +11,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.lightBackground,
-      colorScheme: const ColorScheme.light(
+      colorScheme: ColorScheme.light(
         // Primary
         primary: AppColors.lightPrimary,
         onPrimary: AppColors.lightOnPrimary,
@@ -66,7 +66,7 @@ class AppTheme {
       ),
 
       // Text Theme
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         displayLarge: TextStyle(
           fontSize: 57,
           fontWeight: FontWeight.w400,
@@ -154,7 +154,7 @@ class AppTheme {
       ),
 
       // AppBar Theme
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.lightSurface,
         foregroundColor: AppColors.lightOnSurface,
         elevation: 0,
@@ -184,7 +184,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.lightPrimary, width: 2),
+          borderSide: BorderSide(color: AppColors.lightPrimary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -211,13 +211,13 @@ class AppTheme {
         indicatorColor: AppColors.lightPrimaryContainer,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(
+            return TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: AppColors.lightOnSurface,
             );
           }
-          return const TextStyle(
+          return TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
             color: AppColors.lightOnSurfaceVariant,
@@ -226,7 +226,7 @@ class AppTheme {
       ),
 
       // Divider Theme
-      dividerTheme: const DividerThemeData(
+      dividerTheme: DividerThemeData(
         color: AppColors.lightOutlineVariant,
         thickness: 1,
       ),
@@ -234,9 +234,7 @@ class AppTheme {
       // Snackbar Theme
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.lightInverseSurface,
-        contentTextStyle: const TextStyle(
-          color: AppColors.lightInverseOnSurface,
-        ),
+        contentTextStyle: TextStyle(color: AppColors.lightInverseOnSurface),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -252,7 +250,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkBackground,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: ColorScheme.dark(
         // Primary
         primary: AppColors.darkPrimary,
         onPrimary: AppColors.darkOnPrimary,
@@ -307,7 +305,7 @@ class AppTheme {
       ),
 
       // Text Theme
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         displayLarge: TextStyle(
           fontSize: 57,
           fontWeight: FontWeight.w400,
@@ -395,7 +393,7 @@ class AppTheme {
       ),
 
       // AppBar Theme
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.darkOnSurface,
         elevation: 0,
@@ -423,7 +421,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.darkPrimary, width: 2),
+          borderSide: BorderSide(color: AppColors.darkPrimary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -450,13 +448,13 @@ class AppTheme {
         indicatorColor: AppColors.darkPrimaryContainer.withValues(alpha: 0.3),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(
+            return TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: AppColors.darkPrimary,
             );
           }
-          return const TextStyle(
+          return TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
             color: AppColors.darkOnSurfaceVariant,
@@ -465,7 +463,7 @@ class AppTheme {
       ),
 
       // Divider Theme
-      dividerTheme: const DividerThemeData(
+      dividerTheme: DividerThemeData(
         color: AppColors.darkOutlineVariant,
         thickness: 1,
       ),
@@ -473,9 +471,7 @@ class AppTheme {
       // Snackbar Theme
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.darkInverseSurface,
-        contentTextStyle: const TextStyle(
-          color: AppColors.darkInverseOnSurface,
-        ),
+        contentTextStyle: TextStyle(color: AppColors.darkInverseOnSurface),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),

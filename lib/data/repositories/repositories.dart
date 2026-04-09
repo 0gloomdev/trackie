@@ -216,16 +216,13 @@ class AchievementsRepository {
 
   Future<void> unlock(String id) async {
     final a = getById(id);
-    if (a != null && !a.desbloqueado) {
-      final updated = a.copyWith(
-        desbloqueado: true,
-        desbloqueadoEn: DateTime.now(),
-      );
+    if (a != null && !a.unlocked) {
+      final updated = a.copyWith(unlocked: true, unlockedAt: DateTime.now());
       await _box.put(id, updated.toJson());
     }
   }
 
-  int get unlockedCount => getAll().where((a) => a.desbloqueado).length;
+  int get unlockedCount => getAll().where((a) => a.unlocked).length;
 
   List<Map<String, dynamic>> exportToJson() {
     return getAll().map((a) => a.toJson()).toList();
@@ -330,8 +327,8 @@ class CommunityRepository {
     final index = posts.indexWhere((p) => p.id == postId);
     if (index != -1) {
       final post = posts[index];
-      final comments = List<Comment>.from(post.comentarios)..add(comment);
-      posts[index] = post.copyWith(comentarios: comments);
+      final comments = List<Comment>.from(post.comments)..add(comment);
+      posts[index] = post.copyWith(comments: comments);
 
       final userPosts = posts.where((p) => p.isUserPost).toList();
       await _box.put(_userPostsKey, userPosts.map((p) => p.toJson()).toList());
