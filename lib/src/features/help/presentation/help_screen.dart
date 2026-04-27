@@ -34,8 +34,8 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     final isDesktop = width >= 1024;
     final customization = ref.watch(customizationProvider);
     final effectivePadding = customization.compactMode
-        ? (isDesktop ? 24.0 : 16.0)
-        : (isDesktop ? 48.0 : 24.0);
+        ? (isDesktop ? DesignTokens.spaceLg : DesignTokens.spaceMd)
+        : (isDesktop ? DesignTokens.spaceXxl : DesignTokens.spaceLg);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLowest,

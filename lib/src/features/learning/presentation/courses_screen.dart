@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
+import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
 import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
@@ -26,7 +27,9 @@ class CoursesScreen extends ConsumerWidget {
     final completed = courses.where((i) => i.status == 'completed').toList();
     final pending = courses.where((i) => i.status == 'pending').toList();
 
-    final effectivePadding = customization.compactMode ? 16.0 : 48.0;
+    final effectivePadding = customization.compactMode
+        ? DesignTokens.spaceMd
+        : DesignTokens.spaceXxl;
 
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLowest,
@@ -85,7 +88,7 @@ class CoursesScreen extends ConsumerWidget {
                             letterSpacing: 2,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: DesignTokens.spaceSm),
                         Text(
                               'Courses',
                               style: AppTypography.heroTitle.copyWith(
@@ -314,8 +317,14 @@ class _CourseCard extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  if (isActive) AppColors.primary.withAlpha(51) else AppColors.surfaceContainerHighest,
-                  if (isActive) AppColors.secondary.withAlpha(26) else AppColors.surfaceContainer,
+                  if (isActive)
+                    AppColors.primary.withAlpha(51)
+                  else
+                    AppColors.surfaceContainerHighest,
+                  if (isActive)
+                    AppColors.secondary.withAlpha(26)
+                  else
+                    AppColors.surfaceContainer,
                 ],
               ),
               color: isPaused ? AppColors.surfaceContainerHighest : null,
@@ -540,7 +549,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text('No courses yet', style: AppTypography.sectionTitle),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignTokens.spaceSm),
           Text('Add your first course to begin', style: AppTypography.body),
         ],
       ),

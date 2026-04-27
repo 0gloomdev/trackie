@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../shared/widgets/glass_design.dart';
 import '../../shared/providers/customization_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -14,12 +15,16 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLowest,
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(customization.compactMode ? 16.0 : 32.0),
+        padding: EdgeInsets.all(
+          customization.compactMode
+              ? DesignTokens.spaceMd
+              : DesignTokens.spaceXl,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Settings', style: AppTypography.pageTitle),
-            const SizedBox(height: 24),
+            const SizedBox(height: DesignTokens.spaceLg),
             Text('Settings coming soon', style: AppTypography.body),
           ],
         ),

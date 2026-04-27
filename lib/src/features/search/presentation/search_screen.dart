@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
+import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
 import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
@@ -65,7 +66,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
     final filteredItems = _filterItems(items);
 
-    final effectivePadding = customization.compactMode ? 16.0 : 24.0;
+    final effectivePadding = customization.compactMode
+        ? DesignTokens.spaceMd
+        : DesignTokens.spaceLg;
 
     return CallbackShortcuts(
       bindings: {
