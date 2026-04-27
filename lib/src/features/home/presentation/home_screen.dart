@@ -6,8 +6,9 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
+import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
-import '../../detail/presentation/item_detail_screen.dart';
+
 import '../../achievements/presentation/achievements_screen.dart';
 
 class HomeTab extends ConsumerWidget {
@@ -16,10 +17,6 @@ class HomeTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activitiesAsync = ref.watch(activitiesProvider);
-    final activities = activitiesAsync.maybeWhen(
-      data: (data) => data,
-      orElse: () => <DailyActivity>[],
-    );
     final recentItems = ref.watch(recentInProgressItemsProvider);
     final profileAsync = ref.watch(userProfileProvider);
     final customization = ref.watch(customizationProvider);
@@ -36,18 +33,9 @@ class HomeTab extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          profileAsync.maybeWhen(
-            data: (profile) => _HeroSection(
-              profile: profile,
-              weekItems: activities.length,
-            ),
-            orElse: () => const _HeroSection(
-              profile: null,
-              weekItems: 0,
-            ),
-          ),
+          _HeroSection(profileAsync: profileAsync),
           const SizedBox(height: 32),
-          _StatsGrid(activitiesAsync: activitiesAsync),
+          
           const SizedBox(height: 32),
           if (isDesktop) ...[
             Row(
@@ -55,153 +43,47 @@ class HomeTab extends ConsumerWidget {
               children: [
                 Expanded(
                   flex: 2,
-                  child: _WeeklyChart(activities: activities),
+                  child: activitiesAsync.when(
+            data: (weeklyActivity) => _WeeklyChart(weeklyActivity: weeklyActivity),
+            loading: () => const CircularProgressIndicator(),
+            error: (_, __) => const SizedBox(),
+          ),
                 ),
                 const SizedBox(width: 24),
-                const Expanded(flex: 1, child: _AchievementsPreview()),
+                Expanded(flex: 1, child: const _AchievementsPreview()),
               ],
             ),
-          ],
-          if (!isDesktop) ...[
-            _RecentItemsSection(items: recentItems),
-            const SizedBox(height: 24),
+          ] else ...[
+            activitiesAsync.when(
+              data: (weeklyActivity) => _WeeklyChart(weeklyActivity: weeklyActivity),
+              loading: () => const CircularProgressIndicator(),
+              error: (_, __) => const SizedBox(),
+            ),
+            const SizedBox(height: 32),
+            const _AchievementsPreview(),
           ],
           const SizedBox(height: 32),
+          if (recentItems.isNotEmpty) _RecentItemsSection(items: recentItems),
+          const SizedBox(height: 100),
         ],
       ),
-    );
-  }
-}
-
-class _StatsGrid extends StatelessWidget {
-  final AsyncValue<List<DailyActivity>> activitiesAsync;
-
-  const _StatsGrid({required this.activitiesAsync});
-
-  @override
-  Widget build(BuildContext context) {
-    return activitiesAsync.maybeWhen(
-      data: (activities) {
-        final totalItems = activities.fold(0, (sum, activity) => sum + (activity.totalMinutes > 0 ? 1 : 0));
-        final weekItems = activities.fold(0, (sum, activity) => sum + activity.itemsCompleted);
-
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isMobile = constraints.maxWidth < 600;
-
-            if (isMobile) {
-              return Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatCard(
-                          title: 'Total Items',
-                          value: '$totalItems',
-                          icon: Icons.storage,
-                          iconColor: AppColors.secondary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatCard(
-                          title: 'This Week',
-                          value: '+$weekItems',
-                          icon: Icons.trending_up,
-                          iconColor: AppColors.primary,
-                          accent: 'Expanded',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatCard(
-                          title: 'Study Time',
-                          value: '${_calculateWeeklyHours(activities)}h',
-                          icon: Icons.timelapse,
-                          iconColor: AppColors.tertiary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: _StatCard(
-                          title: 'Streak',
-                          value: '5d',
-                          icon: Icons.flash_on,
-                          iconColor: AppColors.success,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            } else {
-              return Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      title: 'Total Items',
-                      value: '$totalItems',
-                      icon: Icons.storage,
-                      iconColor: AppColors.secondary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      title: 'This Week',
-                      value: '+$weekItems',
-                      icon: Icons.trending_up,
-                      iconColor: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      title: 'Study Time',
-                      value: '${_calculateWeeklyHours(activities)}h',
-                      icon: Icons.timelapse,
-                      iconColor: AppColors.tertiary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: _StatCard(
-                      title: 'Streak',
-                      value: '5d',
-                      icon: Icons.flash_on,
-                      iconColor: AppColors.success,
-                    ),
-                  ),
-                ],
-              );
-            }
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      orElse: () => const Center(child: Text('Error loading stats')),
-    );
-  }
-
-  double _calculateWeeklyHours(List<DailyActivity> activities) {
-    final totalMinutes = activities.fold(0, (sum, activity) => sum + activity.totalMinutes);
-    return totalMinutes / 60;
+    ).animate().fadeIn(duration: 400.ms);
   }
 }
 
 class _HeroSection extends StatelessWidget {
-  final UserProfile? profile;
-  final int weekItems;
+  final AsyncValue<UserProfile?> profileAsync;
 
-  const _HeroSection({this.profile, required this.weekItems});
+  const _HeroSection({required this.profileAsync});
 
   @override
-  Widget build(BuildContext context) {
-    final hour = DateTime.now().hour;
+Widget build(BuildContext context) {
+  final profile = profileAsync.when(
+    data: (p) => p,
+    loading: () => null,
+    error: (_, __) => null,
+  );
+  final hour = DateTime.now().hour;
     String greeting;
     if (hour < 12) {
       greeting = 'Good morning';
@@ -214,6 +96,7 @@ class _HeroSection extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
+        // Ambient glow orbs
         Positioned(
           top: -100,
           right: -100,
@@ -250,6 +133,7 @@ class _HeroSection extends StatelessWidget {
             ),
           ),
         ),
+        // Content
         GlassContainer(
           borderRadius: 32,
           padding: const EdgeInsets.all(48),
@@ -259,6 +143,7 @@ class _HeroSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // System Online badge
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -333,12 +218,15 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
+
+
 class _StatCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
   final Color iconColor;
   final String? accent;
+  final bool isHighlighted;
 
   const _StatCard({
     required this.title,
@@ -346,6 +234,7 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     this.accent,
+    this.isHighlighted = false,
   });
 
   @override
@@ -353,7 +242,7 @@ class _StatCard extends StatelessWidget {
     return ShadcnCard(
       padding: const EdgeInsets.all(32),
       borderRadius: 24,
-      glowColor: accent != null ? AppColors.secondary : null,
+      glowColor: isHighlighted ? AppColors.secondary : null,
       useGlassEffect: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,8 +259,8 @@ class _StatCard extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: AppTypography.heroTitle.copyWith(
-                  color: Colors.white,
+                style: AppTypography.statValue.copyWith(
+                  color: iconColor,
                   fontSize: 36,
                 ),
               ),
@@ -385,55 +274,58 @@ class _StatCard extends StatelessWidget {
 }
 
 class _WeeklyChart extends StatelessWidget {
-  final List<DailyActivity> activities;
+  final List<DailyActivity> weeklyActivity;
 
-  const _WeeklyChart({required this.activities});
+  const _WeeklyChart({required this.weeklyActivity});
 
   @override
   Widget build(BuildContext context) {
-    final data = activities.isEmpty
+    final data = weeklyActivity.isEmpty
         ? List.generate(7, (i) => 0.0)
-        : activities.map((a) => a.itemsCompleted.toDouble()).toList();
+        : weeklyActivity.map((a) => a.itemsCompleted.toDouble()).toList();
 
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return ShadcnCard(
-      padding: const EdgeInsets.all(32),
-      borderRadius: 32,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: const EdgeInsets.all(32),
+          borderRadius: 32,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Weekly Activity', style: AppTypography.cardTitle),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Learning metrics across the sector',
-                    style: AppTypography.bodySmall,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Weekly Activity', style: AppTypography.cardTitle),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Learning metrics across the sector',
+                        style: AppTypography.bodySmall,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      _ChartFilterButton(label: 'Daily', isActive: false),
+                      const SizedBox(width: 8),
+                      _ChartFilterButton(label: 'Weekly', isActive: true),
+                    ],
                   ),
                 ],
               ),
-              const Row(
-                children: [
-                  _ChartFilterButton(label: 'Daily', isActive: false),
-                  SizedBox(width: 8),
-                  _ChartFilterButton(label: 'Weekly', isActive: true),
-                ],
+              const SizedBox(height: 32),
+              SizedBox(
+                height: 256,
+                child: _BarChart(data: data, labels: days),
               ),
             ],
           ),
-          const SizedBox(height: 32),
-          SizedBox(
-            height: 256,
-            child: _BarChart(data: data, labels: days),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 200.ms, duration: 500.ms).slideY(begin: 0.1, end: 0);
+        )
+        .animate()
+        .fadeIn(delay: 200.ms, duration: 500.ms)
+        .slideY(begin: 0.1, end: 0);
   }
 }
 
@@ -568,7 +460,7 @@ class _RecentItemsSectionState extends State<_RecentItemsSection> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-Text('Recent Archives', style: AppTypography.sectionTitle),
+                Text('Recent Archives', style: AppTypography.sectionTitle),
                 const SizedBox(height: 4),
                 Text(
                   'Jump back into the stream',
@@ -613,12 +505,7 @@ Text('Recent Archives', style: AppTypography.sectionTitle),
               return _RecentItemCard(
                 item: item,
                 index: index,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ItemDetailScreen(itemId: item.id),
-                  ),
-                ),
+                
               );
             },
           ),
@@ -703,11 +590,12 @@ class _RecentItemCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Image area
             Container(
               height: 160,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.surfaceContainerHighest,
-                borderRadius: BorderRadius.vertical(
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(24),
                 ),
               ),
@@ -762,6 +650,7 @@ class _RecentItemCard extends StatelessWidget {
                 ],
               ),
             ),
+            // Content
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -776,7 +665,7 @@ class _RecentItemCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text('Last modified: recently', style: AppTypography.caption),
                   const SizedBox(height: 16),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Icon(
@@ -807,7 +696,7 @@ class _AchievementsPreview extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-Text('Milestones', style: AppTypography.cardTitle),
+          Text('Milestones', style: AppTypography.cardTitle),
           const SizedBox(height: 4),
           Text('Unlocked achievements', style: AppTypography.bodySmall),
           const SizedBox(height: 24),
@@ -865,7 +754,9 @@ Text('Milestones', style: AppTypography.cardTitle),
               child: Text(
                 'View Repository',
                 textAlign: TextAlign.center,
-                style: AppTypography.typeBadge,
+                style: AppTypography.typeBadge.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ),

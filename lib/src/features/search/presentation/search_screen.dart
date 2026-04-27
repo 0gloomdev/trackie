@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../services/models/models.dart';
+import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
 import '../../editor/presentation/editor_screen.dart';
 
@@ -57,57 +58,55 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget build(BuildContext context) {
     final itemsAsync = ref.watch(learningItemsProvider);
     final customization = ref.watch(customizationProvider);
+    final List<LearningItem> items = itemsAsync.when(
+      data: (data) => data,
+      loading: () => <LearningItem>[],
+      error: (_, __) => <LearningItem>[],
+    );
+    final filteredItems = _filterItems(items);
 
-    return itemsAsync.when(
-      data: (items) {
-        final filteredItems = _filterItems(items);
-        final effectivePadding = customization.compactMode ? 16.0 : 24.0;
+    final effectivePadding = customization.compactMode ? 16.0 : 24.0;
 
-        return CallbackShortcuts(
-          bindings: {
-            const SingleActivator(LogicalKeyboardKey.escape): () =>
-                Navigator.pop(context),
-          },
-          child: Focus(
-            autofocus: true,
-            child: Scaffold(
-              backgroundColor: AppColors.shadcnBackground,
-              body: Padding(
-                padding: EdgeInsets.all(effectivePadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _Header(onClose: () => Navigator.pop(context)),
-                    const SizedBox(height: 24),
-                    _SearchInput(
-                      controller: _searchController,
-                      onChanged: (value) => setState(() => _query = value),
-                      onClear: () {
-                        _searchController.clear();
-                        setState(() => _query = '');
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _FilterChips(
-                      selectedFilter: _filter,
-                      onFilterChanged: (filter) =>
-                          setState(() => _filter = filter),
-                    ),
-                    const SizedBox(height: 24),
-                    Expanded(
-                      child: filteredItems.isEmpty
-                          ? _EmptyState(hasQuery: _query.isNotEmpty)
-                          : _SearchResults(items: filteredItems, query: _query),
-                    ),
-                  ],
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.escape): () =>
+            Navigator.pop(context),
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          backgroundColor: AppColors.shadcnBackground,
+          body: Padding(
+            padding: EdgeInsets.all(effectivePadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _Header(onClose: () => Navigator.pop(context)),
+                const SizedBox(height: 24),
+                _SearchInput(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() => _query = value),
+                  onClear: () {
+                    _searchController.clear();
+                    setState(() => _query = '');
+                  },
                 ),
-              ),
+                const SizedBox(height: 16),
+                _FilterChips(
+                  selectedFilter: _filter,
+                  onFilterChanged: (filter) => setState(() => _filter = filter),
+                ),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: filteredItems.isEmpty
+                      ? _EmptyState(hasQuery: _query.isNotEmpty)
+                      : _SearchResults(items: filteredItems, query: _query),
+                ),
+              ],
             ),
           ),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, stack) => Center(child: Text('Error loading items: $e')),
+        ),
+      ),
     );
   }
 }
@@ -122,11 +121,11 @@ class _Header extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: onClose,
         ),
         const SizedBox(width: 8),
-        const Text(
+        Text(
           'Search',
           style: TextStyle(
             fontSize: 28,
@@ -231,7 +230,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             hasQuery ? 'No results' : 'Search library',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.white,

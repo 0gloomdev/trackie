@@ -3,6 +3,11 @@
 .env.local
 .env.*.local
 
+# Dependencies
+node_modules/
+package-lock.json
+.npm
+
 # Miscellaneous
 *.class
 *.log

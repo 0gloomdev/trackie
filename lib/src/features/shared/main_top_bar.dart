@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../core/theme/app_colors.dart';
 
 class TopBar extends ConsumerWidget {
@@ -25,9 +24,6 @@ class TopBar extends ConsumerWidget {
     final onSurface = isDark
         ? AppColors.darkOnSurface
         : AppColors.lightOnSurface;
-    final onSurfaceVariant = isDark
-        ? AppColors.darkOnSurfaceVariant
-        : AppColors.lightOnSurfaceVariant;
 
     // Use variables to avoid warnings
     onSurface.hashCode;

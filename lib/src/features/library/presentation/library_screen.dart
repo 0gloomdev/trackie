@@ -8,7 +8,6 @@ import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
 import '../../shared/providers/customization_provider.dart';
 import '../../editor/presentation/editor_screen.dart';
-import '../../detail/presentation/item_detail_screen.dart';
 
 class LibraryTab extends ConsumerStatefulWidget {
   const LibraryTab({super.key});
@@ -408,12 +407,12 @@ class _HeroCard extends StatelessWidget {
                   Row(
                     children: [
                       ElevatedButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ItemDetailScreen(itemId: item.id),
-                          ),
-                        ),
+                        onPressed: () =>
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Item details coming soon'),
+                              ),
+                            ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.onPrimaryContainer,
@@ -436,10 +435,9 @@ class _HeroCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 24),
                       GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ItemDetailScreen(itemId: item.id),
+                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Item details coming soon'),
                           ),
                         ),
                         child: Row(

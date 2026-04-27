@@ -5,8 +5,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../services/models/models.dart';
+import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
-import '../../detail/presentation/item_detail_screen.dart';
 import '../../search/presentation/search_screen.dart';
 
 class CoursesScreen extends ConsumerWidget {
@@ -16,221 +16,208 @@ class CoursesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(learningItemsProvider);
     final customization = ref.watch(customizationProvider);
+    final List<LearningItem> allItems = itemsAsync.when(
+      data: (data) => data,
+      loading: () => <LearningItem>[],
+      error: (_, __) => <LearningItem>[],
+    );
+    final courses = allItems.where((i) => i.type == 'course').toList();
+    final inProgress = courses.where((i) => i.status == 'in_progress').toList();
+    final completed = courses.where((i) => i.status == 'completed').toList();
+    final pending = courses.where((i) => i.status == 'pending').toList();
 
-    return itemsAsync.when(
-      data: (items) {
-        final courses = items.where((i) => i.type == 'course').toList();
-        final inProgress = courses
-            .where((i) => i.status == 'in_progress')
-            .toList();
-        final completed = courses
-            .where((i) => i.status == 'completed')
-            .toList();
-        final pending = courses.where((i) => i.status == 'pending').toList();
+    final effectivePadding = customization.compactMode ? 16.0 : 48.0;
 
-        final effectivePadding = customization.compactMode ? 16.0 : 48.0;
-
-        return Scaffold(
-          backgroundColor: AppColors.surfaceContainerLowest,
-          body: Stack(
-            children: [
-              // Decorative glow orbs
-              Positioned(
-                top: -100,
-                right: -100,
-                child: Container(
-                  width: 500,
-                  height: 500,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.primary.withAlpha(38),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
+    return Scaffold(
+      backgroundColor: AppColors.surfaceContainerLowest,
+      body: Stack(
+        children: [
+          // Decorative glow orbs
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 500,
+              height: 500,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [AppColors.primary.withAlpha(38), Colors.transparent],
                 ),
               ),
-              Positioned(
-                bottom: -100,
-                left: -50,
-                child: Container(
-                  width: 400,
-                  height: 400,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.secondary.withAlpha(26),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Main content
-              SingleChildScrollView(
-                padding: EdgeInsets.all(effectivePadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Your Learning Path',
-                              style: AppTypography.typeBadge.copyWith(
-                                color: AppColors.tertiary,
-                                letterSpacing: 2,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                                  'Courses',
-                                  style: AppTypography.heroTitle.copyWith(
-                                    color: AppColors.primary,
-                                    fontSize: 64,
-                                  ),
-                                )
-                                .animate()
-                                .fadeIn(
-                                  duration: const Duration(milliseconds: 600),
-                                )
-                                .slideY(begin: -0.2),
-                          ],
-                        ),
-                        ShadcnCard(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          borderRadius: 999,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.secondary,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.secondary.withAlpha(128),
-                                      blurRadius: 8,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${inProgress.length} Active Courses',
-                                style: AppTypography.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 64),
-                    // Stat Cards
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _StatCard(
-                            icon: Icons.play_circle,
-                            label: 'In Progress',
-                            value: '${inProgress.length}',
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 32),
-                        Expanded(
-                          child: _StatCard(
-                            icon: Icons.verified,
-                            label: 'Completed',
-                            value: '${completed.length}',
-                            color: AppColors.secondary,
-                          ),
-                        ),
-                        const SizedBox(width: 32),
-                        Expanded(
-                          child: _StatCard(
-                            icon: Icons.schedule,
-                            label: 'Pending',
-                            value: pending.length.toString().padLeft(2, '0'),
-                            color: AppColors.tertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 80),
-                    // Course List
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Current Curriculum',
-                          style: AppTypography.sectionTitle.copyWith(
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SearchScreen(),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                'View All',
-                                style: AppTypography.label.copyWith(
-                                  color: AppColors.secondary,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.arrow_forward,
-                                size: 16,
-                                color: AppColors.secondary,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    // Course Cards
-                    ...[
-                      ...inProgress,
-                      ...completed,
-                      ...pending,
-                    ].asMap().entries.map(
-                      (entry) => Padding(
-                        padding: const EdgeInsets.only(bottom: 32),
-                        child: _CourseCard(item: entry.value, index: entry.key),
-                      ),
-                    ),
-                    if (courses.isEmpty) const _EmptyState(),
-                    const SizedBox(height: 80),
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -50,
+            child: Container(
+              width: 400,
+              height: 400,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.secondary.withAlpha(26),
+                    Colors.transparent,
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, stack) => Center(child: Text('Error loading items: $e')),
+          // Main content
+          SingleChildScrollView(
+            padding: EdgeInsets.all(effectivePadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your Learning Path',
+                          style: AppTypography.typeBadge.copyWith(
+                            color: AppColors.tertiary,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                              'Courses',
+                              style: AppTypography.heroTitle.copyWith(
+                                color: AppColors.primary,
+                                fontSize: 64,
+                              ),
+                            )
+                            .animate()
+                            .fadeIn(duration: 600.ms)
+                            .slideY(begin: -0.2),
+                      ],
+                    ),
+                    ShadcnCard(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      borderRadius: 999,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.secondary,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.secondary.withAlpha(128),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${inProgress.length} Active Courses',
+                            style: AppTypography.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 64),
+                // Stat Cards
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(
+                        icon: Icons.play_circle,
+                        label: 'In Progress',
+                        value: '${inProgress.length}',
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 32),
+                    Expanded(
+                      child: _StatCard(
+                        icon: Icons.verified,
+                        label: 'Completed',
+                        value: '${completed.length}',
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                    const SizedBox(width: 32),
+                    Expanded(
+                      child: _StatCard(
+                        icon: Icons.schedule,
+                        label: 'Pending',
+                        value: pending.length.toString().padLeft(2, '0'),
+                        color: AppColors.tertiary,
+                      ),
+                    ),
+                  ],
+                ).animate(delay: 150.ms).fadeIn().slideY(begin: 0.1),
+                const SizedBox(height: 80),
+                // Course List
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Current Curriculum',
+                      style: AppTypography.sectionTitle.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SearchScreen()),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'View All',
+                            style: AppTypography.label.copyWith(
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.arrow_forward,
+                            size: 16,
+                            color: AppColors.secondary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                // Course Cards
+                ...[
+                  ...inProgress,
+                  ...completed,
+                  ...pending,
+                ].asMap().entries.map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 32),
+                    child: _CourseCard(item: entry.value, index: entry.key),
+                  ),
+                ),
+                if (courses.isEmpty) const _EmptyState(),
+                const SizedBox(height: 80),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -327,8 +314,12 @@ class _CourseCard extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  if (isActive) AppColors.primary.withAlpha(51) else AppColors.surfaceContainerHighest,
-                  if (isActive) AppColors.secondary.withAlpha(26) else AppColors.surfaceContainer,
+                  isActive
+                      ? AppColors.primary.withAlpha(51)
+                      : AppColors.surfaceContainerHighest,
+                  isActive
+                      ? AppColors.secondary.withAlpha(26)
+                      : AppColors.surfaceContainer,
                 ],
               ),
               color: isPaused ? AppColors.surfaceContainerHighest : null,
@@ -485,11 +476,8 @@ class _CourseCard extends StatelessWidget {
           const SizedBox(width: 32),
           // Button
           ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ItemDetailScreen(itemId: item.id),
-              ),
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Course details coming soon')),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: isActive

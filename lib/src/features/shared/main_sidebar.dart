@@ -21,12 +21,6 @@ class Sidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(userProfileProvider);
-    final primaryColor = isDark
-        ? AppColors.darkPrimary
-        : AppColors.lightPrimary;
-    final secondaryColor = isDark
-        ? AppColors.darkSecondary
-        : AppColors.lightSecondary;
     final onSurfaceVariant = isDark
         ? AppColors.darkOnSurfaceVariant
         : AppColors.lightOnSurfaceVariant;

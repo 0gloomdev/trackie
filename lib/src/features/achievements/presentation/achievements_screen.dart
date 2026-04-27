@@ -49,7 +49,7 @@ class AchievementsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const _Header(),
+                      _Header(),
                       const SizedBox(height: 24),
                       _XPStatsCard(
                         unlockedCount: unlockedCount,
@@ -85,7 +85,7 @@ class AchievementsScreen extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Scaffold(
+      loading: () => Scaffold(
         backgroundColor: AppColors.surfaceContainerLowest,
         body: Center(
           child: CircularProgressIndicator(color: AppColors.primary),
@@ -187,7 +187,7 @@ class _XPStatsCard extends StatelessWidget {
                 ),
                 child: Container(
                   margin: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: AppColors.brandGradient,
                   ),
@@ -479,14 +479,6 @@ class _AchievementCard extends StatelessWidget {
               )
             else
               Text('+${achievement.xpReward} XP', style: AppTypography.caption),
-            const SizedBox(height: 16),
-            Text(
-              achievement.description,
-              style: AppTypography.body.copyWith(
-                color: AppColors.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -522,7 +514,7 @@ class _AchievementCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.primary.withAlpha(51)),
                 ),
-                child: const Text(
+                child: Text(
                   'Close',
                   style: TextStyle(
                     color: AppColors.primary,
