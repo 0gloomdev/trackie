@@ -51,7 +51,9 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
         filteredItems = items;
     }
 
-    final effectivePadding = customization.compactMode ? 16.0 : 48.0;
+    final effectivePadding = customization.compactMode
+        ? DesignTokens.spaceMd
+        : DesignTokens.spaceXxl;
 
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLowest,
@@ -70,15 +72,18 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Universe Library',
-                        style: AppTypography.heroTitle.copyWith(
-                          color: AppColors.primary,
-                          fontSize: 64,
-                        ),
-                      ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2),
-                      const SizedBox(height: 16),
+                            'Universe Library',
+                            style: AppTypography.heroTitle.copyWith(
+                              color: AppColors.primary,
+                              fontSize: 64,
+                            ),
+                          )
+                          .animate()
+                          .fadeIn(duration: DesignTokens.fadeIn)
+                          .slideY(begin: -0.2),
+                      const SizedBox(height: DesignTokens.spaceMd),
                       Wrap(
-                        spacing: 12,
+                        spacing: DesignTokens.spaceSm,
                         children: [
                           _FilterChip(
                             label: 'All',

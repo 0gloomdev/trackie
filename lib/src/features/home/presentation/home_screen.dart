@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/glass_design.dart';
+import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
 import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
@@ -34,9 +35,7 @@ class HomeTab extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _HeroSection(profileAsync: profileAsync),
-          const SizedBox(height: 32),
-          
-          const SizedBox(height: 32),
+          const SizedBox(height: DesignTokens.spaceXxl),
           if (isDesktop) ...[
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,30 +43,33 @@ class HomeTab extends ConsumerWidget {
                 Expanded(
                   flex: 2,
                   child: activitiesAsync.when(
-            data: (weeklyActivity) => _WeeklyChart(weeklyActivity: weeklyActivity),
-            loading: () => const CircularProgressIndicator(),
-            error: (_, __) => const SizedBox(),
-          ),
+                    data: (weeklyActivity) =>
+                        _WeeklyChart(weeklyActivity: weeklyActivity),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => const SizedBox(),
+                  ),
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: DesignTokens.spaceLg),
                 Expanded(flex: 1, child: const _AchievementsPreview()),
               ],
             ),
           ] else ...[
             activitiesAsync.when(
-              data: (weeklyActivity) => _WeeklyChart(weeklyActivity: weeklyActivity),
-              loading: () => const CircularProgressIndicator(),
+              data: (weeklyActivity) =>
+                  _WeeklyChart(weeklyActivity: weeklyActivity),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, __) => const SizedBox(),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: DesignTokens.spaceLg),
             const _AchievementsPreview(),
           ],
-          const SizedBox(height: 32),
+          const SizedBox(height: DesignTokens.spaceLg),
           if (recentItems.isNotEmpty) _RecentItemsSection(items: recentItems),
-          const SizedBox(height: 100),
+          const SizedBox(height: DesignTokens.spaceXxxl),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms);
+    ).animate().fadeIn(duration: DesignTokens.fadeIn);
   }
 }
 
@@ -77,13 +79,13 @@ class _HeroSection extends StatelessWidget {
   const _HeroSection({required this.profileAsync});
 
   @override
-Widget build(BuildContext context) {
-  final profile = profileAsync.when(
-    data: (p) => p,
-    loading: () => null,
-    error: (_, __) => null,
-  );
-  final hour = DateTime.now().hour;
+  Widget build(BuildContext context) {
+    final profile = profileAsync.when(
+      data: (p) => p,
+      loading: () => null,
+      error: (_, __) => null,
+    );
+    final hour = DateTime.now().hour;
     String greeting;
     if (hour < 12) {
       greeting = 'Good morning';
@@ -217,8 +219,6 @@ Widget build(BuildContext context) {
     ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.1, end: 0);
   }
 }
-
-
 
 class _StatCard extends StatelessWidget {
   final String title;
@@ -502,11 +502,7 @@ class _RecentItemsSectionState extends State<_RecentItemsSection> {
             itemCount: widget.items.length,
             itemBuilder: (context, index) {
               final item = widget.items[index];
-              return _RecentItemCard(
-                item: item,
-                index: index,
-                
-              );
+              return _RecentItemCard(item: item, index: index);
             },
           ),
         ),
