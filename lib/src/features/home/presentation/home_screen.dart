@@ -219,57 +219,6 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color iconColor;
-  final String? accent;
-  final bool isHighlighted;
-
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ShadcnCard(
-      padding: const EdgeInsets.all(32),
-      borderRadius: 24,
-      glowColor: isHighlighted ? AppColors.secondary : null,
-      useGlassEffect: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: AppTypography.body.copyWith(
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                value,
-                style: AppTypography.statValue.copyWith(
-                  color: iconColor,
-                  fontSize: 36,
-                ),
-              ),
-              Icon(icon, color: iconColor, size: 28),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _WeeklyChart extends StatelessWidget {
   final List<DailyActivity> weeklyActivity;
 
@@ -499,7 +448,7 @@ class _RecentItemsSectionState extends State<_RecentItemsSection> {
             itemCount: widget.items.length,
             itemBuilder: (context, index) {
               final item = widget.items[index];
-              return _RecentItemCard(item: item, index: index);
+              return _RecentItemCard(item: item, index: index, onTap: () {});
             },
           ),
         ),
@@ -536,7 +485,7 @@ class _RecentItemCard extends StatelessWidget {
   final int index;
   final VoidCallback? onTap;
 
-  const _RecentItemCard({required this.item, required this.index});
+  const _RecentItemCard({required this.item, required this.index, this.onTap});
 
   Color _getTypeColor() {
     switch (item.type.toLowerCase()) {
@@ -588,9 +537,7 @@ class _RecentItemCard extends StatelessWidget {
               height: 160,
               decoration: const BoxDecoration(
                 color: AppColors.surfaceContainerHighest,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Stack(
                 children: [
