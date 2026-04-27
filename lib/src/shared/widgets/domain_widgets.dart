@@ -320,7 +320,7 @@ class VerificationStepCard extends StatelessWidget {
           Expanded(
             child: SelectableText(
               codeExample,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 fontFamily: 'monospace',
                 color: AppColors.shadcnSecondary,

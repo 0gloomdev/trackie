@@ -212,39 +212,39 @@ class AppColors {
   // ============================================
 
   static List<BoxShadow> get purpleGlow => [
-    BoxShadow(
+    const BoxShadow(
       color: neonPurple,
       blurRadius: 15,
       spreadRadius: 0,
-      offset: const Offset(0, 4),
+      offset: Offset(0, 4),
     ),
   ];
 
   static List<BoxShadow> get purpleGlowStrong => [
-    BoxShadow(
+    const BoxShadow(
       color: neonPurpleStrong,
       blurRadius: 20,
       spreadRadius: 0,
-      offset: const Offset(0, 4),
+      offset: Offset(0, 4),
     ),
     BoxShadow(color: primary.withAlpha(77), blurRadius: 30, spreadRadius: 0),
   ];
 
   static List<BoxShadow> get cyanGlow => [
-    BoxShadow(
+    const BoxShadow(
       color: neonCyan,
       blurRadius: 15,
       spreadRadius: 0,
-      offset: const Offset(0, 4),
+      offset: Offset(0, 4),
     ),
   ];
 
   static List<BoxShadow> get cyanGlowStrong => [
-    BoxShadow(
+    const BoxShadow(
       color: neonCyanStrong,
       blurRadius: 20,
       spreadRadius: 0,
-      offset: const Offset(0, 4),
+      offset: Offset(0, 4),
     ),
     BoxShadow(color: secondary.withAlpha(77), blurRadius: 30, spreadRadius: 0),
   ];
@@ -299,7 +299,7 @@ class AppColors {
   static Color get darkOnSurfaceVariant => onSurfaceVariant;
 
   static Color get darkError => error;
-  static Color get darkErrorDim => Color(0xFFd73357);
+  static Color get darkErrorDim => const Color(0xFFd73357);
   static Color get darkErrorContainer => errorContainer;
   static Color get darkOnError => onError;
   static Color get darkOnErrorContainer => onErrorContainer;

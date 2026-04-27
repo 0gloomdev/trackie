@@ -374,12 +374,8 @@ class _GlassFloatingActionButtonState extends State<GlassFloatingActionButton>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              _isPressed
-                  ? widget.color.withAlpha(77)
-                  : widget.color.withAlpha(51),
-              _isPressed
-                  ? widget.color.withAlpha(102)
-                  : widget.color.withAlpha(26),
+              if (_isPressed) widget.color.withAlpha(77) else widget.color.withAlpha(51),
+              if (_isPressed) widget.color.withAlpha(102) else widget.color.withAlpha(26),
             ],
           ),
           border: Border.all(

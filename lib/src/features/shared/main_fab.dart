@@ -7,7 +7,7 @@ class EnhancedFAB extends ConsumerStatefulWidget {
   final VoidCallback onPressed;
   final bool isDark;
 
-  const EnhancedFAB({required this.onPressed, required this.isDark});
+  const EnhancedFAB({super.key, required this.onPressed, required this.isDark});
 
   @override
   ConsumerState<EnhancedFAB> createState() => EnhancedFABState();
@@ -93,7 +93,7 @@ class DesktopFAB extends ConsumerStatefulWidget {
   final VoidCallback onPressed;
   final bool isDark;
 
-  const DesktopFAB({required this.onPressed, required this.isDark});
+  const DesktopFAB({super.key, required this.onPressed, required this.isDark});
 
   @override
   ConsumerState<DesktopFAB> createState() => DesktopFABState();
@@ -147,12 +147,8 @@ class DesktopFABState extends ConsumerState<DesktopFAB>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      widget.isDark
-                          ? AppColors.darkPrimary
-                          : AppColors.lightPrimary,
-                      widget.isDark
-                          ? AppColors.darkSecondary
-                          : AppColors.lightSecondary,
+                      if (widget.isDark) AppColors.darkPrimary else AppColors.lightPrimary,
+                      if (widget.isDark) AppColors.darkSecondary else AppColors.lightSecondary,
                     ],
                   ),
                   shape: BoxShape.circle,

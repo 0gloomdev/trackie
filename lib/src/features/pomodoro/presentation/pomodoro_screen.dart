@@ -27,13 +27,17 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
   }
 
   void _startTimer() {
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.running;
-    ref.read(pomodoroTimeProvider.notifier).state = _selectedMinutes * 60;
+    ref
+        .read(pomodoroStateProvider.notifier)
+        .setStateValue(PomodoroState.running);
+    ref
+        .read(pomodoroTimeNotifierProvider.notifier)
+        .setTime(_selectedMinutes * 60);
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final currentTime = ref.read(pomodoroTimeProvider);
       if (currentTime > 0) {
-        ref.read(pomodoroTimeProvider.notifier).state = currentTime - 1;
+        ref.read(pomodoroTimeNotifierProvider.notifier).decrement();
       } else {
         _completeSession();
       }
@@ -42,15 +46,19 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
 
   void _pauseTimer() {
     _timer?.cancel();
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.paused;
+    ref
+        .read(pomodoroStateProvider.notifier)
+        .setStateValue(PomodoroState.paused);
   }
 
   void _resumeTimer() {
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.running;
+    ref
+        .read(pomodoroStateProvider.notifier)
+        .setStateValue(PomodoroState.running);
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final currentTime = ref.read(pomodoroTimeProvider);
       if (currentTime > 0) {
-        ref.read(pomodoroTimeProvider.notifier).state = currentTime - 1;
+        ref.read(pomodoroTimeNotifierProvider.notifier).decrement();
       } else {
         _completeSession();
       }
@@ -59,13 +67,15 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
 
   void _resetTimer() {
     _timer?.cancel();
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.idle;
-    ref.read(pomodoroTimeProvider.notifier).state = _selectedMinutes * 60;
+    ref.read(pomodoroStateProvider.notifier).setStateValue(PomodoroState.idle);
+    ref
+        .read(pomodoroTimeNotifierProvider.notifier)
+        .setTime(_selectedMinutes * 60);
   }
 
   void _completeSession() {
     _timer?.cancel();
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.idle;
+    ref.read(pomodoroStateProvider.notifier).setStateValue(PomodoroState.idle);
     ref
         .read(pomodoroSessionsNotifierProvider.notifier)
         .startSession(durationMinutes: _selectedMinutes);
@@ -92,11 +102,11 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.shadcnBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.celebration, color: Colors.amber),
-            const SizedBox(width: 8),
-            const Text(
+            SizedBox(width: 8),
+            Text(
               'Session completed!',
               style: TextStyle(color: Colors.white),
             ),
@@ -110,7 +120,7 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [AppColors.shadcnPrimary, AppColors.shadcnSecondary],
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -222,7 +232,7 @@ class _Header extends StatelessWidget {
             const Spacer(),
           ],
         ),
-        Text(
+        const Text(
           'Pomodoro',
           style: TextStyle(
             fontSize: 40,
@@ -306,7 +316,7 @@ class _TimerCircle extends StatelessWidget {
             children: [
               Text(
                 _formatTime(timeLeft),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 56,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
@@ -547,7 +557,7 @@ class _TodayStats extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.local_fire_department,
             color: AppColors.tertiary,
             size: 24,

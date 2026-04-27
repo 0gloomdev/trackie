@@ -53,7 +53,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     onPageChanged: (page) =>
                         setState(() => _currentPage = page),
                     children: [
-                      _OnboardingPage(
+                      const _OnboardingPage(
                         icon: Icons.folder_copy,
                         title: 'Save your content',
                         description:
@@ -61,7 +61,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         color: AppColors.shadcnPrimary,
                         pageIndex: 0,
                       ),
-                      _OnboardingPage(
+                      const _OnboardingPage(
                         icon: Icons.timer,
                         title: 'Use Pomodoro',
                         description:
@@ -69,7 +69,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         color: AppColors.shadcnSecondary,
                         pageIndex: 1,
                       ),
-                      _OnboardingPage(
+                      const _OnboardingPage(
                         icon: Icons.emoji_events,
                         title: 'Earn achievements',
                         description:
@@ -267,7 +267,7 @@ class _OnboardingPage extends StatelessWidget {
             child: Text(
               title,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.w900,
                 color: Colors.white,
@@ -392,7 +392,7 @@ class _NextButton extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [AppColors.shadcnPrimary, AppColors.shadcnSecondary],
             ),
             borderRadius: BorderRadius.circular(16),

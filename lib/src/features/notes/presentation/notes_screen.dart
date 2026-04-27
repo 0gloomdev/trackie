@@ -4,9 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
-import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
-import '../../shared/providers/drift_providers.dart';
+import '../../shared/providers/drift_providers.dart' as providers;
 import '../../shared/providers/customization_provider.dart';
 
 class NotesScreen extends ConsumerStatefulWidget {
@@ -28,22 +27,25 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final notes = ref.watch(notesProvider);
+    final notesAsync = ref.watch(providers.notesProvider);
     final customization = ref.watch(customizationProvider);
 
-    final filteredNotes = _searchQuery.isEmpty
-        ? notes
-        : notes
-              .where(
-                (n) =>
-                    n.title.toLowerCase().contains(
-                      _searchQuery.toLowerCase(),
-                    ) ||
-                    n.content.toLowerCase().contains(
-                      _searchQuery.toLowerCase(),
-                    ),
-              )
-              .toList();
+    final filteredNotes = notesAsync.maybeWhen(
+      data: (notes) => _searchQuery.isEmpty
+          ? notes
+          : notes
+                .where(
+                  (n) =>
+                      n.title.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
+                      ) ||
+                      n.content.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
+                      ),
+                )
+                .toList(),
+      orElse: () => <Note>[],
+    );
 
     final pinnedNotes = filteredNotes.where((n) => n.isPinned).toList();
     final unpinnedNotes = filteredNotes.where((n) => !n.isPinned).toList();
@@ -242,7 +244,7 @@ class _NotesList extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         if (pinnedNotes.isNotEmpty) ...[
-          SliverToBoxAdapter(child: _SectionTitle(title: 'Pinned')),
+          const SliverToBoxAdapter(child: _SectionTitle(title: 'Pinned')),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) => _NoteCard(
@@ -255,7 +257,7 @@ class _NotesList extends StatelessWidget {
           ),
         ],
         if (unpinnedNotes.isNotEmpty) ...[
-          SliverToBoxAdapter(child: _SectionTitle(title: 'All Notes')),
+          const SliverToBoxAdapter(child: _SectionTitle(title: 'All Notes')),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) => _NoteCard(
@@ -320,8 +322,8 @@ class _NoteCard extends ConsumerWidget {
             Row(
               children: [
                 if (note.isPinned)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                  const Padding(
+                    padding: EdgeInsets.only(right: 8),
                     child: Icon(
                       Icons.push_pin,
                       size: 16,
@@ -367,40 +369,6 @@ class _NoteCard extends ConsumerWidget {
                         color: Colors.white.withAlpha(102),
                       ),
                     ),
-                    if (note.type != NoteType.text) ...[
-                      const SizedBox(width: 8),
-                      _TypeBadge(noteType: note.type),
-                    ],
-                    if (note.hasAttachments) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: AppColors.tertiary.withAlpha(26),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Icon(
-                          Icons.image,
-                          size: 12,
-                          color: AppColors.tertiary,
-                        ),
-                      ),
-                    ],
-                    if (note.hasVoiceNote) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(26),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Icon(
-                          Icons.mic,
-                          size: 12,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
                 Row(
@@ -410,7 +378,7 @@ class _NoteCard extends ConsumerWidget {
                           ? Icons.push_pin
                           : Icons.push_pin_outlined,
                       onTap: () => ref
-                          .read(notesProvider.notifier)
+                          .read(providers.notesNotifierProvider.notifier)
                           .togglePinned(note.id),
                       color: note.isPinned
                           ? AppColors.shadcnSecondary
@@ -419,8 +387,9 @@ class _NoteCard extends ConsumerWidget {
                     const SizedBox(width: 8),
                     _ActionButton(
                       icon: Icons.delete_outline,
-                      onTap: () =>
-                          ref.read(notesProvider.notifier).delete(note.id),
+                      onTap: () => ref
+                          .read(providers.notesNotifierProvider.notifier)
+                          .deleteNote(note.id),
                       color: Colors.red.shade400,
                     ),
                   ],
@@ -445,49 +414,6 @@ class _NoteCard extends ConsumerWidget {
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
-  }
-}
-
-class _TypeBadge extends StatelessWidget {
-  final NoteType noteType;
-  const _TypeBadge({required this.noteType});
-
-  IconData get _icon {
-    switch (noteType) {
-      case NoteType.text:
-        return Icons.note;
-      case NoteType.image:
-        return Icons.image;
-      case NoteType.voice:
-        return Icons.mic;
-      case NoteType.mixed:
-        return Icons.layers;
-    }
-  }
-
-  Color get _color {
-    switch (noteType) {
-      case NoteType.text:
-        return AppColors.secondary;
-      case NoteType.image:
-        return AppColors.tertiary;
-      case NoteType.voice:
-        return AppColors.primary;
-      case NoteType.mixed:
-        return AppColors.primary;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: _color.withAlpha(26),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Icon(_icon, size: 12, color: _color),
-    );
   }
 }
 
@@ -546,9 +472,9 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.shadcnBackground,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
@@ -578,7 +504,7 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
                     ),
                     Text(
                       widget.note == null ? 'New Note' : 'Edit Note',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -616,11 +542,11 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
                       expands: true,
                       textAlignVertical: TextAlignVertical.top,
                       style: const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         hintText: 'Write your note...',
-                        hintStyle: const TextStyle(color: Color(0x80FFFFFF)),
+                        hintStyle: TextStyle(color: Color(0x80FFFFFF)),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(16),
+                        contentPadding: EdgeInsets.all(16),
                       ),
                     ),
                   ),
@@ -667,7 +593,7 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
 
     if (widget.note != null) {
       ref
-          .read(notesProvider.notifier)
+          .read(providers.notesNotifierProvider.notifier)
           .update(
             widget.note!.copyWith(
               title: _titleController.text,
@@ -676,13 +602,18 @@ class _NoteEditorSheetState extends ConsumerState<_NoteEditorSheet> {
             ),
           );
     } else {
+      final now = DateTime.now();
       ref
-          .read(notesProvider.notifier)
-          .add(
+          .read(providers.notesNotifierProvider.notifier)
+          .addData(
             Note(
+              id: now.millisecondsSinceEpoch.toString(),
               title: _titleController.text,
               content: _contentController.text,
+              tags: '',
               isPinned: _isPinned,
+              createdAt: now,
+              updatedAt: now,
             ),
           );
     }

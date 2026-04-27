@@ -27,13 +27,14 @@ class AuraLearningApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
+    // Database provider reference to ensure initialization
+    ref.watch(databaseProvider);
     final settingsAsync = ref.watch(settingsProvider);
 
     return settingsAsync.when(
       data: (settings) {
         if (settings == null) {
-          return MaterialApp(
+          return const MaterialApp(
             home: Scaffold(
               body: Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
@@ -66,7 +67,7 @@ class AuraLearningApp extends ConsumerWidget {
               : const OnboardingScreen(),
         );
       },
-      loading: () => MaterialApp(
+      loading: () => const MaterialApp(
         home: Scaffold(
           body: Center(
             child: CircularProgressIndicator(color: AppColors.primary),

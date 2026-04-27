@@ -322,6 +322,12 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteDomain(String id) =>
       (delete(customDomains)..where((t) => t.id.equals(id))).go();
 
+  Future<int> deleteAllItems() => (delete(learningItems)).go();
+  Future<int> deleteAllNotes() => (delete(notes)).go();
+  Future<int> deleteAllReminders() => (delete(reminders)).go();
+  Future<int> deleteAllCategories() => (delete(categories)).go();
+  Future<int> deleteAllTags() => (delete(tags)).go();
+
   Future<List<DailyActivity>> getAllActivities() =>
       select(dailyActivities).get();
   Stream<List<DailyActivity>> watchAllActivities() =>

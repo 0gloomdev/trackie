@@ -6,7 +6,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
-import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
 import '../../editor/presentation/editor_screen.dart';
 import '../../detail/presentation/item_detail_screen.dart';
@@ -135,7 +134,7 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
                           Container(
                             width: 32,
                             height: 32,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: AppColors.brandGradient,
                             ),

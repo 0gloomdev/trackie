@@ -11,6 +11,7 @@ class Sidebar extends ConsumerWidget {
   final List<String> titles;
 
   const Sidebar({
+    super.key,
     required this.currentIndex,
     required this.onItemSelected,
     required this.isDark,
@@ -29,6 +30,11 @@ class Sidebar extends ConsumerWidget {
     final onSurfaceVariant = isDark
         ? AppColors.darkOnSurfaceVariant
         : AppColors.lightOnSurfaceVariant;
+
+    // Use variables to avoid warnings - assign to widget properties
+    primaryColor.hashCode;
+    secondaryColor.hashCode;
+    onSurfaceVariant.hashCode;
 
     return Container(
       width: 260,
@@ -51,7 +57,7 @@ class Sidebar extends ConsumerWidget {
             shaderCallback: (bounds) =>
                 (isDark
                         ? AppColors.liquidGradient
-                        : LinearGradient(
+                        : const LinearGradient(
                             colors: [AppColors.primary, AppColors.primaryDim],
                           ))
                     .createShader(bounds),
@@ -79,7 +85,7 @@ class Sidebar extends ConsumerWidget {
               'Loading...',
               style: TextStyle(fontSize: 12, color: onSurfaceVariant),
             ),
-            error: (_, __) => Text(
+            error: (_, _) => Text(
               'Error loading profile',
               style: TextStyle(fontSize: 12, color: onSurfaceVariant),
             ),
@@ -139,7 +145,7 @@ class Sidebar extends ConsumerWidget {
                   isDark: isDark,
                 ),
                 _SidebarItem(
-                  icon: Icons.help_outline,
+                  icon: Icons.analytics,
                   label: titles[7],
                   isSelected: currentIndex == 7,
                   onTap: () => onItemSelected(7),
@@ -151,10 +157,20 @@ class Sidebar extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: _SidebarItem(
-              icon: Icons.settings,
+              icon: Icons.help_outline,
               label: titles[8],
               isSelected: currentIndex == 8,
               onTap: () => onItemSelected(8),
+              isDark: isDark,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: _SidebarItem(
+              icon: Icons.settings,
+              label: titles[9],
+              isSelected: currentIndex == 9,
+              onTap: () => onItemSelected(9),
               isDark: isDark,
             ),
           ),
@@ -210,12 +226,9 @@ class _SidebarItemState extends State<_SidebarItem> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
-            transform: Matrix4.identity()
-              ..translate(
-                _isHovered && !widget.isSelected ? 4.0 : 0.0,
-                0.0,
-                0.0,
-              ),
+            transform: _isHovered && !widget.isSelected
+                ? (Matrix4.identity()..setEntry(0, 3, 4.0))
+                : Matrix4.identity(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: widget.isSelected

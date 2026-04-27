@@ -62,11 +62,11 @@ class DesignTokens {
   static const int animVerySlow = 800;
 
   static Duration getDuration(int ms) => Duration(milliseconds: ms);
-  static Duration get animInstantD => Duration(milliseconds: animInstant);
-  static Duration get animFastD => Duration(milliseconds: animFast);
-  static Duration get animNormalD => Duration(milliseconds: animNormal);
-  static Duration get animSlowD => Duration(milliseconds: animSlow);
-  static Duration get animVerySlowD => Duration(milliseconds: animVerySlow);
+  static Duration get animInstantD => const Duration(milliseconds: animInstant);
+  static Duration get animFastD => const Duration(milliseconds: animFast);
+  static Duration get animNormalD => const Duration(milliseconds: animNormal);
+  static Duration get animSlowD => const Duration(milliseconds: animSlow);
+  static Duration get animVerySlowD => const Duration(milliseconds: animVerySlow);
 
   static Duration getDurationByStyle(String style, double speed) {
     int ms;

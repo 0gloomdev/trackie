@@ -3,6 +3,63 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_colors.dart';
 
 // ============================================
+// INPUT VALIDATION HELPERS
+// ============================================
+
+class InputValidators {
+  /// Validates that input is not empty
+  static String? required(String? value, [String fieldName = 'This field']) {
+    if (value == null || value.trim().isEmpty) {
+      return '$fieldName cannot be empty';
+    }
+    return null;
+  }
+
+  /// Validates URL format
+  static String? url(String? value) {
+    if (value == null || value.isEmpty) return null;
+    final uri = Uri.tryParse(value);
+    if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
+      return 'Invalid URL format';
+    }
+    return null;
+  }
+
+  /// Validates domain name format
+  static String? domain(String? value) {
+    if (value == null || value.isEmpty) return null;
+    final domainRegex = RegExp(
+      r'^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$',
+    );
+    if (!domainRegex.hasMatch(value)) {
+      return 'Invalid domain format';
+    }
+    return null;
+  }
+
+  /// Validates max length
+  static String? maxLength(
+    String? value,
+    int maxLength, [
+    String fieldName = 'Input',
+  ]) {
+    if (value != null && value.length > maxLength) {
+      return '$fieldName must be less than $maxLength characters';
+    }
+    return null;
+  }
+
+  /// Combined validator
+  static String? combine(List<String? Function()> validators) {
+    for (final validator in validators) {
+      final result = validator();
+      if (result != null) return result;
+    }
+    return null;
+  }
+}
+
+// ============================================
 // LIQUID NEBULA DESIGN SYSTEM - FASE 1
 // Glass Components & Neon Glows
 // ============================================
@@ -54,11 +111,11 @@ class LiquidGlass {
   ];
 
   static List<BoxShadow> get purpleGlowStrong => [
-    BoxShadow(
+    const BoxShadow(
       color: neonPurpleStrong,
       blurRadius: 20,
       spreadRadius: 0,
-      offset: const Offset(0, 4),
+      offset: Offset(0, 4),
     ),
     BoxShadow(
       color: AppColors.shadcnPrimary.withAlpha(77),
@@ -77,11 +134,11 @@ class LiquidGlass {
   ];
 
   static List<BoxShadow> get cyanGlowStrong => [
-    BoxShadow(
+    const BoxShadow(
       color: neonCyanStrong,
       blurRadius: 20,
       spreadRadius: 0,
-      offset: const Offset(0, 4),
+      offset: Offset(0, 4),
     ),
     BoxShadow(
       color: AppColors.shadcnSecondary.withAlpha(77),
@@ -164,7 +221,7 @@ class _ShadcnCardState extends State<ShadcnCard> {
                   // HTML spec: directional border (top+left only)
                   border: widget.borderColor != null
                       ? Border.all(color: widget.borderColor!, width: 1.5)
-                      : Border(
+                      : const Border(
                           top: BorderSide(
                             color: AppColors.glassBorderTopLeft,
                             width: 1.5,
@@ -454,10 +511,11 @@ class _ShadcnInputState extends State<ShadcnInput> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            _isFocused ? LiquidGlass.glassMedium : LiquidGlass.glassLow,
-            _isFocused
-                ? LiquidGlass.glassLow
-                : LiquidGlass.glassLow.withAlpha(179),
+            if (_isFocused) LiquidGlass.glassMedium else LiquidGlass.glassLow,
+            if (_isFocused)
+              LiquidGlass.glassLow
+            else
+              LiquidGlass.glassLow.withAlpha(179),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
@@ -566,7 +624,7 @@ class _ShadcnChipState extends State<ShadcnChip> {
                     ],
                   )
                 : (_isHovered
-                      ? LinearGradient(
+                      ? const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [

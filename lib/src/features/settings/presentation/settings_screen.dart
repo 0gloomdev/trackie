@@ -1,7 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:drift/drift.dart' show Value;
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
@@ -235,7 +240,7 @@ class _ProfileSection extends ConsumerWidget {
                       height: 72,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(
+                        gradient: const LinearGradient(
                           colors: [AppColors.primary, AppColors.secondary],
                         ),
                         boxShadow: [
@@ -248,7 +253,7 @@ class _ProfileSection extends ConsumerWidget {
                       ),
                       padding: const EdgeInsets.all(3),
                       child: Container(
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           color: AppColors.surfaceContainerLowest,
                         ),
@@ -294,7 +299,7 @@ class _ProfileSection extends ConsumerWidget {
                             ),
                             child: Text(
                               'Level $level • $xp XP',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.secondary,
@@ -307,7 +312,7 @@ class _ProfileSection extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 28),
-                _SettingsToggle(
+                const _SettingsToggle(
                   icon: Icons.cloud_off,
                   title: 'Offline Sync (Hive)',
                   subtitle: 'Local storage prioritized',
@@ -371,7 +376,7 @@ class _NotificationsSection extends ConsumerWidget {
                     color: AppColors.secondary.withAlpha(26),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.notifications,
                     color: AppColors.secondary,
                     size: 20,
@@ -432,8 +437,8 @@ class _PrivacySection extends ConsumerWidget {
               subtitle: 'Use fingerprint or face to unlock',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Biometrics feature coming soon'),
+                  const SnackBar(
+                    content: Text('Biometrics feature coming soon'),
                     backgroundColor: AppColors.primary,
                   ),
                 );
@@ -469,7 +474,7 @@ class _DataSection extends ConsumerWidget {
                         color: AppColors.primary.withAlpha(26),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.storage,
                         color: AppColors.primary,
                         size: 20,
@@ -498,7 +503,7 @@ class _DataSection extends ConsumerWidget {
                   icon: Icons.upload,
                   title: 'Import Data',
                   subtitle: 'Load from JSON',
-                  onTap: () => _showImportDialog(context),
+                  onTap: () => _showImportDialog(context, ref),
                 ),
               ],
             ),
@@ -581,25 +586,146 @@ class _DataSection extends ConsumerWidget {
         'exportedAt': DateTime.now().toIso8601String(),
       };
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Data exported! ${items.length} items, ${notes.length} notes, ${reminders.length} reminders (${(jsonData.toString().length / 1024).toStringAsFixed(1)} KB)',
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File(
+        '${dir.path}/trackie_export_${DateTime.now().millisecondsSinceEpoch}.json',
+      );
+      await file.writeAsString(jsonEncode(jsonData));
+
+      await Share.shareXFiles([XFile(file.path)], text: 'Trackie Data Export');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Data exported! ${items.length} items, ${notes.length} notes, ${reminders.length} reminders',
+            ),
+            backgroundColor: AppColors.primary,
           ),
-          backgroundColor: AppColors.primary,
-        ),
-      );
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Export failed: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
-  void _showImportDialog(BuildContext context) {
+  Future<void> _importData(BuildContext context, WidgetRef ref) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result == null || result.files.isEmpty) return;
+
+      final file = File(result.files.single.path!);
+      final content = await file.readAsString();
+      final data = jsonDecode(content) as Map<String, dynamic>;
+
+      final db = ref.read(databaseProvider);
+      var importedItems = 0;
+      var importedNotes = 0;
+      var importedReminders = 0;
+
+      if (data['items'] != null) {
+        for (final item in data['items'] as List) {
+          final i = item as Map<String, dynamic>;
+          await db.insertItem(
+            LearningItemsCompanion(
+              id: Value(i['id'] as String),
+              title: Value(i['title'] as String),
+              type: Value(i['type'] as String),
+              description: Value(i['description'] as String?),
+              url: Value(i['url'] as String?),
+              urlFavicon: Value(i['urlFavicon'] as String?),
+              urlThumbnail: Value(i['urlThumbnail'] as String?),
+              progress: Value(i['progress'] as int? ?? 0),
+              status: Value(i['status'] as String? ?? 'pending'),
+              tags: Value(i['tags'] as String? ?? '[]'),
+              notes: Value(i['notes'] as String?),
+              isFavorite: Value(i['isFavorite'] as bool? ?? false),
+              isPinned: Value(i['isPinned'] as bool? ?? false),
+              createdAt: Value(DateTime.parse(i['createdAt'] as String)),
+              updatedAt: Value(DateTime.parse(i['updatedAt'] as String)),
+            ),
+          );
+          importedItems++;
+        }
+      }
+
+      if (data['notes'] != null) {
+        for (final note in data['notes'] as List) {
+          final n = note as Map<String, dynamic>;
+          await db.insertNote(
+            NotesCompanion(
+              id: Value(n['id'] as String),
+              title: Value(n['title'] as String),
+              content: Value(n['content'] as String),
+              tags: Value(n['tags'] as String? ?? ''),
+              isPinned: Value(n['isPinned'] as bool? ?? false),
+              createdAt: Value(DateTime.parse(n['createdAt'] as String)),
+              updatedAt: Value(DateTime.parse(n['updatedAt'] as String)),
+            ),
+          );
+          importedNotes++;
+        }
+      }
+
+      if (data['reminders'] != null) {
+        for (final reminder in data['reminders'] as List) {
+          final r = reminder as Map<String, dynamic>;
+          final scheduledAtStr = r['scheduledAt'] as String?;
+          await db.insertReminder(
+            RemindersCompanion(
+              id: Value(r['id'] as String),
+              title: Value(r['title'] as String),
+              message: Value(r['message'] as String?),
+              type: Value(r['type'] as String? ?? 'general'),
+              scheduledAt: Value(
+                scheduledAtStr != null
+                    ? DateTime.parse(scheduledAtStr)
+                    : DateTime.now(),
+              ),
+              isCompleted: Value(r['isCompleted'] as bool? ?? false),
+              isRecurring: Value(r['isRecurring'] as bool? ?? false),
+              recurrencePattern: Value(r['recurrencePattern'] as String?),
+              createdAt: Value(DateTime.parse(r['createdAt'] as String)),
+            ),
+          );
+          importedReminders++;
+        }
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Imported! $importedItems items, $importedNotes notes, $importedReminders reminders',
+            ),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Import failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showImportDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -631,14 +757,9 @@ class _DataSection extends ConsumerWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Import feature coming soon!'),
-                  backgroundColor: AppColors.secondary,
-                ),
-              );
+              await _importData(context, ref);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text(
@@ -699,14 +820,33 @@ class _DataSection extends ConsumerWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('All data has been deleted'),
-                  backgroundColor: Colors.red.shade700,
-                ),
-              );
+              try {
+                final db = ref.read(databaseProvider);
+                await db.deleteAllItems();
+                await db.deleteAllNotes();
+                await db.deleteAllReminders();
+                await db.deleteAllCategories();
+                await db.deleteAllTags();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('All data has been deleted'),
+                      backgroundColor: Colors.red.shade700,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Delete failed: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade700,
@@ -763,7 +903,7 @@ class _AppearanceSection extends ConsumerWidget {
                     color: AppColors.tertiary.withAlpha(26),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.palette,
                     color: AppColors.tertiary,
                     size: 20,
@@ -831,13 +971,13 @@ class _AppearanceSection extends ConsumerWidget {
                 onTap: () async {
                   final db = ref.read(databaseProvider);
                   await db.saveSettings(
-                    AppSettingsTableCompanion(
-                      id: const Value('settings'),
-                      theme: const Value('light'),
+                    const AppSettingsTableCompanion(
+                      id: Value('settings'),
+                      theme: Value('light'),
                     ),
                   );
                   ref.invalidate(settingsProvider);
-                  Navigator.pop(context);
+                  if (context.mounted) Navigator.pop(context);
                 },
               ),
               const SizedBox(height: 8),
@@ -847,13 +987,13 @@ class _AppearanceSection extends ConsumerWidget {
                 onTap: () async {
                   final db = ref.read(databaseProvider);
                   await db.saveSettings(
-                    AppSettingsTableCompanion(
-                      id: const Value('settings'),
-                      theme: const Value('dark'),
+                    const AppSettingsTableCompanion(
+                      id: Value('settings'),
+                      theme: Value('dark'),
                     ),
                   );
                   ref.invalidate(settingsProvider);
-                  Navigator.pop(context);
+                  if (context.mounted) Navigator.pop(context);
                 },
               ),
               const SizedBox(height: 8),
@@ -863,13 +1003,13 @@ class _AppearanceSection extends ConsumerWidget {
                 onTap: () async {
                   final db = ref.read(databaseProvider);
                   await db.saveSettings(
-                    AppSettingsTableCompanion(
-                      id: const Value('settings'),
-                      theme: const Value('system'),
+                    const AppSettingsTableCompanion(
+                      id: Value('settings'),
+                      theme: Value('system'),
                     ),
                   );
                   ref.invalidate(settingsProvider);
-                  Navigator.pop(context);
+                  if (context.mounted) Navigator.pop(context);
                 },
               ),
               const SizedBox(height: 16),

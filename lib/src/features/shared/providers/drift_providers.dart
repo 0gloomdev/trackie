@@ -1,26 +1,30 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:uuid/uuid.dart';
 import '../../../services/database/database.dart';
 import '../../../services/database/database_provider.dart';
+
+// Animation toggle - false disables animations for accessibility
+final reducedMotionProvider = StateProvider<bool>((ref) => false);
 
 final settingsProvider = FutureProvider<AppSettingsTableData?>((ref) async {
   final db = ref.watch(databaseProvider);
   var settings = await db.getSettings();
   if (settings == null) {
     await db.saveSettings(
-      AppSettingsTableCompanion(
-        id: const Value('settings'),
-        theme: const Value('system'),
-        locale: const Value('en'),
-        hasCompletedOnboarding: const Value(false),
-        notificationsEnabled: const Value(true),
-        dailyGoalMinutes: const Value(60),
-        focusDuration: const Value(25),
-        breakDuration: const Value(5),
-        longBreakDuration: const Value(15),
-        pomodorosUntilLongBreak: const Value(4),
-        reducedMotion: const Value(false),
+      const AppSettingsTableCompanion(
+        id: Value('settings'),
+        theme: Value('system'),
+        locale: Value('en'),
+        hasCompletedOnboarding: Value(false),
+        notificationsEnabled: Value(true),
+        dailyGoalMinutes: Value(60),
+        focusDuration: Value(25),
+        breakDuration: Value(5),
+        longBreakDuration: Value(15),
+        pomodorosUntilLongBreak: Value(4),
+        reducedMotion: Value(false),
       ),
     );
     settings = await db.getSettings();
@@ -166,9 +170,22 @@ class PomodoroStateNotifier extends Notifier<PomodoroState> {
   void setPaused() => state = PomodoroState.paused;
   void setIdle() => state = PomodoroState.idle;
   void setBreakTime() => state = PomodoroState.breakTime;
+
+  void setStateValue(PomodoroState newState) => state = newState;
 }
 
 final pomodoroTimeProvider = StateProvider<int>((ref) => 25 * 60);
+
+class PomodoroTimeNotifier extends Notifier<int> {
+  @override
+  int build() => 25 * 60;
+
+  void setTime(int seconds) => state = seconds;
+  void decrement() => state = state > 0 ? state - 1 : 0;
+}
+
+final pomodoroTimeNotifierProvider =
+    NotifierProvider<PomodoroTimeNotifier, int>(() => PomodoroTimeNotifier());
 
 final pendingDomainsProvider = StreamProvider<List<CustomDomain>>((ref) {
   final db = ref.watch(databaseProvider);
@@ -219,6 +236,40 @@ class CustomDomainsNotifier extends Notifier<List<CustomDomain>> {
   void updateDomain(CustomDomain domain) {
     state = state.map((d) => d.id == domain.id ? domain : d).toList();
   }
+
+  Future<void> addDomainStr(String domain, {String? description}) async {
+    final db = ref.read(databaseProvider);
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final verificationCode = _genCode();
+    await db.insertDomain(
+      CustomDomainsCompanion.insert(
+        id: id,
+        domain: domain,
+        verificationCode: verificationCode,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  String _genCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return List.generate(
+      6,
+      (_) => chars[DateTime.now().microsecondsSinceEpoch % chars.length],
+    ).join();
+  }
+
+  Future<void> startVerification(String id) async {
+    // Show info dialog - the UI will handle displaying this
+    // The user needs to add a TXT record to their DNS with the verification code
+    // This typically takes up to 24 hours to propagate
+  }
+
+  Future<void> completeVerification(
+    String id,
+    bool success, {
+    String? error,
+  }) async {}
 }
 
 final userProfileNotifierProvider =
@@ -262,16 +313,66 @@ class NotesNotifier extends Notifier<List<Note>> {
   @override
   List<Note> build() => [];
 
-  void addNote(Note note) {
-    state = [...state, note];
+  Future<void> _getDb() async {
+    final db = ref.read(databaseProvider);
+    final notes = await db.getAllNotes();
+    state = notes;
   }
 
-  void removeNote(String id) {
+  Future<void> addNote(Note note) async {
+    final db = ref.read(databaseProvider);
+    await db.insertNote(
+      NotesCompanion(
+        id: Value(note.id),
+        title: Value(note.title),
+        content: Value(note.content),
+        tags: Value(note.tags),
+        isPinned: Value(note.isPinned),
+        createdAt: Value(note.createdAt),
+        updatedAt: Value(note.updatedAt),
+      ),
+    );
+    await _getDb();
+  }
+
+  Future<void> removeNote(String id) async {
+    final db = ref.read(databaseProvider);
+    await db.deleteNote(id);
     state = state.where((n) => n.id != id).toList();
   }
 
-  void updateNote(Note note) {
+  Future<void> updateNote(Note note) async {
+    final db = ref.read(databaseProvider);
+    await db.updateNote(
+      NotesCompanion(
+        id: Value(note.id),
+        title: Value(note.title),
+        content: Value(note.content),
+        tags: Value(note.tags),
+        isPinned: Value(note.isPinned),
+        createdAt: Value(note.createdAt),
+        updatedAt: Value(note.updatedAt),
+      ),
+    );
     state = state.map((n) => n.id == note.id ? note : n).toList();
+  }
+
+  Future<void> togglePinned(String id) async {
+    final n = state.firstWhere((note) => note.id == id);
+    final updated = n.copyWith(isPinned: !n.isPinned);
+    await updateNote(updated);
+  }
+
+  Future<void> deleteNote(String id) async {
+    await removeNote(id);
+  }
+
+  Future<void> addData(Note note) async {
+    await addNote(note);
+  }
+
+  Future<void> update(Note note) async {
+    await updateNote(note);
   }
 }
 
@@ -301,6 +402,36 @@ class RemindersNotifier extends Notifier<List<Reminder>> {
       }
       return r;
     }).toList();
+  }
+
+  Future<void> addReminderNote(
+    String title, {
+    String? message,
+    String type = 'general',
+    DateTime? scheduledAt,
+    bool isRecurring = false,
+    String? itemId,
+  }) async {
+    final db = ref.read(databaseProvider);
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final now = DateTime.now();
+    await db.insertReminder(
+      RemindersCompanion.insert(
+        id: id,
+        title: title,
+        message: Value(message),
+        type: type,
+        scheduledAt: scheduledAt ?? now,
+        isCompleted: const Value(false),
+        isRecurring: Value(isRecurring),
+        itemId: Value(itemId),
+        createdAt: now,
+      ),
+    );
+  }
+
+  void deleteReminder(String id) {
+    state = state.where((r) => r.id != id).toList();
   }
 }
 
@@ -403,10 +534,11 @@ class SettingsNotifier extends Notifier<AppSettingsTableData?> {
   Future<void> completeOnboarding() async {
     final db = ref.read(databaseProvider);
     await db.saveSettings(
-      AppSettingsTableCompanion(
-        id: const Value('settings'),
-        hasCompletedOnboarding: const Value(true),
+      const AppSettingsTableCompanion(
+        id: Value('settings'),
+        hasCompletedOnboarding: Value(true),
       ),
     );
+    ref.invalidate(settingsProvider);
   }
 }

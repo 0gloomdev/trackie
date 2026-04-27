@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/app_colors.dart';
 import '../../core/utils/page_transitions.dart';
 import '../../core/utils/translations.dart';
 import '../achievements/presentation/achievements_screen.dart';
@@ -21,7 +20,6 @@ import 'main_sidebar.dart';
 import 'main_top_bar.dart';
 import 'main_fab.dart';
 import '../../services/models/models.dart';
-import 'providers/drift_providers.dart';
 
 class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
@@ -104,7 +102,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                 TopBar(
                   title: titles[_currentIndex],
                   isDark: isDark,
-                  locale: settings.locale,
+                  locale: settings?.locale ?? '',
                   onSearchTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const SearchScreen()),
@@ -170,23 +168,23 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         },
         destinations: [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon: const Icon(Icons.dashboard),
             label: titles[0],
           ),
           NavigationDestination(
-            icon: Icon(Icons.auto_stories_outlined),
-            selectedIcon: Icon(Icons.auto_stories),
+            icon: const Icon(Icons.auto_stories_outlined),
+            selectedIcon: const Icon(Icons.auto_stories),
             label: titles[1],
           ),
           NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
+            icon: const Icon(Icons.school_outlined),
+            selectedIcon: const Icon(Icons.school),
             label: titles[2],
           ),
           NavigationDestination(
-            icon: Icon(Icons.military_tech_outlined),
-            selectedIcon: Icon(Icons.military_tech),
+            icon: const Icon(Icons.military_tech_outlined),
+            selectedIcon: const Icon(Icons.military_tech),
             label: titles[3],
           ),
         ],

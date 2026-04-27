@@ -16,7 +16,7 @@ class AppTypography {
   // HEADLINE STYLES (Space Grotesk)
   // ============================================
 
-  static TextStyle get heroTitle => TextStyle(
+  static TextStyle get heroTitle => const TextStyle(
     fontFamily: headlineFont,
     fontSize: 48,
     fontWeight: FontWeight.w700,
@@ -24,7 +24,7 @@ class AppTypography {
     color: AppColors.onSurface,
   );
 
-  static TextStyle get pageTitle => TextStyle(
+  static TextStyle get pageTitle => const TextStyle(
     fontFamily: headlineFont,
     fontSize: 40,
     fontWeight: FontWeight.w700,
@@ -32,7 +32,7 @@ class AppTypography {
     color: AppColors.onSurface,
   );
 
-  static TextStyle get sectionTitle => TextStyle(
+  static TextStyle get sectionTitle => const TextStyle(
     fontFamily: headlineFont,
     fontSize: 24,
     fontWeight: FontWeight.w700,
@@ -40,7 +40,7 @@ class AppTypography {
     color: AppColors.onSurface,
   );
 
-  static TextStyle get cardTitle => TextStyle(
+  static TextStyle get cardTitle => const TextStyle(
     fontFamily: headlineFont,
     fontSize: 18,
     fontWeight: FontWeight.w600,
@@ -48,7 +48,7 @@ class AppTypography {
     color: AppColors.onSurface,
   );
 
-  static TextStyle get statValue => TextStyle(
+  static TextStyle get statValue => const TextStyle(
     fontFamily: headlineFont,
     fontSize: 32,
     fontWeight: FontWeight.w700,
@@ -56,7 +56,7 @@ class AppTypography {
     color: AppColors.onSurface,
   );
 
-  static TextStyle get statValueSmall => TextStyle(
+  static TextStyle get statValueSmall => const TextStyle(
     fontFamily: headlineFont,
     fontSize: 24,
     fontWeight: FontWeight.w700,
@@ -67,14 +67,14 @@ class AppTypography {
   // BODY STYLES (Manrope)
   // ============================================
 
-  static TextStyle get subtitle => TextStyle(
+  static TextStyle get subtitle => const TextStyle(
     fontFamily: bodyFont,
     fontSize: 16,
     fontWeight: FontWeight.w500,
     color: AppColors.onSurface,
   );
 
-  static TextStyle get bodyLarge => TextStyle(
+  static TextStyle get bodyLarge => const TextStyle(
     fontFamily: bodyFont,
     fontSize: 16,
     fontWeight: FontWeight.w400,
@@ -82,7 +82,7 @@ class AppTypography {
     color: AppColors.onSurface,
   );
 
-  static TextStyle get body => TextStyle(
+  static TextStyle get body => const TextStyle(
     fontFamily: bodyFont,
     fontSize: 14,
     fontWeight: FontWeight.w400,
@@ -90,7 +90,7 @@ class AppTypography {
     color: AppColors.onSurface,
   );
 
-  static TextStyle get bodySmall => TextStyle(
+  static TextStyle get bodySmall => const TextStyle(
     fontFamily: bodyFont,
     fontSize: 12,
     fontWeight: FontWeight.w400,
@@ -98,7 +98,7 @@ class AppTypography {
     color: AppColors.onSurfaceVariant,
   );
 
-  static TextStyle get caption => TextStyle(
+  static TextStyle get caption => const TextStyle(
     fontFamily: bodyFont,
     fontSize: 12,
     fontWeight: FontWeight.w400,
@@ -110,7 +110,7 @@ class AppTypography {
   // LABEL STYLES (Inter)
   // ============================================
 
-  static TextStyle get label => TextStyle(
+  static TextStyle get label => const TextStyle(
     fontFamily: labelFont,
     fontSize: 14,
     fontWeight: FontWeight.w500,
@@ -118,7 +118,7 @@ class AppTypography {
     color: AppColors.onSurface,
   );
 
-  static TextStyle get labelSmall => TextStyle(
+  static TextStyle get labelSmall => const TextStyle(
     fontFamily: labelFont,
     fontSize: 12,
     fontWeight: FontWeight.w500,
@@ -126,7 +126,7 @@ class AppTypography {
     color: AppColors.onSurfaceVariant,
   );
 
-  static TextStyle get sectionLabel => TextStyle(
+  static TextStyle get sectionLabel => const TextStyle(
     fontFamily: labelFont,
     fontSize: 12,
     fontWeight: FontWeight.w700,
@@ -134,7 +134,7 @@ class AppTypography {
     color: AppColors.onSurfaceVariant,
   );
 
-  static TextStyle get typeBadge => TextStyle(
+  static TextStyle get typeBadge => const TextStyle(
     fontFamily: labelFont,
     fontSize: 10,
     fontWeight: FontWeight.w700,
@@ -168,7 +168,7 @@ class AppTypography {
     ],
   );
 
-  static TextStyle get monospace => TextStyle(
+  static TextStyle get monospace => const TextStyle(
     fontFamily: 'monospace',
     fontSize: 13,
     fontWeight: FontWeight.w400,

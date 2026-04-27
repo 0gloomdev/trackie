@@ -5,26 +5,33 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/shadcn_widgets.dart';
 import '../../../../shared/widgets/glass_design.dart';
-import '../../../shared/providers/drift_providers.dart';
 import '../../../shared/providers/customization_provider.dart';
 import '../../../pomodoro/presentation/pomodoro_screen.dart';
+import '../../../../services/models/models.dart';
 
 class AnalyticsScreen extends ConsumerWidget {
   const AnalyticsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final analytics = ref.watch(analyticsProvider);
+    final analyticsAsync = ref.watch(analyticsProvider);
     final customization = ref.watch(customizationProvider);
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 1024;
 
-    final completionRate = (analytics.completionRate * 100).toInt();
-    final weekItems = analytics.weeklyActivity.fold(
-      0,
-      (sum, a) => sum + a.itemsCompleted,
+    final items = analyticsAsync.maybeWhen(
+      data: (data) => data,
+      orElse: () => <DailyActivity>[],
     );
-    final inProgress = analytics.totalItems - analytics.completedItems;
+
+    final completionRate =
+        (items.fold<int>(0, (sum, a) => sum + a.itemsCompleted) /
+                (items.isEmpty ? 1 : items.length * 10) *
+                100)
+            .toInt()
+            .clamp(0, 100);
+    final weekItems = items.fold<int>(0, (sum, a) => sum + a.itemsCompleted);
+    final inProgress = items.length * 5 - weekItems;
 
     final effectivePadding = customization.compactMode
         ? (isDesktop ? 16.0 : 12.0)
@@ -41,10 +48,11 @@ class AnalyticsScreen extends ConsumerWidget {
               completionRate: completionRate,
               weeklyOutput: weekItems,
               inProgress: inProgress,
-              totalStudyTime: (analytics.weekMinutes ~/ 60),
+              totalStudyTime:
+                  (items.fold<int>(0, (sum, a) => sum + a.totalMinutes) ~/ 60),
             ),
             const SizedBox(height: 32),
-            _NebulaOverview(),
+            const _NebulaOverview(),
             const SizedBox(height: 32),
             _PerformanceGrid(isDesktop: isDesktop),
             const SizedBox(height: 32),
@@ -54,11 +62,7 @@ class AnalyticsScreen extends ConsumerWidget {
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: _WeeklyChart(
-                            weeklyActivity: analytics.weeklyActivity,
-                          ),
-                        ),
+                        Expanded(child: _WeeklyChart(weeklyActivity: items)),
                         const SizedBox(width: 24),
                         Expanded(
                           child: _CompletionRateChart(
@@ -69,11 +73,7 @@ class AnalyticsScreen extends ConsumerWidget {
                     )
                   : Column(
                       children: [
-                        Expanded(
-                          child: _WeeklyChart(
-                            weeklyActivity: analytics.weeklyActivity,
-                          ),
-                        ),
+                        Expanded(child: _WeeklyChart(weeklyActivity: items)),
                         const SizedBox(height: 24),
                         Expanded(
                           child: _CompletionRateChart(
@@ -87,24 +87,22 @@ class AnalyticsScreen extends ConsumerWidget {
             SizedBox(
               height: 280,
               child: isDesktop
-                  ? Row(
+                  ? const Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(flex: 2, child: _HeatMapSection()),
-                        const SizedBox(width: 24),
+                        SizedBox(width: 24),
                         Expanded(flex: 1, child: _PomodoroStats()),
                       ],
                     )
-                  : Column(
+                  : const Column(
                       children: [
                         Expanded(child: _HeatMapSection()),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24),
                         Expanded(child: _PomodoroStats()),
                       ],
                     ),
             ),
-            const SizedBox(height: 32),
-            _AdvancedInsights(analytics: analytics),
             const SizedBox(height: 100),
           ],
         ),
@@ -411,29 +409,29 @@ class _PerformanceGrid extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Learning Performance', style: AppTypography.cardTitle),
-              Row(
+              const Row(
                 children: [
                   _FilterChip(label: 'Real-time', isActive: false),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   _FilterChip(label: 'Monthly', isActive: true),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 24),
-          _ProgressBar(
+          const _ProgressBar(
             label: 'Deep Focus Sessions',
             value: 0.85,
             color: AppColors.secondary,
           ),
           const SizedBox(height: 16),
-          _ProgressBar(
+          const _ProgressBar(
             label: 'Information Retention',
             value: 0.62,
             color: AppColors.primary,
           ),
           const SizedBox(height: 16),
-          _ProgressBar(
+          const _ProgressBar(
             label: 'Peer Engagement',
             value: 0.41,
             color: AppColors.tertiary,
@@ -449,25 +447,25 @@ class _PerformanceGrid extends StatelessWidget {
         children: [
           Text('Subject Breakdown', style: AppTypography.cardTitle),
           const SizedBox(height: 16),
-          _SubjectRow(
+          const _SubjectRow(
             label: 'Computer Science',
             hours: '32h',
             color: AppColors.primary,
           ),
           const SizedBox(height: 12),
-          _SubjectRow(
+          const _SubjectRow(
             label: 'Astrophysics',
             hours: '24h',
             color: AppColors.secondary,
           ),
           const SizedBox(height: 12),
-          _SubjectRow(
+          const _SubjectRow(
             label: 'Digital Design',
             hours: '18h',
             color: AppColors.tertiary,
           ),
           const SizedBox(height: 12),
-          _SubjectRow(
+          const _SubjectRow(
             label: 'Others',
             hours: '12h',
             color: AppColors.onSurfaceVariant,
@@ -663,7 +661,10 @@ class _WeeklyChart extends StatelessWidget {
     final data = weeklyActivity.isEmpty
         ? List.generate(7, (i) => 0.0)
         : weeklyActivity.map((a) => a.itemsCompleted.toDouble()).toList();
-    final maxVal = data.isEmpty ? 10.0 : data.reduce((a, b) => a > b ? a : b);
+    double maxVal = data.isEmpty ? 10.0 : 0.0;
+    for (final v in data) {
+      if (v > maxVal) maxVal = v;
+    }
     final maxIndex = data.indexOf(maxVal);
 
     return ShadcnCard(
@@ -785,7 +786,7 @@ class _CompletionRateChart extends StatelessWidget {
                     Container(
                       width: 128,
                       height: 128,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: AppColors.surfaceContainerLowest,
                       ),
@@ -812,16 +813,16 @@ class _CompletionRateChart extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 24),
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _LegendItem(color: AppColors.primary, label: 'Courses (60%)'),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _LegendItem(
                     color: AppColors.secondary,
                     label: 'Reading (25%)',
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _LegendItem(color: AppColors.tertiary, label: 'Exams (15%)'),
                 ],
               ),
@@ -968,6 +969,25 @@ class _HeatMapSection extends StatelessWidget {
 class _PomodoroStats extends StatelessWidget {
   const _PomodoroStats();
 
+  Widget _statRow(String label, String value, [Color? color]) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: AppTypography.body.copyWith(color: AppColors.onSurfaceVariant),
+        ),
+        Text(
+          value,
+          style: AppTypography.statValueSmall.copyWith(
+            color: color ?? AppColors.onSurface,
+            fontSize: 20,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ShadcnCard(
@@ -987,19 +1007,11 @@ class _PomodoroStats extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          _PomodoroStatRow(label: 'Focus Periods', value: '142'),
+          _statRow('Focus Periods', '142'),
           const SizedBox(height: 16),
-          _PomodoroStatRow(
-            label: 'Total Flow Time',
-            value: '58.5h',
-            color: AppColors.secondary,
-          ),
+          _statRow('Total Flow Time', '58.5h', AppColors.secondary),
           const SizedBox(height: 16),
-          _PomodoroStatRow(
-            label: 'Interruption Rate',
-            value: '2.4/day',
-            color: AppColors.tertiary,
-          ),
+          _statRow('Interruption Rate', '2.4/day', AppColors.tertiary),
           const Spacer(),
           const SizedBox(height: 24),
           ElevatedButton(
@@ -1034,335 +1046,5 @@ class _PomodoroStats extends StatelessWidget {
         ],
       ),
     ).animate(delay: 500.ms).fadeIn().slideY(begin: 0.1);
-  }
-}
-
-class _AdvancedInsights extends StatelessWidget {
-  final Analytics analytics;
-  const _AdvancedInsights({required this.analytics});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Advanced Insights', style: AppTypography.sectionTitle),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth > 600;
-            if (isWide) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _ScoreCard(
-                      title: 'Focus Score',
-                      score: analytics.focusScore,
-                      icon: Icons.psychology,
-                      color: AppColors.primary,
-                      description: 'Based on daily focus time',
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _ScoreCard(
-                      title: 'Consistency',
-                      score: analytics.consistencyScore,
-                      icon: Icons.event_repeat,
-                      color: AppColors.secondary,
-                      description: '30-day activity pattern',
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(child: _PeakHourCard(peakHour: analytics.peakHour)),
-                ],
-              );
-            }
-            return Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _ScoreCard(
-                        title: 'Focus Score',
-                        score: analytics.focusScore,
-                        icon: Icons.psychology,
-                        color: AppColors.primary,
-                        description: 'Based on daily focus time',
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _ScoreCard(
-                        title: 'Consistency',
-                        score: analytics.consistencyScore,
-                        icon: Icons.event_repeat,
-                        color: AppColors.secondary,
-                        description: '30-day activity pattern',
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _PeakHourCard(peakHour: analytics.peakHour),
-              ],
-            );
-          },
-        ),
-        const SizedBox(height: 32),
-        _GrowthCard(
-          title: 'Week-over-Week',
-          growth: analytics.weekOverWeekGrowth,
-          icon: Icons.trending_up,
-        ),
-        const SizedBox(height: 16),
-        _GrowthCard(
-          title: 'Month-over-Month',
-          growth: analytics.monthOverMonthGrowth,
-          icon: Icons.calendar_month,
-        ),
-      ],
-    ).animate().fadeIn(delay: 600.ms);
-  }
-}
-
-class _ScoreCard extends StatelessWidget {
-  final String title;
-  final double score;
-  final IconData icon;
-  final Color color;
-  final String description;
-
-  const _ScoreCard({
-    required this.title,
-    required this.score,
-    required this.icon,
-    required this.color,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final percentage = (score * 100).toInt();
-    return ShadcnCard(
-      padding: const EdgeInsets.all(24),
-      borderRadius: 24,
-      glowColor: color,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(26),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Text(title, style: AppTypography.cardTitle),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$percentage%',
-                style: AppTypography.statValue.copyWith(
-                  color: color,
-                  fontSize: 36,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(26),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _getScoreLabel(score),
-                  style: AppTypography.typeBadge.copyWith(color: color),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: score,
-              backgroundColor: color.withAlpha(26),
-              valueColor: AlwaysStoppedAnimation(color),
-              minHeight: 6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getScoreLabel(double score) {
-    if (score >= 0.8) return 'Excellent';
-    if (score >= 0.6) return 'Good';
-    if (score >= 0.4) return 'Fair';
-    return 'Low';
-  }
-}
-
-class _PeakHourCard extends StatelessWidget {
-  final int peakHour;
-  const _PeakHourCard({required this.peakHour});
-
-  String _formatHour(int hour) {
-    if (hour == 0) return '12 AM';
-    if (hour < 12) return '$hour AM';
-    if (hour == 12) return '12 PM';
-    return '${hour - 12} PM';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ShadcnCard(
-      padding: const EdgeInsets.all(24),
-      borderRadius: 24,
-      glowColor: AppColors.tertiary,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.tertiary.withAlpha(26),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.schedule,
-                  color: AppColors.tertiary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text('Peak Hour', style: AppTypography.cardTitle),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _formatHour(peakHour),
-            style: AppTypography.statValue.copyWith(
-              color: AppColors.tertiary,
-              fontSize: 36,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Most productive time',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GrowthCard extends StatelessWidget {
-  final String title;
-  final double growth;
-  final IconData icon;
-
-  const _GrowthCard({
-    required this.title,
-    required this.growth,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isPositive = growth >= 0;
-    final color = isPositive ? AppColors.tertiary : AppColors.error;
-
-    return ShadcnCard(
-      padding: const EdgeInsets.all(20),
-      borderRadius: 16,
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withAlpha(26),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppTypography.body),
-                Text(
-                  '${growth >= 0 ? '+' : ''}${growth.toStringAsFixed(1)}%',
-                  style: AppTypography.statValueSmall.copyWith(
-                    color: color,
-                    fontSize: 20,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-            color: color,
-            size: 20,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PomodoroStatRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color? color;
-  const _PomodoroStatRow({
-    required this.label,
-    required this.value,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: AppTypography.body.copyWith(color: AppColors.onSurfaceVariant),
-        ),
-        Text(
-          value,
-          style: AppTypography.statValueSmall.copyWith(
-            color: color ?? AppColors.onSurface,
-            fontSize: 20,
-          ),
-        ),
-      ],
-    );
   }
 }

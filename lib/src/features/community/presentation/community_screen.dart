@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
-import '../../../shared/widgets/glass_design.dart';
 import '../../../services/database/database.dart';
 import '../../shared/providers/drift_providers.dart';
 
@@ -142,7 +142,7 @@ class _FeedContentState extends State<_FeedContent> {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: _HeroBanner()),
+        const SliverToBoxAdapter(child: _HeroBanner()),
         if (widget.polls.isNotEmpty)
           SliverToBoxAdapter(child: _PollsSection(polls: widget.polls)),
         SliverToBoxAdapter(
@@ -404,20 +404,48 @@ class _FeedFilter extends StatelessWidget {
   }
 }
 
-class _PostCard extends StatelessWidget {
+class _PostCard extends StatefulWidget {
   final CommunityPost post;
 
   const _PostCard({required this.post});
 
   @override
+  State<_PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<_PostCard> {
+  bool _isLiked = false;
+  int _likesCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _likesCount = widget.post.likes;
+  }
+
+  void _toggleLike() {
+    setState(() {
+      _isLiked = !_isLiked;
+      _likesCount = _isLiked ? _likesCount + 1 : _likesCount - 1;
+    });
+  }
+
+  void _sharePost() async {
+    await Share.share(
+      '${widget.post.content}\n\n- Shared from Trackie Community',
+      subject: 'Trackie Community Post',
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final post = widget.post;
     return ShadcnCard(
       padding: const EdgeInsets.all(32),
       borderRadius: 32,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Author header
           Row(
             children: [
               Container(
@@ -430,13 +458,14 @@ class _PostCard extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    post.authorName?.isNotEmpty == true
-                        ? post.authorName![0].toUpperCase()
-                        : 'U',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    post.authorName.isNotEmpty
+                        ? post.authorName[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: post.authorName.isNotEmpty
+                          ? Colors.white
+                          : Colors.grey,
                     ),
                   ),
                 ),
@@ -447,14 +476,8 @@ class _PostCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      post.authorName ?? 'Voyager',
+                      post.authorName.isNotEmpty ? post.authorName : 'Voyager',
                       style: AppTypography.cardTitle,
-                    ),
-                    Text(
-                      'UPDATE', // Since we don't have type in CommunityPosts table yet
-                      style: AppTypography.typeBadge.copyWith(
-                        color: AppColors.primary,
-                      ),
                     ),
                   ],
                 ),
@@ -466,19 +489,15 @@ class _PostCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          // Content
           Text(post.content, style: AppTypography.bodyLarge),
           const SizedBox(height: 24),
-          // Actions
           Row(
             children: [
               _PostAction(
-                icon: Icons.favorite,
-                label: '${post.likes} Boosts',
-                color: AppColors.tertiary,
-                onTap: () {
-                  // TODO: Toggle like on post
-                },
+                icon: _isLiked ? Icons.favorite : Icons.favorite_border,
+                label: '$_likesCount Boosts',
+                color: _isLiked ? Colors.red : AppColors.tertiary,
+                onTap: _toggleLike,
               ),
               const SizedBox(width: 24),
               _PostAction(
@@ -494,9 +513,7 @@ class _PostCard extends StatelessWidget {
                 icon: Icons.share,
                 label: '',
                 color: AppColors.primary,
-                onTap: () {
-                  // TODO: Share post
-                },
+                onTap: _sharePost,
               ),
             ],
           ),
@@ -613,21 +630,21 @@ class _RightSidebar extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _LeaderboardItem(
+                const _LeaderboardItem(
                   rank: 1,
                   name: 'AstroLearner',
                   xp: '24.8k',
                   color: AppColors.primary,
                 ),
                 const SizedBox(height: 12),
-                _LeaderboardItem(
+                const _LeaderboardItem(
                   rank: 2,
                   name: 'StarGazer',
                   xp: '22.1k',
                   color: AppColors.secondary,
                 ),
                 const SizedBox(height: 12),
-                _LeaderboardItem(
+                const _LeaderboardItem(
                   rank: 3,
                   name: 'NebulaRunner',
                   xp: '21.5k',

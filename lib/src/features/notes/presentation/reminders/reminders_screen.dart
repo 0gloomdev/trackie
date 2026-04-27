@@ -5,7 +5,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/shadcn_widgets.dart';
 import '../../../../services/models/models.dart';
-import '../../../shared/providers/drift_providers.dart';
 import '../../../shared/providers/customization_provider.dart';
 
 class RemindersScreen extends ConsumerStatefulWidget {
@@ -29,8 +28,13 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
   Widget build(BuildContext context) {
     final reminders = ref.watch(remindersProvider);
     final customization = ref.watch(customizationProvider);
-    final pending = reminders.where((r) => !r.isCompleted).toList();
-    final completed = reminders.where((r) => r.isCompleted).toList();
+
+    final allReminders = reminders.maybeWhen(
+      data: (data) => data,
+      orElse: () => <Reminder>[],
+    );
+    final pending = allReminders.where((r) => !r.isCompleted).toList();
+    final completed = allReminders.where((r) => r.isCompleted).toList();
     final activeReminders = _activeTab == 'Pending' ? pending : completed;
 
     final effectivePadding = customization.compactMode ? 24.0 : 48.0;
@@ -50,7 +54,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
+                      shaderCallback: (bounds) => const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
@@ -129,13 +133,11 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     onPressed: () {
                       if (_controller.text.isNotEmpty) {
                         ref
-                            .read(remindersProvider.notifier)
-                            .add(
-                              Reminder(
-                                title: _controller.text,
-                                scheduledTime: DateTime.now().add(
-                                  const Duration(hours: 1),
-                                ),
+                            .read(remindersNotifierProvider.notifier)
+                            .addReminderNote(
+                              _controller.text,
+                              scheduledAt: DateTime.now().add(
+                                const Duration(hours: 1),
                               ),
                             );
                         _controller.clear();
@@ -172,7 +174,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             const SizedBox(height: 32),
             // Reminder List
             if (activeReminders.isEmpty)
-              _EmptyState()
+              const _EmptyState()
             else
               ...activeReminders.asMap().entries.map((entry) {
                 final reminder = entry.value;
@@ -183,15 +185,17 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     index: entry.key,
                     onToggle: () {
                       ref
-                          .read(remindersProvider.notifier)
-                          .update(
+                          .read(remindersNotifierProvider.notifier)
+                          .updateReminder(
                             reminder.copyWith(
                               isCompleted: !reminder.isCompleted,
                             ),
                           );
                     },
                     onDelete: () {
-                      ref.read(remindersProvider.notifier).delete(reminder.id);
+                      ref
+                          .read(remindersNotifierProvider.notifier)
+                          .deleteReminder(reminder.id);
                     },
                   ),
                 );
@@ -323,14 +327,14 @@ class _ReminderCardState extends State<_ReminderCard> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.calendar_today,
                         size: 14,
                         color: AppColors.secondary,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        _formatDate(widget.reminder.scheduledTime),
+                        _formatDate(widget.reminder.scheduledAt),
                         style: AppTypography.caption,
                       ),
                     ],

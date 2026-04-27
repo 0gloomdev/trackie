@@ -1,14 +1,15 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:uuid/uuid.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/url_metadata_service.dart';
 import '../../../core/utils/translations.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../services/models/models.dart';
-import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
@@ -51,7 +52,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     _selectedType = item?.type ?? 'course';
     _selectedStatus = item?.status ?? 'pending';
     _progress = item?.progress ?? 0;
-    _tags = List.from(item?.tags ?? []);
+    final tagsString = item?.tags ?? '[]';
+    _tags = List<String>.from(jsonDecode(tagsString));
     _urlController.addListener(_onUrlChanged);
   }
 
@@ -116,8 +118,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     if (!_formKey.currentState!.validate()) return;
     final url = _urlController.text.trim();
     final now = DateTime.now();
+    final itemId = widget.item?.id ?? const Uuid().v4();
     final item = LearningItem(
-      id: widget.item?.id,
+      id: itemId,
       title: _titleController.text.trim(),
       type: _selectedType,
       description: _descriptionController.text.trim().isEmpty
@@ -128,7 +131,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       urlThumbnail: _fetchedMetadata?.imageUrl,
       progress: _progress,
       status: _selectedStatus,
-      tags: _tags,
+      tags: jsonEncode(_tags),
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
@@ -138,9 +141,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       updatedAt: now,
     );
     if (_isEditing) {
-      ref.read(learningItemsProvider.notifier).update(item);
+      ref.read(learningItemsNotifierProvider.notifier).updateItem(item);
     } else {
-      ref.read(learningItemsProvider.notifier).add(item);
+      ref.read(learningItemsNotifierProvider.notifier).addItem(item);
     }
     HapticFeedback.lightImpact();
     Navigator.pop(context);
@@ -162,143 +165,151 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
+    final settingsAsync = ref.watch(settingsProvider);
     final customization = ref.watch(customizationProvider);
-    final t = Translations(settings.locale);
-    final effectivePadding = customization.compactMode ? 16.0 : 24.0;
 
-    return KeyboardListener(
-      focusNode: FocusNode(),
-      onKeyEvent: (event) {
-        if (event.logicalKey == LogicalKeyboardKey.escape) {
-          Navigator.pop(context);
-        }
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.shadcnBackground,
-        body: SafeArea(
-          child: Column(
-            children: [
-              _AppBar(
-                isEditing: _isEditing,
-                onSave: _save,
-                onClose: () => Navigator.pop(context),
-              ),
-              Expanded(
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    padding: EdgeInsets.all(effectivePadding),
-                    children: [
-                      _SectionLabel(label: 'Title'),
-                      const SizedBox(height: 8),
-                      ShadcnInput(
-                        controller: _titleController,
-                        hintText: 'Content name',
-                      ),
-                      const SizedBox(height: 24),
-                      _SectionLabel(label: 'Content Type'),
-                      const SizedBox(height: 12),
-                      _TypeSelector(
-                        selectedType: _selectedType,
-                        onChanged: (type) =>
-                            setState(() => _selectedType = type),
-                      ),
-                      const SizedBox(height: 24),
-                      _SectionLabel(label: 'Description'),
-                      const SizedBox(height: 8),
-                      ShadcnInput(
-                        controller: _descriptionController,
-                        hintText: 'Optional description...',
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 24),
-                      _SectionLabel(label: 'URL'),
-                      const SizedBox(height: 8),
-                      ShadcnInput(
-                        controller: _urlController,
-                        hintText: 'https://...',
-                        prefixIcon: const Icon(
-                          Icons.link,
-                          color: Colors.white54,
-                        ),
-                        suffixIcon: _isLoadingMetadata
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: Padding(
-                                  padding: EdgeInsets.all(12),
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              )
-                            : _fetchedMetadata != null
-                            ? const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                              )
-                            : null,
-                      ),
-                      if (_urlError != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          _urlError!,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                      if (_fetchedMetadata != null) ...[
-                        const SizedBox(height: 8),
-                        _MetadataPreview(metadata: _fetchedMetadata!),
-                      ],
-                      const SizedBox(height: 24),
-                      _SectionLabel(label: 'Status'),
-                      const SizedBox(height: 12),
-                      _StatusSelector(
-                        selectedStatus: _selectedStatus,
-                        onChanged: (status) => setState(() {
-                          _selectedStatus = status;
-                          if (status == 'completed') _progress = 100;
-                          if (status == 'pending') _progress = 0;
-                        }),
-                      ),
-                      const SizedBox(height: 24),
-                      _SectionLabel(label: 'Progress ($_progress%)'),
-                      const SizedBox(height: 12),
-                      _ProgressSlider(
-                        progress: _progress,
-                        onChanged: (value) => setState(() => _progress = value),
-                      ),
-                      const SizedBox(height: 24),
-                      _SectionLabel(label: 'Tags'),
-                      const SizedBox(height: 12),
-                      _TagInput(
-                        controller: _tagController,
-                        tags: _tags,
-                        onAdd: _addTag,
-                        onRemove: _removeTag,
-                      ),
-                      const SizedBox(height: 24),
-                      _SectionLabel(label: t.notes),
-                      const SizedBox(height: 8),
-                      ShadcnInput(
-                        controller: _notesController,
-                        hintText: 'Additional notes...',
-                        maxLines: 5,
-                      ),
-                      const SizedBox(height: 100),
-                    ],
+    return settingsAsync.when(
+      data: (settings) {
+        final t = Translations(settings?.locale ?? 'en');
+        final effectivePadding = customization.compactMode ? 16.0 : 24.0;
+
+        return KeyboardListener(
+          focusNode: FocusNode(),
+          onKeyEvent: (event) {
+            if (event.logicalKey == LogicalKeyboardKey.escape) {
+              Navigator.pop(context);
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.shadcnBackground,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  _AppBar(
+                    isEditing: _isEditing,
+                    onSave: _save,
+                    onClose: () => Navigator.pop(context),
                   ),
-                ),
+                  Expanded(
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        padding: EdgeInsets.all(effectivePadding),
+                        children: [
+                          const _SectionLabel(label: 'Title'),
+                          const SizedBox(height: 8),
+                          ShadcnInput(
+                            controller: _titleController,
+                            hintText: 'Content name',
+                          ),
+                          const SizedBox(height: 24),
+                          const _SectionLabel(label: 'Content Type'),
+                          const SizedBox(height: 12),
+                          _TypeSelector(
+                            selectedType: _selectedType,
+                            onChanged: (type) =>
+                                setState(() => _selectedType = type),
+                          ),
+                          const SizedBox(height: 24),
+                          const _SectionLabel(label: 'Description'),
+                          const SizedBox(height: 8),
+                          ShadcnInput(
+                            controller: _descriptionController,
+                            hintText: 'Optional description...',
+                            maxLines: 3,
+                          ),
+                          const SizedBox(height: 24),
+                          const _SectionLabel(label: 'URL'),
+                          const SizedBox(height: 8),
+                          ShadcnInput(
+                            controller: _urlController,
+                            hintText: 'https://...',
+                            prefixIcon: const Icon(
+                              Icons.link,
+                              color: Colors.white54,
+                            ),
+                            suffixIcon: _isLoadingMetadata
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(12),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : _fetchedMetadata != null
+                                ? const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                  )
+                                : null,
+                          ),
+                          if (_urlError != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              _urlError!,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                          if (_fetchedMetadata != null) ...[
+                            const SizedBox(height: 8),
+                            _MetadataPreview(metadata: _fetchedMetadata!),
+                          ],
+                          const SizedBox(height: 24),
+                          const _SectionLabel(label: 'Status'),
+                          const SizedBox(height: 12),
+                          _StatusSelector(
+                            selectedStatus: _selectedStatus,
+                            onChanged: (status) => setState(() {
+                              _selectedStatus = status;
+                              if (status == 'completed') _progress = 100;
+                              if (status == 'pending') _progress = 0;
+                            }),
+                          ),
+                          const SizedBox(height: 24),
+                          _SectionLabel(label: 'Progress ($_progress%)'),
+                          const SizedBox(height: 12),
+                          _ProgressSlider(
+                            progress: _progress,
+                            onChanged: (value) =>
+                                setState(() => _progress = value),
+                          ),
+                          const SizedBox(height: 24),
+                          const _SectionLabel(label: 'Tags'),
+                          const SizedBox(height: 12),
+                          _TagInput(
+                            controller: _tagController,
+                            tags: _tags,
+                            onAdd: _addTag,
+                            onRemove: _removeTag,
+                          ),
+                          const SizedBox(height: 24),
+                          _SectionLabel(label: t.notes),
+                          const SizedBox(height: 8),
+                          ShadcnInput(
+                            controller: _notesController,
+                            hintText: 'Additional notes...',
+                            maxLines: 5,
+                          ),
+                          const SizedBox(height: 100),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, stack) => Center(child: Text('Error loading settings: $e')),
     );
   }
 }
@@ -338,7 +349,7 @@ class _AppBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [AppColors.shadcnPrimary, AppColors.shadcnSecondary],
                 ),
                 borderRadius: BorderRadius.circular(20),
@@ -461,7 +472,7 @@ class _StatusSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statuses = AppConstants.statuses;
+    const statuses = AppConstants.statuses;
     return Wrap(
       spacing: 10,
       runSpacing: 10,
@@ -602,7 +613,7 @@ class _TagInput extends StatelessWidget {
                   color: AppColors.shadcnPrimary.withAlpha(26),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.add,
                   color: AppColors.shadcnPrimary,
                   size: 20,
@@ -645,7 +656,7 @@ class _TagChip extends StatelessWidget {
         children: [
           Text(
             '#$tag',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
               color: AppColors.shadcnPrimary,
               fontWeight: FontWeight.w500,
@@ -654,7 +665,11 @@ class _TagChip extends StatelessWidget {
           const SizedBox(width: 4),
           GestureDetector(
             onTap: onRemove,
-            child: Icon(Icons.close, size: 14, color: AppColors.shadcnPrimary),
+            child: const Icon(
+              Icons.close,
+              size: 14,
+              color: AppColors.shadcnPrimary,
+            ),
           ),
         ],
       ),

@@ -5,7 +5,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/domain_widgets.dart';
 import '../../../services/models/models.dart';
-import '../../shared/providers/drift_providers.dart';
 
 class DnsConfigScreen extends ConsumerStatefulWidget {
   final CustomDomain domain;
@@ -97,16 +96,6 @@ class _DnsConfigScreenState extends ConsumerState<DnsConfigScreen> {
                     color: Colors.white,
                   ),
                 ),
-                if (widget.domain.description != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.domain.description!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withAlpha(153),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -116,33 +105,14 @@ class _DnsConfigScreenState extends ConsumerState<DnsConfigScreen> {
   }
 
   Widget _buildStatusSection() {
-    final status = widget.domain.status;
-    Color statusColor;
-    String statusText;
-    IconData statusIcon;
-
-    switch (status) {
-      case DomainVerificationStatus.verified:
-        statusColor = AppColors.shadcnSuccess;
-        statusText = 'Domain verified successfully';
-        statusIcon = Icons.check_circle;
-        break;
-      case DomainVerificationStatus.verifying:
-        statusColor = AppColors.shadcnSecondary;
-        statusText = 'Verifying domain ownership...';
-        statusIcon = Icons.sync;
-        break;
-      case DomainVerificationStatus.pending:
-        statusColor = AppColors.shadcnTertiary;
-        statusText = 'Awaiting DNS configuration';
-        statusIcon = Icons.schedule;
-        break;
-      case DomainVerificationStatus.failed:
-        statusColor = AppColors.shadcnDestructive;
-        statusText = widget.domain.errorMessage ?? 'Verification failed';
-        statusIcon = Icons.error_outline;
-        break;
-    }
+    final isVerified = widget.domain.isVerified;
+    final statusColor = isVerified
+        ? AppColors.shadcnSuccess
+        : AppColors.shadcnTertiary;
+    final statusText = isVerified
+        ? 'Domain verified successfully'
+        : 'Awaiting DNS configuration';
+    final statusIcon = isVerified ? Icons.check_circle : Icons.schedule;
 
     return ShadcnCard(
       borderColor: statusColor.withAlpha(77),
@@ -162,8 +132,7 @@ class _DnsConfigScreenState extends ConsumerState<DnsConfigScreen> {
                     color: statusColor,
                   ),
                 ),
-                if (status == DomainVerificationStatus.verified &&
-                    widget.domain.verifiedAt != null) ...[
+                if (isVerified && widget.domain.verifiedAt != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     'Verified on ${_formatDate(widget.domain.verifiedAt!)}',
@@ -182,7 +151,7 @@ class _DnsConfigScreenState extends ConsumerState<DnsConfigScreen> {
   }
 
   Widget _buildVerificationSteps() {
-    final verificationCode = widget.domain.verificationCode ?? 'XXXXXX';
+    final verificationCode = widget.domain.verificationCode;
     final steps = [
       {
         'title': 'Add TXT Record',
@@ -238,7 +207,7 @@ class _DnsConfigScreenState extends ConsumerState<DnsConfigScreen> {
       {
         'type': 'TXT',
         'name': '_trackie',
-        'value': widget.domain.verificationCode ?? 'XXXXXXXX',
+        'value': widget.domain.verificationCode,
         'required': true,
       },
       {
@@ -278,7 +247,7 @@ class _DnsConfigScreenState extends ConsumerState<DnsConfigScreen> {
 
   Widget _buildVerifyButton() {
     final isVerified = widget.domain.isVerified;
-    final isVerifying = _isVerifying || widget.domain.isVerifying;
+    final isVerifying = _isVerifying;
 
     return SizedBox(
       width: double.infinity,
@@ -322,14 +291,14 @@ class _DnsConfigScreenState extends ConsumerState<DnsConfigScreen> {
     setState(() => _isVerifying = true);
 
     await ref
-        .read(customDomainsProvider.notifier)
+        .read(customDomainsNotifierProvider.notifier)
         .startVerification(widget.domain.id);
 
     await Future.delayed(const Duration(seconds: 2));
 
     final success = DateTime.now().millisecond % 2 == 0;
     await ref
-        .read(customDomainsProvider.notifier)
+        .read(customDomainsNotifierProvider.notifier)
         .completeVerification(
           widget.domain.id,
           success,

@@ -80,7 +80,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                                 letterSpacing: -1.0,
                                 foreground: Paint()
                                   ..shader =
-                                      LinearGradient(
+                                      const LinearGradient(
                                         colors: [
                                           AppColors.primary,
                                           AppColors.secondary,
@@ -163,11 +163,11 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                             color: AppColors.primary,
                             size: 32,
                           ),
-                          suffixIcon: Row(
+                          suffixIcon: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               _KbdBadge(label: '⌘'),
-                              const SizedBox(width: 4),
+                              SizedBox(width: 4),
                               _KbdBadge(label: 'K'),
                             ],
                           ),
@@ -245,7 +245,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                     ),
                   ),
                   const SizedBox(width: 32),
-                  Expanded(flex: 5, child: _RightPanel()),
+                  const Expanded(flex: 5, child: _RightPanel()),
                 ],
               )
             else
@@ -256,7 +256,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                     onExpanded: (i) => setState(() => _expandedFaq = i),
                   ),
                   const SizedBox(height: 32),
-                  _RightPanel(),
+                  const _RightPanel(),
                 ],
               ),
             const SizedBox(height: 64),
@@ -271,12 +271,12 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
+                  const Row(
                     children: [
                       _FooterStat(value: '24/7', label: 'Ground Control'),
-                      const SizedBox(width: 48),
+                      SizedBox(width: 48),
                       _FooterStat(value: '99.9%', label: 'Uptime Signal'),
-                      const SizedBox(width: 48),
+                      SizedBox(width: 48),
                       _FooterStat(value: '1.2M', label: 'Navigators'),
                     ],
                   ),
@@ -469,25 +469,25 @@ class _RightPanel extends StatelessWidget {
           crossAxisSpacing: 16,
           childAspectRatio: 1.2,
           children: [
-            _QuickLinkCard(
+            const _QuickLinkCard(
               icon: Icons.play_circle,
               title: 'Tutorials',
               subtitle: 'Visual guides to the galaxy.',
               color: AppColors.secondary,
             ),
-            _QuickLinkCard(
+            const _QuickLinkCard(
               icon: Icons.contact_support,
               title: 'Contact Support',
               subtitle: 'Connect with a navigator.',
               color: AppColors.primary,
             ),
-            _QuickLinkCard(
+            const _QuickLinkCard(
               icon: Icons.reviews,
               title: 'Rate Us',
               subtitle: 'Share your signal strength.',
               color: AppColors.tertiary,
             ),
-            _QuickLinkCard(
+            const _QuickLinkCard(
               icon: Icons.policy,
               title: 'Terms of Service',
               subtitle: 'Laws of the celestial body.',

@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/domain_widgets.dart';
+import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../services/models/models.dart';
-import '../../shared/providers/drift_providers.dart';
 import 'dns_config_screen.dart';
 
 class CustomDomainsSection extends ConsumerWidget {
@@ -13,20 +12,48 @@ class CustomDomainsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final domains = ref.watch(customDomainsProvider);
+    final domainsAsync = ref.watch(customDomainsProvider);
+    final verifiedCountAsync = ref.watch(verifiedDomainsProvider);
+    final pendingCountAsync = ref.watch(pendingDomainsProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildHeader(context, ref, domains),
-        const SizedBox(height: 24),
-        if (domains.isEmpty)
-          EmptyDomainsCard(
-            onAddDomain: () => _showAddDomainDialog(context, ref),
-          )
-        else
-          _buildDomainsList(context, ref, domains),
-      ],
+    return domainsAsync.when(
+      data: (domains) {
+        return verifiedCountAsync.when(
+          data: (verifiedCountList) {
+            return pendingCountAsync.when(
+              data: (pendingCountList) {
+                final verifiedCount = verifiedCountList.length;
+                final pendingCount = pendingCountList.length;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(
+                      context,
+                      ref,
+                      domains,
+                      verifiedCount,
+                      pendingCount,
+                    ),
+                    const SizedBox(height: 24),
+                    if (domains.isEmpty)
+                      EmptyDomainsCard(
+                        onAddDomain: () => _showAddDomainDialog(context, ref),
+                      )
+                    else
+                      _buildDomainsList(context, ref, domains),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('Error: $error')),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
     );
   }
 
@@ -34,10 +61,9 @@ class CustomDomainsSection extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     List<CustomDomain> domains,
+    int verifiedCount,
+    int pendingCount,
   ) {
-    final verifiedCount = ref.watch(verifiedDomainsProvider).length;
-    final pendingCount = ref.watch(pendingDomainsProvider).length;
-
     return Row(
       children: [
         Expanded(
@@ -127,8 +153,9 @@ class CustomDomainsSection extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: DomainCard(
             domain: domain.domain,
-            status: _mapStatus(domain.status),
-            description: domain.description,
+            status: domain.isVerified
+                ? DomainStatus.verified
+                : DomainStatus.pending,
             addedAt: domain.createdAt,
             onTap: () => _navigateToDnsConfig(context, domain),
             onDelete: () => _confirmDelete(context, ref, domain),
@@ -136,19 +163,6 @@ class CustomDomainsSection extends ConsumerWidget {
         );
       }).toList(),
     );
-  }
-
-  DomainStatus _mapStatus(DomainVerificationStatus status) {
-    switch (status) {
-      case DomainVerificationStatus.verified:
-        return DomainStatus.verified;
-      case DomainVerificationStatus.verifying:
-        return DomainStatus.verifying;
-      case DomainVerificationStatus.pending:
-        return DomainStatus.pending;
-      case DomainVerificationStatus.failed:
-        return DomainStatus.failed;
-    }
   }
 
   void _navigateToDnsConfig(BuildContext context, CustomDomain domain) {
@@ -230,15 +244,20 @@ class CustomDomainsSection extends ConsumerWidget {
           ElevatedButton(
             onPressed: () {
               final domain = controller.text.trim();
+              final error = InputValidators.combine([
+                () => InputValidators.required(domain, 'Domain'),
+                () => InputValidators.domain(domain),
+              ]);
+              if (error != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(error), backgroundColor: Colors.red),
+                );
+                return;
+              }
               if (domain.isNotEmpty) {
                 ref
-                    .read(customDomainsProvider.notifier)
-                    .addDomain(
-                      domain,
-                      description: descController.text.trim().isEmpty
-                          ? null
-                          : descController.text.trim(),
-                    );
+                    .read(customDomainsNotifierProvider.notifier)
+                    .addDomainStr(domain);
                 Navigator.of(context).pop();
               }
             },
@@ -287,7 +306,9 @@ class CustomDomainsSection extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              ref.read(customDomainsProvider.notifier).removeDomain(domain.id);
+              ref
+                  .read(customDomainsNotifierProvider.notifier)
+                  .removeDomain(domain.id);
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(
