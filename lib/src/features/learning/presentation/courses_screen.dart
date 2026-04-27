@@ -19,7 +19,7 @@ class CoursesScreen extends ConsumerWidget {
     final List<LearningItem> allItems = itemsAsync.when(
       data: (data) => data,
       loading: () => <LearningItem>[],
-      error: (_, __) => <LearningItem>[],
+      error: (_, _) => <LearningItem>[],
     );
     final courses = allItems.where((i) => i.type == 'course').toList();
     final inProgress = courses.where((i) => i.status == 'in_progress').toList();
@@ -314,12 +314,8 @@ class _CourseCard extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  isActive
-                      ? AppColors.primary.withAlpha(51)
-                      : AppColors.surfaceContainerHighest,
-                  isActive
-                      ? AppColors.secondary.withAlpha(26)
-                      : AppColors.surfaceContainer,
+                  if (isActive) AppColors.primary.withAlpha(51) else AppColors.surfaceContainerHighest,
+                  if (isActive) AppColors.secondary.withAlpha(26) else AppColors.surfaceContainer,
                 ],
               ),
               color: isPaused ? AppColors.surfaceContainerHighest : null,

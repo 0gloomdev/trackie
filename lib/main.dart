@@ -33,7 +33,7 @@ class AuraLearningApp extends ConsumerWidget {
     return settingsAsync.when(
       data: (settings) {
         if (settings == null) {
-          return MaterialApp(
+          return const MaterialApp(
             home: Scaffold(
               body: Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
@@ -66,7 +66,7 @@ class AuraLearningApp extends ConsumerWidget {
               : const OnboardingScreen(),
         );
       },
-      loading: () => MaterialApp(
+      loading: () => const MaterialApp(
         home: Scaffold(
           body: Center(
             child: CircularProgressIndicator(color: AppColors.primary),

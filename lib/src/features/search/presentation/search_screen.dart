@@ -61,7 +61,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final List<LearningItem> items = itemsAsync.when(
       data: (data) => data,
       loading: () => <LearningItem>[],
-      error: (_, __) => <LearningItem>[],
+      error: (_, _) => <LearningItem>[],
     );
     final filteredItems = _filterItems(items);
 
@@ -121,11 +121,11 @@ class _Header extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: onClose,
         ),
         const SizedBox(width: 8),
-        Text(
+        const Text(
           'Search',
           style: TextStyle(
             fontSize: 28,
@@ -230,7 +230,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             hasQuery ? 'No results' : 'Search library',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.white,

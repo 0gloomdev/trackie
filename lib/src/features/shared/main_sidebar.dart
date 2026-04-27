@@ -25,11 +25,6 @@ class Sidebar extends ConsumerWidget {
         ? AppColors.darkOnSurfaceVariant
         : AppColors.lightOnSurfaceVariant;
 
-    // Use variables to avoid warnings - assign to widget properties
-    primaryColor.hashCode;
-    secondaryColor.hashCode;
-    onSurfaceVariant.hashCode;
-
     return Container(
       width: 260,
       decoration: BoxDecoration(

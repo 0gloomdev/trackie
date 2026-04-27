@@ -49,7 +49,7 @@ class AchievementsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Header(),
+                      const _Header(),
                       const SizedBox(height: 24),
                       _XPStatsCard(
                         unlockedCount: unlockedCount,
@@ -85,7 +85,7 @@ class AchievementsScreen extends ConsumerWidget {
           ),
         );
       },
-      loading: () => Scaffold(
+      loading: () => const Scaffold(
         backgroundColor: AppColors.surfaceContainerLowest,
         body: Center(
           child: CircularProgressIndicator(color: AppColors.primary),
@@ -187,7 +187,7 @@ class _XPStatsCard extends StatelessWidget {
                 ),
                 child: Container(
                   margin: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: AppColors.brandGradient,
                   ),
@@ -514,7 +514,7 @@ class _AchievementCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.primary.withAlpha(51)),
                 ),
-                child: Text(
+                child: const Text(
                   'Close',
                   style: TextStyle(
                     color: AppColors.primary,

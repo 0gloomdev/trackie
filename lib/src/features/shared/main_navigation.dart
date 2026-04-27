@@ -169,23 +169,23 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         },
         destinations: [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon: const Icon(Icons.dashboard),
             label: titles[0],
           ),
           NavigationDestination(
-            icon: Icon(Icons.auto_stories_outlined),
-            selectedIcon: Icon(Icons.auto_stories),
+            icon: const Icon(Icons.auto_stories_outlined),
+            selectedIcon: const Icon(Icons.auto_stories),
             label: titles[1],
           ),
           NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
+            icon: const Icon(Icons.school_outlined),
+            selectedIcon: const Icon(Icons.school),
             label: titles[2],
           ),
           NavigationDestination(
-            icon: Icon(Icons.military_tech_outlined),
-            selectedIcon: Icon(Icons.military_tech),
+            icon: const Icon(Icons.military_tech_outlined),
+            selectedIcon: const Icon(Icons.military_tech),
             label: titles[3],
           ),
         ],

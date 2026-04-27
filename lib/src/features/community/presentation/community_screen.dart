@@ -141,7 +141,7 @@ class _FeedContentState extends State<_FeedContent> {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: _HeroBanner()),
+        const SliverToBoxAdapter(child: _HeroBanner()),
         if (widget.polls.isNotEmpty)
           SliverToBoxAdapter(child: _PollsSection(polls: widget.polls)),
         SliverToBoxAdapter(
@@ -609,21 +609,21 @@ class _RightSidebar extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _LeaderboardItem(
+                const _LeaderboardItem(
                   rank: 1,
                   name: 'AstroLearner',
                   xp: '24.8k',
                   color: AppColors.primary,
                 ),
                 const SizedBox(height: 12),
-                _LeaderboardItem(
+                const _LeaderboardItem(
                   rank: 2,
                   name: 'StarGazer',
                   xp: '22.1k',
                   color: AppColors.secondary,
                 ),
                 const SizedBox(height: 12),
-                _LeaderboardItem(
+                const _LeaderboardItem(
                   rank: 3,
                   name: 'NebulaRunner',
                   xp: '21.5k',

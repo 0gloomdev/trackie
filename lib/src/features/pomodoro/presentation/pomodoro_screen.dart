@@ -92,11 +92,11 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.shadcnBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.celebration, color: Colors.amber),
-            const SizedBox(width: 8),
-            const Text(
+            SizedBox(width: 8),
+            Text(
               'Session completed!',
               style: TextStyle(color: Colors.white),
             ),
@@ -110,7 +110,7 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [AppColors.shadcnPrimary, AppColors.shadcnSecondary],
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -222,7 +222,7 @@ class _Header extends StatelessWidget {
             const Spacer(),
           ],
         ),
-        Text(
+        const Text(
           'Pomodoro',
           style: TextStyle(
             fontSize: 40,
@@ -306,7 +306,7 @@ class _TimerCircle extends StatelessWidget {
             children: [
               Text(
                 _formatTime(timeLeft),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 56,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
@@ -547,7 +547,7 @@ class _TodayStats extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.local_fire_department,
             color: AppColors.tertiary,
             size: 24,

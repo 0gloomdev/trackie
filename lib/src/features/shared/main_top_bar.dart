@@ -10,7 +10,8 @@ class TopBar extends ConsumerWidget {
   final VoidCallback? onCreateTap;
   final VoidCallback? onPomodoroTap;
 
-  const TopBar({super.key, 
+  const TopBar({
+    super.key,
     required this.title,
     required this.isDark,
     required this.locale,
@@ -24,10 +25,6 @@ class TopBar extends ConsumerWidget {
     final onSurface = isDark
         ? AppColors.darkOnSurface
         : AppColors.lightOnSurface;
-
-    // Use variables to avoid warnings
-    onSurface.hashCode;
-    onSurfaceVariant.hashCode;
 
     return Container(
       height: 64,
