@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../core/theme/app_colors.dart';
-import 'providers/drift_providers.dart';
 
 class TopBar extends ConsumerWidget {
   final String title;
@@ -26,9 +24,6 @@ class TopBar extends ConsumerWidget {
     final onSurface = isDark
         ? AppColors.darkOnSurface
         : AppColors.lightOnSurface;
-    final onSurfaceVariant = isDark
-        ? AppColors.darkOnSurfaceVariant
-        : AppColors.lightOnSurfaceVariant;
 
     return Container(
       height: 64,

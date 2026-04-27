@@ -27,7 +27,7 @@ class AuraLearningApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
+    ref.watch(databaseProvider);
     final settingsAsync = ref.watch(settingsProvider);
 
     return settingsAsync.when(

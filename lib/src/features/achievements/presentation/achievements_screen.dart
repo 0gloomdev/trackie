@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/glass_design.dart';
 import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
@@ -433,7 +432,7 @@ class _AchievementCard extends StatelessWidget {
                     : null,
               ),
               child: Icon(
-                _getAchievementIcon(achievement.type),
+                _getAchievementIcon(achievement.category),
                 size: 48,
                 color: isUnlocked
                     ? AppColors.primary
@@ -442,57 +441,44 @@ class _AchievementCard extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-                      achievement.name,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.cardTitle.copyWith(
-                        color: isUnlocked
-                            ? AppColors.onSurface
-                            : AppColors.onSurface.withAlpha(128),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      achievement.description,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodySmall,
-                    ),
-                    const SizedBox(height: 8),
-                    if (isUnlocked)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(51),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          'Unlocked',
-                          style: AppTypography.typeBadge.copyWith(
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      )
-                    else
-                      Text(
-                        '+${achievement.xpReward} XP',
-                        style: AppTypography.caption,
-                      ),
+              achievement.name,
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.cardTitle.copyWith(
+                color: isUnlocked
+                    ? AppColors.onSurface
+                    : AppColors.onSurface.withAlpha(128),
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
             Text(
               achievement.description,
-              style: AppTypography.body.copyWith(
-                color: AppColors.onSurfaceVariant,
-              ),
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.bodySmall,
             ),
+            const SizedBox(height: 8),
+            if (isUnlocked)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withAlpha(51),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Unlocked',
+                  style: AppTypography.typeBadge.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+              )
+            else
+              Text('+${achievement.xpReward} XP', style: AppTypography.caption),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

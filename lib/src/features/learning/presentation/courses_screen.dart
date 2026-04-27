@@ -7,7 +7,6 @@ import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../services/models/models.dart';
 import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
-import '../../detail/presentation/item_detail_screen.dart';
 import '../../search/presentation/search_screen.dart';
 
 class CoursesScreen extends ConsumerWidget {
@@ -15,9 +14,14 @@ class CoursesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(learningItemsProvider);
+    final itemsAsync = ref.watch(learningItemsProvider);
     final customization = ref.watch(customizationProvider);
-    final courses = items.where((i) => i.type == 'course').toList();
+    final List<LearningItem> allItems = itemsAsync.when(
+      data: (data) => data,
+      loading: () => <LearningItem>[],
+      error: (_, __) => <LearningItem>[],
+    );
+    final courses = allItems.where((i) => i.type == 'course').toList();
     final inProgress = courses.where((i) => i.status == 'in_progress').toList();
     final completed = courses.where((i) => i.status == 'completed').toList();
     final pending = courses.where((i) => i.status == 'pending').toList();
@@ -472,11 +476,8 @@ class _CourseCard extends StatelessWidget {
           const SizedBox(width: 32),
           // Button
           ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ItemDetailScreen(itemId: item.id),
-              ),
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Course details coming soon')),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: isActive

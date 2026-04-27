@@ -56,8 +56,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final items = ref.watch(learningItemsProvider);
+    final itemsAsync = ref.watch(learningItemsProvider);
     final customization = ref.watch(customizationProvider);
+    final List<LearningItem> items = itemsAsync.when(
+      data: (data) => data,
+      loading: () => <LearningItem>[],
+      error: (_, __) => <LearningItem>[],
+    );
     final filteredItems = _filterItems(items);
 
     final effectivePadding = customization.compactMode ? 16.0 : 24.0;

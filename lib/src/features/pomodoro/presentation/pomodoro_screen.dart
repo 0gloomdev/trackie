@@ -27,7 +27,7 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
   }
 
   void _startTimer() {
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.running;
+    ref.read(pomodoroStateProvider.notifier).setRunning();
     ref.read(pomodoroTimeProvider.notifier).state = _selectedMinutes * 60;
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -42,11 +42,11 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
 
   void _pauseTimer() {
     _timer?.cancel();
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.paused;
+    ref.read(pomodoroStateProvider.notifier).setPaused();
   }
 
   void _resumeTimer() {
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.running;
+    ref.read(pomodoroStateProvider.notifier).setRunning();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final currentTime = ref.read(pomodoroTimeProvider);
       if (currentTime > 0) {
@@ -59,13 +59,13 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
 
   void _resetTimer() {
     _timer?.cancel();
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.idle;
+    ref.read(pomodoroStateProvider.notifier).setIdle();
     ref.read(pomodoroTimeProvider.notifier).state = _selectedMinutes * 60;
   }
 
   void _completeSession() {
     _timer?.cancel();
-    ref.read(pomodoroStateProvider.notifier).state = PomodoroState.idle;
+    ref.read(pomodoroStateProvider.notifier).setIdle();
     ref
         .read(pomodoroSessionsNotifierProvider.notifier)
         .startSession(durationMinutes: _selectedMinutes);

@@ -8,7 +8,7 @@ import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
 import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
-import '../../detail/presentation/item_detail_screen.dart';
+
 import '../../achievements/presentation/achievements_screen.dart';
 
 class HomeTab extends ConsumerWidget {
@@ -35,7 +35,7 @@ class HomeTab extends ConsumerWidget {
         children: [
           _HeroSection(profileAsync: profileAsync),
           const SizedBox(height: 32),
-          _StatsGrid(activitiesAsync: activitiesAsync),
+          
           const SizedBox(height: 32),
           if (isDesktop) ...[
             Row(
@@ -43,14 +43,22 @@ class HomeTab extends ConsumerWidget {
               children: [
                 Expanded(
                   flex: 2,
-                  child: _WeeklyChart(activitiesAsync: activitiesAsync),
+                  child: activitiesAsync.when(
+            data: (weeklyActivity) => _WeeklyChart(weeklyActivity: weeklyActivity),
+            loading: () => const CircularProgressIndicator(),
+            error: (_, __) => const SizedBox(),
+          ),
                 ),
                 const SizedBox(width: 24),
                 Expanded(flex: 1, child: const _AchievementsPreview()),
               ],
             ),
           ] else ...[
-            _WeeklyChart(activitiesAsync: activitiesAsync),
+            activitiesAsync.when(
+              data: (weeklyActivity) => _WeeklyChart(weeklyActivity: weeklyActivity),
+              loading: () => const CircularProgressIndicator(),
+              error: (_, __) => const SizedBox(),
+            ),
             const SizedBox(height: 32),
             const _AchievementsPreview(),
           ],
@@ -64,14 +72,18 @@ class HomeTab extends ConsumerWidget {
 }
 
 class _HeroSection extends StatelessWidget {
-  final UserProfile? profile;
-  final int weekItems;
+  final AsyncValue<UserProfile?> profileAsync;
 
-  const _HeroSection({this.profile, required this.weekItems});
+  const _HeroSection({required this.profileAsync});
 
   @override
-  Widget build(BuildContext context) {
-    final hour = DateTime.now().hour;
+Widget build(BuildContext context) {
+  final profile = profileAsync.when(
+    data: (p) => p,
+    loading: () => null,
+    error: (_, __) => null,
+  );
+  final hour = DateTime.now().hour;
     String greeting;
     if (hour < 12) {
       greeting = 'Good morning';
@@ -182,7 +194,7 @@ class _HeroSection extends StatelessWidget {
                 shaderCallback: (bounds) =>
                     AppColors.brandGradient.createShader(bounds),
                 child: Text(
-                  '${profile?.nombre.isNotEmpty == true ? profile!.nombre : 'User'}!',
+                  '${profile?.username.isNotEmpty == true ? profile!.username : 'User'}!',
                   style: AppTypography.heroTitle.copyWith(
                     color: Colors.white,
                     fontSize: 56,
@@ -206,139 +218,7 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
-class _StatsGrid extends StatelessWidget {
-  final Analytics analytics;
 
-  const _StatsGrid({required this.analytics});
-
-  @override
-  Widget build(BuildContext context) {
-    final weekItems = analytics.weeklyActivity.fold(
-      0,
-      (sum, a) => sum + a.itemsCompleted,
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 600;
-
-        if (isMobile) {
-          return Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      title: 'Total Items',
-                      value: '${analytics.totalItems}',
-                      icon: Icons.storage,
-                      iconColor: AppColors.secondary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      title: 'This Week',
-                      value: '+$weekItems',
-                      icon: Icons.trending_up,
-                      iconColor: AppColors.primary,
-                      accent: 'Expanded',
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      title: 'Completed',
-                      value:
-                          '${(analytics.completionRate * 100).toStringAsFixed(0)}%',
-                      icon: Icons.task_alt,
-                      iconColor: AppColors.tertiary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      title: 'Current Streak',
-                      value: '${analytics.currentStreak}',
-                      icon: Icons.bolt,
-                      iconColor: AppColors.secondary,
-                      accent: 'days',
-                      isHighlighted: true,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          );
-        }
-
-        return Row(
-          children: [
-            Expanded(
-              child:
-                  _StatCard(
-                        title: 'Total Items',
-                        value: '${analytics.totalItems}',
-                        icon: Icons.storage,
-                        iconColor: AppColors.secondary,
-                      )
-                      .animate(delay: 100.ms)
-                      .fadeIn(duration: 400.ms)
-                      .slideY(begin: 0.2, end: 0),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child:
-                  _StatCard(
-                        title: 'This Week',
-                        value: '+$weekItems',
-                        icon: Icons.trending_up,
-                        iconColor: AppColors.primary,
-                        accent: 'Expanded',
-                      )
-                      .animate(delay: 200.ms)
-                      .fadeIn(duration: 400.ms)
-                      .slideY(begin: 0.2, end: 0),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child:
-                  _StatCard(
-                        title: 'Completed',
-                        value:
-                            '${(analytics.completionRate * 100).toStringAsFixed(0)}%',
-                        icon: Icons.task_alt,
-                        iconColor: AppColors.tertiary,
-                      )
-                      .animate(delay: 300.ms)
-                      .fadeIn(duration: 400.ms)
-                      .slideY(begin: 0.2, end: 0),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child:
-                  _StatCard(
-                        title: 'Current Streak',
-                        value: '${analytics.currentStreak}',
-                        icon: Icons.bolt,
-                        iconColor: AppColors.secondary,
-                        accent: 'days',
-                        isHighlighted: true,
-                      )
-                      .animate(delay: 400.ms)
-                      .fadeIn(duration: 400.ms)
-                      .slideY(begin: 0.2, end: 0),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
 
 class _StatCard extends StatelessWidget {
   final String title;
@@ -625,12 +505,7 @@ class _RecentItemsSectionState extends State<_RecentItemsSection> {
               return _RecentItemCard(
                 item: item,
                 index: index,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ItemDetailScreen(itemId: item.id),
-                  ),
-                ),
+                
               );
             },
           ),

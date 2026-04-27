@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
-import '../../../shared/widgets/glass_design.dart';
 import '../../../services/database/database.dart';
 import '../../shared/providers/drift_providers.dart';
 
@@ -430,8 +429,8 @@ class _PostCard extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    post.authorName?.isNotEmpty == true
-                        ? post.authorName![0].toUpperCase()
+                    post.authorName.isNotEmpty
+                        ? post.authorName[0].toUpperCase()
                         : 'U',
                     style: const TextStyle(
                       fontSize: 20,
@@ -446,10 +445,7 @@ class _PostCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      post.authorName ?? 'Voyager',
-                      style: AppTypography.cardTitle,
-                    ),
+                    Text(post.authorName, style: AppTypography.cardTitle),
                     Text(
                       'UPDATE', // Since we don't have type in CommunityPosts table yet
                       style: AppTypography.typeBadge.copyWith(

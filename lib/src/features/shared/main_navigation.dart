@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/app_colors.dart';
 import '../../core/utils/page_transitions.dart';
 import '../../core/utils/translations.dart';
 import '../achievements/presentation/achievements_screen.dart';
@@ -104,7 +103,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                 TopBar(
                   title: titles[_currentIndex],
                   isDark: isDark,
-                  locale: settings.locale,
+                  locale: settings?.locale ?? 'en',
                   onSearchTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const SearchScreen()),
