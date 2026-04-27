@@ -5,7 +5,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/glass_design.dart';
-import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
 import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
@@ -47,11 +46,11 @@ class HomeTab extends ConsumerWidget {
                         _WeeklyChart(weeklyActivity: weeklyActivity),
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => const SizedBox(),
+                    error: (_, _) => const SizedBox(),
                   ),
                 ),
                 const SizedBox(width: DesignTokens.spaceLg),
-                Expanded(flex: 1, child: const _AchievementsPreview()),
+                const Expanded(flex: 1, child: _AchievementsPreview()),
               ],
             ),
           ] else ...[
@@ -59,7 +58,7 @@ class HomeTab extends ConsumerWidget {
               data: (weeklyActivity) =>
                   _WeeklyChart(weeklyActivity: weeklyActivity),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => const SizedBox(),
+              error: (_, _) => const SizedBox(),
             ),
             const SizedBox(height: DesignTokens.spaceLg),
             const _AchievementsPreview(),
@@ -83,7 +82,7 @@ class _HeroSection extends StatelessWidget {
     final profile = profileAsync.when(
       data: (p) => p,
       loading: () => null,
-      error: (_, __) => null,
+      error: (_, _) => null,
     );
     final hour = DateTime.now().hour;
     String greeting;
@@ -233,8 +232,6 @@ class _StatCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.iconColor,
-    this.accent,
-    this.isHighlighted = false,
   });
 
   @override
@@ -306,10 +303,10 @@ class _WeeklyChart extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Row(
+                  const Row(
                     children: [
                       _ChartFilterButton(label: 'Daily', isActive: false),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _ChartFilterButton(label: 'Weekly', isActive: true),
                     ],
                   ),
@@ -539,7 +536,7 @@ class _RecentItemCard extends StatelessWidget {
   final int index;
   final VoidCallback? onTap;
 
-  const _RecentItemCard({required this.item, required this.index, this.onTap});
+  const _RecentItemCard({required this.item, required this.index});
 
   Color _getTypeColor() {
     switch (item.type.toLowerCase()) {
@@ -589,9 +586,9 @@ class _RecentItemCard extends StatelessWidget {
             // Image area
             Container(
               height: 160,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.surfaceContainerHighest,
-                borderRadius: const BorderRadius.vertical(
+                borderRadius: BorderRadius.vertical(
                   top: Radius.circular(24),
                 ),
               ),
@@ -661,7 +658,7 @@ class _RecentItemCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text('Last modified: recently', style: AppTypography.caption),
                   const SizedBox(height: 16),
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Icon(
