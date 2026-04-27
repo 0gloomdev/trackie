@@ -6,6 +6,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
+import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
 import '../../editor/presentation/editor_screen.dart';
 
