@@ -216,7 +216,7 @@ class _HeroSection extends StatelessWidget {
           ),
         ),
       ],
-    ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.1, end: 0);
+    ).animate().fadeIn(duration: DesignTokens.slideIn).slideY(begin: -0.1, end: 0);
   }
 }
 
@@ -324,7 +324,7 @@ class _WeeklyChart extends StatelessWidget {
           ),
         )
         .animate()
-        .fadeIn(delay: 200.ms, duration: 500.ms)
+        .fadeIn(delay: DesignTokens.animFast, duration: DesignTokens.animSlow)
         .slideY(begin: 0.1, end: 0);
   }
 }

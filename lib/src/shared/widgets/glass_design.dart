@@ -29,6 +29,11 @@ class DesignTokens {
   static const Duration scale = Duration(milliseconds: 200);
   static const Duration glowPulse = Duration(milliseconds: 1500);
   static const Duration tabSwitch = Duration(milliseconds: 300);
+  static const Duration slideIn = Duration(milliseconds: 600);
+  static const Duration stagger = Duration(milliseconds: 100);
+  static const Duration animFast = Duration(milliseconds: 150);
+  static const Duration animNormal = Duration(milliseconds: 300);
+  static const Duration animSlow = Duration(milliseconds: 500);
 
   // Glass Effect
   static const double glassBlur = 25.0;
@@ -374,8 +379,14 @@ class _GlassFloatingActionButtonState extends State<GlassFloatingActionButton>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              if (_isPressed) widget.color.withAlpha(77) else widget.color.withAlpha(51),
-              if (_isPressed) widget.color.withAlpha(102) else widget.color.withAlpha(26),
+              if (_isPressed)
+                widget.color.withAlpha(77)
+              else
+                widget.color.withAlpha(51),
+              if (_isPressed)
+                widget.color.withAlpha(102)
+              else
+                widget.color.withAlpha(26),
             ],
           ),
           border: Border.all(

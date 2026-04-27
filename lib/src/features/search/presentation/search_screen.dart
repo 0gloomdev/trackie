@@ -135,7 +135,7 @@ class _Header extends StatelessWidget {
             fontWeight: FontWeight.w800,
             color: Colors.white,
           ),
-        ).animate().fadeIn(duration: 400.ms),
+        ).animate().fadeIn(duration: DesignTokens.fadeIn),
       ],
     );
   }
@@ -165,7 +165,7 @@ class _SearchInput extends StatelessWidget {
             )
           : null,
       onChanged: onChanged,
-    ).animate(delay: 100.ms).fadeIn().slideY(begin: -0.1);
+    ).animate(delay: DesignTokens.stagger).fadeIn().slideY(begin: -0.1);
   }
 }
 

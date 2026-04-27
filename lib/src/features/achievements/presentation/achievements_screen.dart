@@ -144,7 +144,7 @@ class _Header extends StatelessWidget {
           ],
         ),
       ],
-    ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2);
+    ).animate().fadeIn(duration: DesignTokens.slideIn).slideY(begin: -0.2);
   }
 }
 

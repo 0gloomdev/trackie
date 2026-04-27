@@ -472,7 +472,7 @@ class _HeroCard extends StatelessWidget {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1);
+    ).animate().fadeIn(duration: DesignTokens.slideIn).slideY(begin: 0.1);
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../services/database/database.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
+import '../../../shared/widgets/glass_design.dart';
 import '../../shared/providers/drift_providers.dart';
 import '../../shared/providers/customization_provider.dart';
 
@@ -96,10 +97,7 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
           children: [
             Icon(Icons.celebration, color: Colors.amber),
             SizedBox(width: 8),
-            Text(
-              'Session completed!',
-              style: TextStyle(color: Colors.white),
-            ),
+            Text('Session completed!', style: TextStyle(color: Colors.white)),
           ],
         ),
         content: Column(
@@ -230,16 +228,18 @@ class _Header extends StatelessWidget {
             letterSpacing: -1,
             color: Colors.white,
           ),
-        ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2),
+        ).animate().fadeIn(duration: DesignTokens.slideIn).slideY(begin: -0.2),
         const SizedBox(height: 4),
         Text(
-          'Focus and reach your goals',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white.withAlpha(179),
-            fontWeight: FontWeight.w500,
-          ),
-        ).animate(delay: 100.ms).fadeIn(duration: 600.ms),
+              'Focus and reach your goals',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white.withAlpha(179),
+                fontWeight: FontWeight.w500,
+              ),
+            )
+            .animate(delay: DesignTokens.stagger)
+            .fadeIn(duration: DesignTokens.slideIn),
       ],
     );
   }
@@ -262,72 +262,79 @@ class _TimerCircle extends StatelessWidget {
     final isRunning = state == PomodoroState.running;
 
     return SizedBox(
-      width: 280,
-      height: 280,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: 260,
-            height: 260,
-            child: CircularProgressIndicator(
-              value: 1,
-              strokeWidth: 12,
-              color: Colors.white.withAlpha(13),
-            ),
-          ),
-          SizedBox(
-            width: 260,
-            height: 260,
-            child: CircularProgressIndicator(
-              value: progress,
-              strokeWidth: 12,
-              backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation(
-                isRunning ? AppColors.shadcnSecondary : AppColors.shadcnPrimary,
-              ),
-            ),
-          ),
-          if (isRunning)
-            SizedBox(
-              width: 240,
-              height: 240,
-              child: CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 8,
-                backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation(
-                  AppColors.shadcnSecondary.withAlpha(77),
-                ),
-              ),
-            ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
+          width: 280,
+          height: 280,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              Text(
-                _formatTime(timeLeft),
-                style: const TextStyle(
-                  fontSize: 56,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: 2,
+              SizedBox(
+                width: 260,
+                height: 260,
+                child: CircularProgressIndicator(
+                  value: 1,
+                  strokeWidth: 12,
+                  color: Colors.white.withAlpha(13),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                _getStateLabel(state),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isRunning ? AppColors.shadcnSecondary : Colors.white54,
-                  letterSpacing: 2,
+              SizedBox(
+                width: 260,
+                height: 260,
+                child: CircularProgressIndicator(
+                  value: progress,
+                  strokeWidth: 12,
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation(
+                    isRunning
+                        ? AppColors.shadcnSecondary
+                        : AppColors.shadcnPrimary,
+                  ),
                 ),
+              ),
+              if (isRunning)
+                SizedBox(
+                  width: 240,
+                  height: 240,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 8,
+                    backgroundColor: Colors.transparent,
+                    valueColor: AlwaysStoppedAnimation(
+                      AppColors.shadcnSecondary.withAlpha(77),
+                    ),
+                  ),
+                ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _formatTime(timeLeft),
+                    style: const TextStyle(
+                      fontSize: 56,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _getStateLabel(state),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isRunning
+                          ? AppColors.shadcnSecondary
+                          : Colors.white54,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.9, 0.9));
+        )
+        .animate()
+        .fadeIn(delay: DesignTokens.tabSwitch)
+        .scale(begin: const Offset(0.9, 0.9));
   }
 
   String _formatTime(int seconds) {
@@ -386,7 +393,7 @@ class _TimerControls extends StatelessWidget {
         const SizedBox(width: 24),
         if (state != PomodoroState.idle) const SizedBox(width: 56),
       ],
-    ).animate(delay: 300.ms).fadeIn();
+    ).animate(delay: const Duration(milliseconds: 300)).fadeIn();
   }
 }
 
@@ -531,7 +538,7 @@ class _SessionSelector extends StatelessWidget {
           );
         }).toList(),
       ),
-    ).animate(delay: 400.ms).fadeIn();
+    ).animate(delay: const Duration(milliseconds: 400)).fadeIn();
   }
 }
 
@@ -543,26 +550,29 @@ class _TodayStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ShadcnCard(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.local_fire_department,
-            color: AppColors.tertiary,
-            size: 24,
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.local_fire_department,
+                color: AppColors.tertiary,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '$todaySessions sessions today',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Text(
-            '$todaySessions sessions today',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    ).animate(delay: 500.ms).fadeIn().slideY(begin: 0.1);
+        )
+        .animate(delay: const Duration(milliseconds: 500))
+        .fadeIn()
+        .slideY(begin: 0.1);
   }
 }
