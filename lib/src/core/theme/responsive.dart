@@ -208,7 +208,6 @@ class ResponsiveGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final columns = context.gridColumns;
-    final type = context.deviceType;
 
     return Wrap(
       spacing: spacing,
