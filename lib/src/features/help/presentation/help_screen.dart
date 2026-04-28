@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/glass_design.dart';
 import '../../shared/providers/customization_provider.dart';
@@ -30,8 +31,9 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isDesktop = width >= 1024;
+    final deviceType = context.deviceType;
+    final isDesktop =
+        deviceType == DeviceType.desktop || deviceType == DeviceType.wide;
     final customization = ref.watch(customizationProvider);
     final effectivePadding = customization.compactMode
         ? (isDesktop ? DesignTokens.spaceLg : DesignTokens.spaceMd)

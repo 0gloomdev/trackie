@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/responsive.dart';
 import '../../core/utils/page_transitions.dart';
 import '../../core/utils/translations.dart';
 import '../achievements/presentation/achievements_screen.dart';
@@ -64,8 +65,9 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final settingsAsync = ref.watch(settingsProvider);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth >= 900;
+    final deviceType = context.deviceType;
+    final isDesktop =
+        deviceType == DeviceType.desktop || deviceType == DeviceType.wide;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final titles = _getTitles(ref);
 

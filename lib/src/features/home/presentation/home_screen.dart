@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../shared/widgets/glass_design.dart';
 import '../../../services/models/models.dart';
@@ -20,13 +21,13 @@ class HomeTab extends ConsumerWidget {
     final recentItems = ref.watch(recentInProgressItemsProvider);
     final profileAsync = ref.watch(userProfileProvider);
     final customization = ref.watch(customizationProvider);
-    final width = MediaQuery.of(context).size.width;
-    final isDesktop = width >= 1024;
-    final isTablet = width >= 600 && width < 1024;
+    final deviceType = context.deviceType;
+    final isDesktop =
+        deviceType == DeviceType.desktop || deviceType == DeviceType.wide;
 
     final effectivePadding = customization.compactMode
-        ? 12.0
-        : (isDesktop ? 48.0 : (isTablet ? 24.0 : 16.0));
+        ? Responsive.spaceSm
+        : Responsive.padding(deviceType);
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(effectivePadding),

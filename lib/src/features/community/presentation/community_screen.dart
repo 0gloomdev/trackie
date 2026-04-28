@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/responsive.dart';
 import '../../../shared/widgets/shadcn_widgets.dart';
 import '../../../services/database/database.dart';
 import '../../shared/providers/drift_providers.dart';
@@ -73,8 +74,9 @@ class CommunityScreen extends ConsumerWidget {
     List<CommunityPost> polls,
   ) {
     final unlockedCount = achievements.where((a) => a.unlocked).length;
-    final width = MediaQuery.of(context).size.width;
-    final isDesktop = width >= 1024;
+    final deviceType = context.deviceType;
+    final isDesktop =
+        deviceType == DeviceType.desktop || deviceType == DeviceType.wide;
 
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLowest,
